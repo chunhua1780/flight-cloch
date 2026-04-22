@@ -1,1 +1,133 @@
 
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<title>Flight Wall V9 Fixed</title>
+
+<style>
+
+html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:-apple-system;
+    color:white;
+    transition:1s;
+}
+
+/* ================= TOP ================= */
+
+#top{
+    height:25%;
+    display:flex;
+    backdrop-filter:blur(30px);
+    background:rgba(255,255,255,0.08);
+}
+
+/* ================= MAIN ================= */
+
+#main{
+    height:75%;
+    display:flex;
+}
+
+.panel{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    flex-direction:column;
+}
+
+/* ================= BIG CLOCK ================= */
+
+.big{
+    font-size:clamp(80px,12vw,160px);
+    font-weight:200;
+    letter-spacing:3px;
+}
+
+.weather{
+    font-size:clamp(18px,2.5vw,28px);
+    margin-top:10px;
+}
+
+/* ================= THEMES ================= */
+
+.night{ background:#0b0f17; }
+.day{ background:#f5f6fb; color:#111; }
+.dust{ background:#2a1f1a; }
+
+</style>
+</head>
+
+<body>
+
+<div id="top"></div>
+
+<div id="main">
+
+    <div class="panel">
+        <div class="big" id="leftTime">--:--</div>
+        <div class="weather" id="leftWeather">☀️</div>
+    </div>
+
+    <div class="panel">
+        <div class="big" id="rightTime">--:--</div>
+        <div class="weather" id="rightWeather">☀️</div>
+    </div>
+
+</div>
+
+<script>
+
+function time(){
+    return new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});
+}
+
+function weatherIcon(){
+    let r=Math.random();
+    if(r<0.25) return "☀️";
+    if(r<0.5) return "⛅";
+    if(r<0.75) return "🌧";
+    return "🌪";
+}
+
+function theme(){
+    let h=new Date().getHours();
+
+    document.body.classList.remove("night","day","dust");
+
+    if(h<6||h>20) document.body.classList.add("night");
+    else document.body.classList.add("day");
+}
+
+function render(){
+
+    theme();
+
+    document.getElementById("leftTime").innerText=time();
+    document.getElementById("rightTime").innerText=time();
+
+    document.getElementById("leftWeather").innerText=weatherIcon()+" DXB";
+    document.getElementById("rightWeather").innerText=weatherIcon()+" DEST";
+
+    document.getElementById("top").innerHTML=
+    "✈ EK FLIGHT STATUS | FROM → TO | WEATHER + NOTAM + PROGRESS";
+}
+
+setInterval(render,2000);
+render();
+
+</script>
+
+</body>
+</html>
