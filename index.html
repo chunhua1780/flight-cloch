@@ -1,131 +1,154 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<title>Flight Wall V9 Fixed</title>
+<title>Flight Wall</title>
 
 <style>
 
-html,body{
-    margin:0;
-    padding:0;
-    width:100%;
-    height:100%;
-    overflow:hidden;
-    font-family:-apple-system;
-    color:white;
-    transition:1s;
+/* ===================== BASE ===================== */
+body{
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:-apple-system, BlinkMacSystemFont, sans-serif;
+  overflow:hidden;
 }
 
-/* ================= TOP ================= */
-
+/* ===================== TOP FLIGHT PANEL ===================== */
 #top{
-    height:25%;
-    display:flex;
-    backdrop-filter:blur(30px);
-    background:rgba(255,255,255,0.08);
+  height:25%;
+  padding:24px;
+  box-sizing:border-box;
+  background:linear-gradient(180deg,#111,#000);
+  border-bottom:1px solid #222;
+  font-size:24px;
+  font-weight:300;
+  line-height:1.6;
 }
 
-/* ================= MAIN ================= */
-
-#main{
-    height:75%;
-    display:flex;
+/* 高亮文字 */
+.highlight{
+  color:#00ffd5;
+  font-weight:500;
+}
+.warn{
+  color:#ffcc00;
 }
 
-.panel{
-    flex:1;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    flex-direction:column;
+/* ===================== CLOCK AREA ===================== */
+#clocks{
+  height:75%;
+  display:flex;
 }
 
-/* ================= BIG CLOCK ================= */
-
-.big{
-    font-size:clamp(80px,12vw,160px);
-    font-weight:200;
-    letter-spacing:3px;
+/* 每个时钟 */
+.clockBox{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  background:#000;
 }
 
-.weather{
-    font-size:clamp(18px,2.5vw,28px);
-    margin-top:10px;
+/* 大时钟 */
+.clock{
+  font-size:150px;
+  font-weight:100;
+  letter-spacing:2px;
+  color:#fff;
+  opacity:0.92;
 }
 
-/* ================= THEMES ================= */
+/* 标签 */
+.label{
+  margin-top:10px;
+  font-size:14px;
+  color:#666;
+  letter-spacing:2px;
+}
 
-.night{ background:#0b0f17; }
-.day{ background:#f5f6fb; color:#111; }
-.dust{ background:#2a1f1a; }
+/* ===================== SMALL WEATHER ===================== */
+#weather{
+  position:absolute;
+  top:12px;
+  right:16px;
+  font-size:14px;
+  color:#aaa;
+}
 
 </style>
 </head>
 
 <body>
 
-<div id="top"></div>
+<div id="weather">Loading weather...</div>
 
-<div id="main">
+<div id="top">Loading flight data...</div>
 
-    <div class="panel">
-        <div class="big" id="leftTime">--:--</div>
-        <div class="weather" id="leftWeather">☀️</div>
-    </div>
+<div id="clocks">
 
-    <div class="panel">
-        <div class="big" id="rightTime">--:--</div>
-        <div class="weather" id="rightWeather">☀️</div>
-    </div>
+  <div class="clockBox">
+    <div class="clock" id="clock1">--:--</div>
+    <div class="label">LOCAL TIME</div>
+  </div>
+
+  <div class="clockBox">
+    <div class="clock" id="clock2">--:--</div>
+    <div class="label">DEST TIME</div>
+  </div>
 
 </div>
 
 <script>
 
-function time(){
-    return new Date().toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"});
+// ================= CLOCK =================
+function updateClock(){
+  const now = new Date();
+
+  document.getElementById("clock1").innerText =
+    now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+
+  // 模拟目的地时间（+3小时）
+  const dest = new Date(now.getTime() + 3*3600000);
+
+  document.getElementById("clock2").innerText =
+    dest.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
 }
 
-function weatherIcon(){
-    let r=Math.random();
-    if(r<0.25) return "☀️";
-    if(r<0.5) return "⛅";
-    if(r<0.75) return "🌧";
-    return "🌪";
+// ================= LOAD FLIGHT DATA =================
+async function loadData(){
+
+  const url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/data.json";
+
+  try{
+    const res = await fetch(url);
+    const data = await res.json();
+
+    document.getElementById("top").innerHTML = `
+      ✈ <span class="highlight">${data.airline} ${data.flight_number}</span><br>
+      ${data.from.iata} → ${data.to.iata}<br>
+      Departure: ${data.schedule.departure_time} | Arrival: ${data.schedule.arrival_time}<br>
+      Status: <span class="warn">${data.status}</span><br>
+      Phase: ${data.flight_state.phase}
+    `;
+
+    document.getElementById("weather").innerText =
+      `🌤 ${data.from.iata} ${data.weather_hint.origin_temp}° | ${data.to.iata} ${data.weather_hint.destination_temp}°`;
+
+  }catch(e){
+    document.getElementById("top").innerHTML =
+      "⚠ Failed to load flight data";
+  }
 }
 
-function theme(){
-    let h=new Date().getHours();
-
-    document.body.classList.remove("night","day","dust");
-
-    if(h<6||h>20) document.body.classList.add("night");
-    else document.body.classList.add("day");
-}
-
-function render(){
-
-    theme();
-
-    document.getElementById("leftTime").innerText=time();
-    document.getElementById("rightTime").innerText=time();
-
-    document.getElementById("leftWeather").innerText=weatherIcon()+" DXB";
-    document.getElementById("rightWeather").innerText=weatherIcon()+" DEST";
-
-    document.getElementById("top").innerHTML=
-    "✈ EK FLIGHT STATUS | FROM → TO | WEATHER + NOTAM + PROGRESS";
-}
-
-setInterval(render,2000);
-render();
+// ================= LOOP =================
+setInterval(updateClock,1000);
+updateClock();
+loadData();
 
 </script>
 
