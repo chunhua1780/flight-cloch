@@ -1,1 +1,39 @@
+{
+  "airline": "EK",
+  "flight_number": "EK705",
+  "from": {
+    "iata": "DXB",
+    "city": "Dubai"
+  },
+  "to": {
+    "iata": "LHR",
+    "city": "London"
+  },
 
+  "schedule": {
+    "departure_time": "06:00",
+    "arrival_time": "11:40",
+    "departure_date": "2026-04-23"
+  },
+
+  "status": "scheduled",
+
+  "flight_state": {
+    "phase": "preflight",
+    "description": "Scheduled - awaiting departure"
+  },
+
+  "layover": {
+    "is_layover": false,
+    "next_leg": null,
+    "layover_duration_minutes": 0
+  },
+
+  "weather_hint": {
+    "origin_temp": 30,
+    "destination_temp": 12,
+    "destination_condition": "cloudy"
+  },
+
+  "updated": "2026-04-22T10:00:00Z"
+}
