@@ -4,222 +4,228 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <title>Pilot Wall HUD - EK</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>Pilot HUD Pro - DXB</title>
     <style>
         :root {
-            --bg: #000;
-            --gold: #c1a35f;
-            --text: #ffffff;
-            --gray: #222;
+            --bg: #000; --gold: #c1a35f; --text: #fff; --gray: #222;
+            --main-font-size: 55vh; /* 默认巨型字体 */
         }
 
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+        body { 
+            margin: 0; background: var(--bg); color: var(--text); 
+            font-family: -apple-system, "SF Pro Display", sans-serif; 
+            overflow: hidden; height: 100vh; transition: background 2s ease;
         }
 
-        /* 顶部 1/4 飞行动态区 */
+        /* 顶部 1/4 HUD 区域 */
         #top-hud {
-            height: 25vh;
-            border-bottom: 2px solid var(--gray);
-            display: none; /* 默认隐藏，有航班且起飞后显示 */
-            padding: 1.5vh 2vw;
-            box-sizing: border-box;
-            background: #080808;
+            height: 25vh; border-bottom: 2px solid var(--gray); display: none;
+            padding: 1.5vh 2vw; box-sizing: border-box; background: rgba(10,10,10,0.9);
         }
 
-        /* 进度条 */
-        .progress-container { width: 100%; height: 12px; background: #1a1a1a; border-radius: 6px; margin-bottom: 1.5vh; overflow: hidden; }
-        #progress-bar { height: 100%; background: var(--gold); width: 0%; transition: width 2s linear; }
-
-        .hud-grid { display: grid; grid-template-columns: 1.5fr 1fr 1.5fr; height: 75%; align-items: center; }
-        .hud-item { display: flex; flex-direction: column; }
-        .hud-label { font-size: 2vh; color: #666; text-transform: uppercase; letter-spacing: 2px; }
-        .hud-val { font-size: 4.5vh; font-weight: bold; color: var(--gold); }
-
-        /* 主显示区 */
-        #main-display {
-            flex: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 2vh;
+        /* 进度条与飞机图标 */
+        .progress-line { width: 92%; height: 4px; background: #333; margin: 5vh auto; position: relative; }
+        #plane-marker { 
+            position: absolute; top: -20px; left: 0%; font-size: 32px; 
+            transition: left 2s linear; text-shadow: 0 0 15px var(--gold); 
         }
+        .prog-info { position: absolute; top: 30px; font-size: 1.8vh; color: #888; white-space: nowrap; }
 
-        /* 极巨化时钟 */
-        #clock {
-            font-size: 42vh; /* 极其巨大的字体 */
-            font-weight: 200;
-            line-height: 1;
-            letter-spacing: -1.5vh;
-            z-index: 1;
+        /* 主显示区 3/4 */
+        #main-display { height: 100vh; display: flex; transition: height 0.5s ease; }
+        .flight-active #main-display { height: 75vh; }
+
+        /* 左侧主展示 (时钟+天气) */
+        #left-zone { flex: 2; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+        #main-clock { font-size: var(--main-font-size); font-weight: 100; letter-spacing: -2vh; line-height: 0.9; }
+        .flight-active #main-clock { font-size: 25vh; }
+
+        /* 天气图标与大字 */
+        .weather-icon { font-size: 12vh; margin-bottom: -2vh; }
+        .temp-val { font-size: 8vh; font-weight: 200; color: var(--gold); }
+
+        /* 右下角地图区 (1/3) */
+        #map-zone { 
+            position: absolute; bottom: 2vh; right: 2vw; width: 33vw; height: 35vh; 
+            border-radius: 15px; border: 1px solid var(--gray); overflow: hidden; display: none;
         }
+        #map { width: 100%; height: 100%; }
 
-        /* 四角布局信息 */
-        .corner { position: absolute; display: flex; flex-direction: column; z-index: 2; }
-        
-        /* 左上：日期 */
-        #date-box { top: 3vh; left: 3vw; }
-        #date-val { font-size: 5vh; font-weight: 300; }
-        #day-val { font-size: 3vh; color: var(--gold); text-transform: uppercase; }
+        /* 风格变换定义 */
+        .style-night { --bg: #000; --text: #fff; filter: brightness(0.8); }
+        .style-day { --bg: #1a1a1a; --text: #eee; }
+        .style-sunrise { --bg: linear-gradient(135deg, #2c1a05 0%, #000 100%); --gold: #ffd700; }
+        .style-rainy { --bg: #0a0e14; }
 
-        /* 右上：迪拜天气 */
-        #weather-box { top: 3vh; right: 3vw; text-align: right; }
-        #dxb-temp { font-size: 9vh; font-weight: 200; color: var(--gold); line-height: 1; }
-        #dxb-desc { font-size: 3vh; color: #888; text-transform: uppercase; }
-
-        /* 左下：目的地/航班号状态 */
-        #flight-status-box { bottom: 3vh; left: 3vw; }
-        #flight-status-label { font-size: 3vh; color: #555; letter-spacing: 3px; }
-
-        /* 右下：高度速度(巡航时) */
-        #telemetry-box { bottom: 3vh; right: 3vw; text-align: right; }
-        
-        /* 响应式调整 */
-        .flight-active #top-hud { display: block; }
-        .flight-active #clock { font-size: 28vh; } /* 缩小一点给顶部腾位 */
+        /* Layover 双屏 */
+        #layover-panel { flex: 1; display: none; border-left: 1px solid var(--gray); flex-direction: column; justify-content: center; align-items: center; }
+        .mode-layover #layover-panel { display: flex; }
     </style>
 </head>
-<body>
+<body class="style-night">
 
     <div id="top-hud">
-        <div class="progress-container"><div id="progress-bar"></div></div>
-        <div class="hud-grid">
-            <div class="hud-item">
-                <div class="hud-label">Flight Info</div>
-                <div id="hud-flight-id" class="hud-val">--</div>
-                <div id="hud-route" style="font-size: 2.5vh; color: #888;">DXB ➔ ---</div>
+        <div id="hud-content">
+            <div id="cruise-hud" style="display:none;">
+                <div class="progress-line">
+                    <div id="plane-marker">✈️</div>
+                    <div id="info-left" class="prog-info" style="left:0;">DEP --:-- / 0 NM</div>
+                    <div id="info-right" class="prog-info" style="right:0; text-align:right;">ARR --:-- / -- NM</div>
+                </div>
             </div>
-            <div class="hud-item" style="text-align: center;">
-                <div class="hud-label">Live Radar</div>
-                <div id="hud-telemetry" class="hud-val">SEARCHING</div>
-                <div id="hud-dist" style="font-size: 2.5vh; color: #aaa;">-- NM REMAINING</div>
-            </div>
-            <div class="hud-item" style="text-align: right;">
-                <div class="hud-label">Time Elapsed</div>
-                <div id="hud-elapsed" class="hud-val">00:00</div>
-                <div id="hud-eta" style="font-size: 2.5vh; color: #aaa;">-- MIN TO LAND</div>
+            <div id="standby-hud" class="hud-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2vw; height: 80%;">
+                <div class="hud-cell">
+                    <div style="font-size: 1.6vh; color: #555;">MISSION</div>
+                    <div id="flight-id" style="font-size: 4vh; font-weight: bold; color: var(--gold);">EK ----</div>
+                    <div id="pickup-time" style="font-size: 2.2vh; color: #888;">PICKUP: --:--</div>
+                </div>
+                <div class="hud-cell" style="text-align: center;">
+                    <div id="dest-weather-icon" class="weather-icon" style="font-size: 5vh;">☀️</div>
+                    <div id="dest-weather-temp" style="font-size: 3vh; color: var(--gold);">--°C</div>
+                    <div style="font-size: 1.5vh; color: #666;">DESTINATION WX</div>
+                </div>
+                <div class="hud-cell" style="text-align: right;">
+                    <div style="font-size: 1.6vh; color: #555;">NOTAM BRIEF</div>
+                    <div id="notam-human" style="font-size: 1.8vh; color: #bbb; line-height: 1.2;">Checking airfield status...</div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="main-display">
-        <div id="date-box" class="corner">
-            <div id="date-val">01 JAN</div>
-            <div id="day-val">WEDNESDAY</div>
+        <div id="left-zone">
+            <div id="local-weather" style="position: absolute; top: 4vh; right: 4vw; text-align: right;">
+                <div id="main-weather-icon" class="weather-icon">☀️</div>
+                <div id="main-temp" class="temp-val">--°</div>
+                <div id="main-city" style="font-size: 2vh; color: #666; letter-spacing: 4px;">DUBAI</div>
+            </div>
+            <div id="date-info" style="position: absolute; top: 4vh; left: 4vw;">
+                <div id="date-val" style="font-size: 5vh;">-- ---</div>
+                <div id="day-val" style="font-size: 3vh; color: var(--gold);">--------</div>
+            </div>
+            
+            <div id="main-clock">00:00</div>
+            
+            <div id="map-zone"><div id="map"></div></div>
         </div>
 
-        <div id="weather-box" class="corner">
-            <div id="dxb-temp">--°</div>
-            <div id="dxb-desc">FETCHING</div>
-        </div>
-
-        <div id="clock">00:00</div>
-
-        <div id="flight-status-box" class="corner">
-            <div id="flight-status-label">DXB STANDBY</div>
+        <div id="layover-panel">
+            <div id="lay-city" style="font-size: 3vh; color: #555; letter-spacing: 5px;">STATION</div>
+            <div id="lay-clock" style="font-size: 20vh; font-weight: 100;">00:00</div>
+            <div id="lay-weather" class="temp-val" style="font-size: 6vh;">--°C</div>
         </div>
     </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbymazjvqvO225sN40UpVmjXJaaXdMMlOQgC7E2Cnt1z7g4z0vnQXtcs8uWvPyuqLwi5/exec";
-    const AIRPORTS = { "DXB": [25.25, 55.36], "OMDB": [25.25, 55.36], "LHR": [51.47, -0.45], "PEK": [40.07, 116.59], "PVG": [31.14, 121.80] };
+    const AIRPORTS = { "DXB": [25.253, 55.365], "OMDB": [25.253, 55.365], "PEK": [40.07, 116.59], "LHR": [51.47, -0.45] };
+    const WEATHER_MAP = { 0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️", 45: "🌫️", 61: "🌧️", 95: "⛈️" };
 
-    function updateClock() {
+    let map, aircraftMarker, trackLine;
+
+    function initMap() {
+        map = L.map('map', { zoomControl: false, attributionControl: false }).setView([25, 55], 3);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+        aircraftMarker = L.marker([25, 55], {icon: L.divIcon({className:'plane-div', html:"<div style='font-size:24px; transform:rotate(0deg);'>✈️</div>"})}).addTo(map);
+        trackLine = L.polyline([], {color:'#c1a35f', weight:2}).addTo(map);
+    }
+
+    function autoStyle(weatherCode) {
+        const hour = new Date().getHours();
+        const b = document.body;
+        b.className = ""; // Reset
+        if (hour < 6 || hour > 20) b.classList.add('style-night');
+        else if (hour >= 6 && hour < 8) b.classList.add('style-sunrise');
+        else b.classList.add('style-day');
+        if (weatherCode >= 61) b.classList.add('style-rainy');
+    }
+
+    function updateTime() {
         const now = new Date();
-        document.getElementById('clock').innerText = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        document.getElementById('main-clock').innerText = now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
         const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
         const days = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
         document.getElementById('date-val').innerText = now.getDate() + " " + months[now.getMonth()];
         document.getElementById('day-val').innerText = days[now.getDay()];
     }
 
-    async function fetchWeather() {
-        try {
-            const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true");
-            const data = await res.json();
-            document.getElementById('dxb-temp').innerText = Math.round(data.current_weather.temperature) + "°";
-            document.getElementById('dxb-desc').innerText = "DUBAI";
-        } catch(e) {}
-    }
-
     async function syncSystem() {
         try {
+            // 1. Weather
+            const wRes = await fetch("https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true");
+            const wData = await wRes.json();
+            const curW = wData.current_weather;
+            document.getElementById('main-temp').innerText = Math.round(curW.temperature) + "°";
+            document.getElementById('main-weather-icon').innerText = WEATHER_MAP[curW.weathercode] || "☀️";
+            autoStyle(curW.weathercode);
+
+            // 2. Flight
             const res = await fetch(GAS_URL);
             const data = await res.json();
-            
             if (data.hasFlight) {
-                let flightNo = data.title.replace(/\D/g, "");
-                let dest = data.title.includes('-') ? data.title.split('-')[1].substring(0,3) : "PEK";
-                
-                // 执行雷达搜索
-                await trackOnRadar(flightNo, dest);
+                document.body.classList.add('flight-active');
+                processFlightRadar(data);
             } else {
                 document.body.classList.remove('flight-active');
+                document.getElementById('map-zone').style.display = "none";
             }
         } catch(e) {}
     }
 
-    async function trackOnRadar(rawNo, destCode) {
-        try {
-            const res = await fetch('https://opensky-network.org/api/states/all');
-            const data = await res.json();
-            const states = data.states;
+    async function processFlightRadar(data) {
+        let rawNo = data.title.replace(/\D/g, "");
+        const callsigns = [("UAE"+rawNo).padEnd(8,' ')];
+        if(rawNo.length === 4 && "843".includes(rawNo[0])) callsigns.push(("UAE"+rawNo.substring(1)).padEnd(8,' '));
 
-            // 逻辑：两轮查询
-            // 1. 先查原始号 (针对货机或特号)
-            let match = states.find(s => s[1].trim() === ("UAE" + rawNo).padEnd(8, ' '));
-            
-            // 2. 查不到且符合增补号规则 (8/4/3开头)，去掉首位再查
-            if (!match && rawNo.length === 4 && "843".includes(rawNo[0])) {
-                let fallback = rawNo.substring(1);
-                match = states.find(s => s[1].trim() === ("UAE" + fallback).padEnd(8, ' '));
-            }
+        const radarRes = await fetch('https://opensky-network.org/api/states/all');
+        const radarData = await radarRes.json();
+        const match = radarData.states.find(s => callsigns.includes(s[1]));
 
-            if (match) {
-                document.body.classList.add('flight-active');
-                updateHUD(match, destCode);
-            } else {
-                document.getElementById('flight-status-label').innerText = "EK" + rawNo + " SCHEDULED";
-            }
-        } catch(e) {}
+        if (match) {
+            updateHUDAndMap(match, data);
+        } else {
+            // Standby logic
+            const dep = new Date(data.departureTime);
+            const pick = new Date(dep.getTime() - 135 * 60000);
+            document.getElementById('flight-id').innerText = data.title;
+            document.getElementById('pickup-time').innerText = `PICKUP: ${pick.getHours()}:${pick.getMinutes().toString().padStart(2,'0')}`;
+            document.getElementById('standby-hud').style.display = "grid";
+            document.getElementById('cruise-hud').style.display = "none";
+        }
     }
 
-    function updateHUD(s, destCode) {
-        const gs = Math.round(s[9] * 1.94), alt = Math.round(s[7] * 3.28);
-        const cur = [s[6], s[5]], origin = AIRPORTS["DXB"], dest = AIRPORTS[destCode] || [0,0];
+    function updateHUDAndMap(s, flightData) {
+        const cur = [s[6], s[5]], gs = Math.round(s[9]*1.94), alt = Math.round(s[7]*3.28);
+        document.getElementById('map-zone').style.display = "block";
+        document.getElementById('standby-hud').style.display = "none";
+        document.getElementById('cruise-hud').style.display = "block";
         
-        // 距离计算
-        const R = 3440; // NM
-        const d2r = Math.PI/180;
+        // Progress Logic
+        const destCode = flightData.title.split('-')[1]?.substring(0,3) || "PEK";
+        const origin = AIRPORTS["DXB"], dest = AIRPORTS[destCode] || [0,0];
         const dist = (p1, p2) => {
+            const R = 3440; const d2r = Math.PI/180;
             const a = Math.sin((p2[0]-p1[0])*d2r/2)**2 + Math.cos(p1[0]*d2r)*Math.cos(p2[0]*d2r)*Math.sin((p2[1]-p1[1])*d2r/2)**2;
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         };
-
         const total = dist(origin, dest), remain = dist(cur, dest);
         const prog = Math.min(100, Math.max(0, ((total-remain)/total)*100));
 
-        document.getElementById('progress-bar').style.width = prog + "%";
-        document.getElementById('hud-flight-id').innerText = s[1].trim();
-        document.getElementById('hud-telemetry').innerText = `GS ${gs}KT | FL${Math.round(alt/100)}`;
-        document.getElementById('hud-dist').innerText = `${Math.round(remain)} NM TO GO`;
-        document.getElementById('hud-route').innerText = `DXB ➔ ${destCode}`;
-        document.getElementById('flight-status-label').innerText = "EN ROUTE " + destCode;
+        document.getElementById('plane-marker').style.left = prog + "%";
+        document.getElementById('info-left').innerText = `GS: ${gs}KT | FL${Math.round(alt/100)}`;
+        document.getElementById('info-right').innerText = `REMAIN: ${Math.round(remain)}NM`;
+
+        // Update Map
+        aircraftMarker.setLatLng(cur);
+        trackLine.addLatLng(cur);
+        map.panTo(cur);
     }
 
-    updateClock(); fetchWeather(); syncSystem();
-    setInterval(updateClock, 1000);
-    setInterval(fetchWeather, 1800000); // 30min天气
-    setInterval(syncSystem, 30000); // 30s雷达同步
+    initMap(); updateTime(); syncSystem();
+    setInterval(updateTime, 1000);
+    setInterval(syncSystem, 30000);
 </script>
 </body>
 </html>
