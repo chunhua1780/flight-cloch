@@ -1,156 +1,182 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Pilot Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #000;
+            --text-main: #ffffff;
+            --accent-gold: #c1a35f;
+            --dim-gray: #2c2c2e;
+            --font-weight-thin: 200;
+        }
 
-<title>Flight Wall</title>
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
-<style>
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
 
-/* ===================== BASE ===================== */
-body{
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family:-apple-system, BlinkMacSystemFont, sans-serif;
-  overflow:hidden;
-}
+        /* 顶部 1/4 区域：航班动态 */
+        #top-info {
+            height: 25vh;
+            border-bottom: 1px solid var(--dim-gray);
+            display: none; /* 默认隐藏 */
+            padding: 20px;
+            background: linear-gradient(180deg, #111 0%, #000 100%);
+        }
 
-/* ===================== TOP FLIGHT PANEL ===================== */
-#top{
-  height:25%;
-  padding:24px;
-  box-sizing:border-box;
-  background:linear-gradient(180deg,#111,#000);
-  border-bottom:1px solid #222;
-  font-size:24px;
-  font-weight:300;
-  line-height:1.6;
-}
+        /* 航班模式下的网格布局 */
+        .flight-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1.5fr;
+            height: 100%;
+            align-items: center;
+        }
 
-/* 高亮文字 */
-.highlight{
-  color:#00ffd5;
-  font-weight:500;
-}
-.warn{
-  color:#ffcc00;
-}
+        /* 进度条 */
+        #progress-container {
+            grid-column: span 3;
+            height: 6px;
+            background: var(--dim-gray);
+            border-radius: 3px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            display: none; /* 起飞后显示 */
+        }
+        #progress-bar {
+            height: 100%;
+            background: var(--accent-gold);
+            width: 0%;
+            transition: width 1s linear;
+        }
 
-/* ===================== CLOCK AREA ===================== */
-#clocks{
-  height:75%;
-  display:flex;
-}
+        /* 下部 3/4 区域 */
+        #bottom-display {
+            height: 100vh; /* 默认全屏 */
+            display: flex;
+            transition: height 0.5s ease;
+        }
 
-/* 每个时钟 */
-.clockBox{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  background:#000;
-}
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-/* 大时钟 */
-.clock{
-  font-size:150px;
-  font-weight:100;
-  letter-spacing:2px;
-  color:#fff;
-  opacity:0.92;
-}
+        /* 时钟样式 */
+        #main-clock {
+            font-size: 14rem;
+            font-weight: var(--font-weight-thin);
+            line-height: 1;
+            margin: 10px 0;
+        }
 
-/* 标签 */
-.label{
-  margin-top:10px;
-  font-size:14px;
-  color:#666;
-  letter-spacing:2px;
-}
+        .weather-text { font-size: 1.5rem; color: #aaa; margin-top: 10px; }
+        .temp { font-size: 3rem; color: var(--accent-gold); }
+        .city-label { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; color: #666; }
 
-/* ===================== SMALL WEATHER ===================== */
-#weather{
-  position:absolute;
-  top:12px;
-  right:16px;
-  font-size:14px;
-  color:#aaa;
-}
-
-</style>
+        /* 状态切换辅助类 */
+        .flight-active #top-info { display: block; }
+        .flight-active #bottom-display { height: 75vh; }
+        .flight-active #main-clock { font-size: 8rem; }
+    </style>
 </head>
-
 <body>
 
-<div id="weather">Loading weather...</div>
+    <div id="top-info">
+        <div id="progress-container"><div id="progress-bar"></div></div>
+        <div class="flight-grid">
+            <div id="flight-left">
+                <div id="route-display" style="font-size: 1.8rem; font-weight: bold;">--</div>
+                <div id="pickup-display" style="font-size: 1.2rem; color: var(--accent-gold);"></div>
+            </div>
+            <div id="flight-center" style="text-align: center;">
+                <div class="city-label">DEST Weather</div>
+                <div id="dest-temp" class="temp">--°</div>
+            </div>
+            <div id="flight-right" style="font-size: 1rem; color: #888; overflow-y: auto;">
+                <div class="city-label">NOTAM (TL;DR)</div>
+                <div id="notam-summary">等待数据同步...</div>
+            </div>
+        </div>
+    </div>
 
-<div id="top">Loading flight data...</div>
-
-<div id="clocks">
-
-  <div class="clockBox">
-    <div class="clock" id="clock1">--:--</div>
-    <div class="label">LOCAL TIME</div>
-  </div>
-
-  <div class="clockBox">
-    <div class="clock" id="clock2">--:--</div>
-    <div class="label">DEST TIME</div>
-  </div>
-
-</div>
+    <div id="bottom-display">
+        <div class="panel" id="primary-panel">
+            <div class="city-label">Dubai</div>
+            <div id="main-clock">00:00</div>
+            <div id="dxb-weather" class="weather-text">加载天气中...</div>
+        </div>
+        
+        <div class="panel" id="secondary-panel" style="display: none; border-left: 1px solid var(--dim-gray);">
+            <div id="dest-city-name" class="city-label">Destination</div>
+            <div id="dest-clock" style="font-size: 5rem; font-weight: 200;">00:00</div>
+            <div id="dest-weather-detail" class="weather-text">--</div>
+        </div>
+    </div>
 
 <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbymazjvqvO225sN40UpVmjXJaaXdMMlOQgC7E2Cnt1z7g4z0vnQXtcs8uWvPyuqLwi5/exec";
 
-// ================= CLOCK =================
-function updateClock(){
-  const now = new Date();
+    function updateTime() {
+        const now = new Date();
+        document.getElementById('main-clock').innerText = 
+            now.getHours().toString().padStart(2, '0') + ":" + 
+            now.getMinutes().toString().padStart(2, '0');
+        
+        // 如果有目的地时钟，这里也要同步更新
+    }
 
-  document.getElementById("clock1").innerText =
-    now.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+    async function checkSchedule() {
+        try {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            
+            if (data.hasFlight) {
+                document.body.classList.add('flight-active');
+                renderFlightData(data);
+            } else {
+                document.body.classList.remove('flight-active');
+                document.getElementById('secondary-panel').style.display = 'none';
+            }
+        } catch (e) {
+            console.log("Data fetch failed");
+        }
+    }
 
-  // 模拟目的地时间（+3小时）
-  const dest = new Date(now.getTime() + 3*3600000);
+    function renderFlightData(data) {
+        // 显示航线
+        document.getElementById('route-display').innerText = data.title;
+        
+        // 计算 Pick up 时间 (GAS已经计算好了传过来)
+        const p = new Date(data.pickupTime);
+        document.getElementById('pickup-display').innerText = 
+            "Pickup: " + p.getHours().toString().padStart(2, '0') + ":" + 
+            p.getMinutes().toString().padStart(2, '0');
 
-  document.getElementById("clock2").innerText =
-    dest.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
-}
+        // 这里预留天气和进度条逻辑
+    }
 
-// ================= LOAD FLIGHT DATA =================
-async function loadData(){
-
-  const url = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/data.json";
-
-  try{
-    const res = await fetch(url);
-    const data = await res.json();
-
-    document.getElementById("top").innerHTML = `
-      ✈ <span class="highlight">${data.airline} ${data.flight_number}</span><br>
-      ${data.from.iata} → ${data.to.iata}<br>
-      Departure: ${data.schedule.departure_time} | Arrival: ${data.schedule.arrival_time}<br>
-      Status: <span class="warn">${data.status}</span><br>
-      Phase: ${data.flight_state.phase}
-    `;
-
-    document.getElementById("weather").innerText =
-      `🌤 ${data.from.iata} ${data.weather_hint.origin_temp}° | ${data.to.iata} ${data.weather_hint.destination_temp}°`;
-
-  }catch(e){
-    document.getElementById("top").innerHTML =
-      "⚠ Failed to load flight data";
-  }
-}
-
-// ================= LOOP =================
-setInterval(updateClock,1000);
-updateClock();
-loadData();
+    // 初始化
+    setInterval(updateTime, 1000);
+    setInterval(checkSchedule, 600000); // 每10分钟检查一次日历
+    updateTime();
+    checkSchedule();
 
 </script>
-
 </body>
 </html>
