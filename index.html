@@ -5,50 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <title>777 Captain's Dashboard</title>
     <style>
         :root { --bg: #000; --gold: #c1a35f; --text: #fff; --gray: #222; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: "SF Pro Display", sans-serif; overflow: hidden; height: 100vh; }
-        
-        /* 1/4 HUD 仅在起飞后显示 */
+
+        /* 顶部 1/4 HUD：仅起飞后显示 */
         #top-hud { height: 25vh; border-bottom: 2px solid var(--gray); display: none; padding: 1.5vh 2vw; background: #050505; }
         .in-flight #top-hud { display: block; }
 
-        /* 进度条 */
-        .prog-line { width: 94%; height: 4px; background: #333; margin: 4vh auto; position: relative; }
+        /* 进度条系统 */
+        .prog-wrap { width: 94%; height: 4px; background: #333; margin: 4vh auto; position: relative; }
         #plane-icon { position: absolute; top: -18px; left: 0%; font-size: 30px; transition: left 1s linear; }
 
-        /* 主区域 */
+        /* 主区域 3/4 */
         #main-display { height: 100vh; display: flex; transition: all 0.5s; }
         .in-flight #main-display { height: 75vh; }
 
-        /* 巨型时钟：未起飞时字体占满屏幕 */
+        /* 极致大时钟 */
         #clock-zone { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-        #main-clock { font-size: 48vh; font-weight: 100; letter-spacing: -2vh; line-height: 1; transition: font-size 0.5s; }
+        #main-clock { font-size: 48vh; font-weight: 100; letter-spacing: -2vh; line-height: 1; }
         .in-flight #main-clock { font-size: 25vh; }
 
-        /* 右侧地图：仅在起飞后显示 */
-        #sidebar { flex: 0.5; display: none; background: #050505; border-left: 1px solid var(--gray); }
-        .in-flight #sidebar { display: flex; flex-direction: column; }
+        /* 侧边雷达：仅起飞后显示 */
+        #sidebar { flex: 0.45; display: none; background: #050505; border-left: 1px solid var(--gray); flex-direction: column; }
+        .in-flight #sidebar { display: flex; }
 
         /* 四角信息 */
-        .corner { position: absolute; padding: 3vh; z-index: 10; }
-        .weather-big { font-size: 9vh; color: var(--gold); font-weight: 200; }
+        .corner { position: absolute; padding: 3vh; z-index: 100; }
+        .temp-big { font-size: 9vh; color: var(--gold); font-weight: 200; }
         .label-sm { font-size: 1.8vh; color: #666; text-transform: uppercase; letter-spacing: 2px; }
 
-        /* 状态显示 */
-        #flight-brief { position: absolute; bottom: 5vh; width: 100%; text-align: center; display: block; }
-        .in-flight #flight-brief { display: none; }
+        /* 航班信息板（起飞前显示） */
+        #preflight-info { position: absolute; bottom: 5vh; width: 100%; text-align: center; }
+        .in-flight #preflight-info { display: none; }
     </style>
 </head>
 <body>
 
     <div id="top-hud">
-        <div class="prog-line"><div id="plane-icon">✈️</div></div>
+        <div class="prog-wrap"><div id="plane-icon">✈️</div></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
             <div><div class="label-sm">Mission</div><div id="hud-id" style="font-size: 4vh; font-weight: bold; color: var(--gold);">--</div></div>
-            <div style="text-align: center;"><div class="label-sm">Radar Status</div><div id="st-gs" style="font-size: 3vh;">GS --- KT | FL ---</div></div>
-            <div style="text-align: right;"><div class="label-sm">NOTAM / Risk</div><div id="st-notam" style="font-size: 2vh; color: #aaa;">SCANNING AIRFIELD...</div></div>
+            <div style="text-align: center;"><div class="label-sm">Live Radar</div><div id="hud-telemetry" style="font-size: 3vh;">GS --- KT | FL ---</div></div>
+            <div style="text-align: right;"><div class="label-sm">Risk Assessment</div><div id="hud-risk" style="font-size: 2.2vh; color: #aaa;">ANALYZING NOTAMs...</div></div>
         </div>
     </div>
 
@@ -59,38 +58,37 @@
                 <div id="day-val" style="font-size: 2.5vh; color: var(--gold);">--------</div>
             </div>
             <div class="corner" style="top:0; right:0; text-align:right;">
-                <div id="loc-temp" class="weather-big">--°</div>
-                <div id="loc-city" class="label-sm">Dubai DXB</div>
+                <div id="local-temp" class="temp-big">--°</div>
+                <div id="local-city" class="label-sm">Dubai / DXB</div>
             </div>
             
             <div id="main-clock">00:00</div>
 
-            <div id="flight-brief">
-                <div id="brief-title" style="font-size: 4vh; color: var(--gold); font-weight: bold;">--</div>
-                <div id="brief-pickup" style="font-size: 3vh; color: #888;">PICKUP: --:--</div>
-                <div id="brief-dest-wx" style="font-size: 2vh; color: #666; margin-top: 1vh;">DEST WX: LOADING...</div>
+            <div id="preflight-info">
+                <div id="f-title" style="font-size: 5vh; color: var(--gold); font-weight: bold;">--</div>
+                <div id="f-pickup" style="font-size: 4vh; color: #fff; margin: 1vh 0;">PICKUP: --:--</div>
+                <div id="f-dest-wx" style="font-size: 2.5vh; color: #888;">--</div>
             </div>
         </div>
 
         <div id="sidebar">
-            <div id="map" style="height: 60%; width: 100%;"></div>
+            <div id="map" style="height: 55%; width: 100%;"></div>
             <div style="padding: 2vh;">
-                <div class="label-sm">Dist to Dest</div><div id="st-dist" style="font-size: 3vh; color: var(--gold);">--- NM</div>
-                <div class="label-sm" style="margin-top:2vh;">Destination WX</div><div id="st-dest-wx" style="font-size: 3vh;">--°C / Clear</div>
+                <div class="label-sm">Dist Remaining</div><div id="st-dist" style="font-size: 3.5vh; color: var(--gold); font-family: monospace;">--- NM</div>
+                <div class="label-sm" style="margin-top:2vh;">Dest Weather</div><div id="st-dest-wx" style="font-size: 3vh; color: #fff;">--</div>
             </div>
         </div>
     </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    // 你的最新 GAS URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxJ9BARIJhAraHdd-nCnumx583NWrNFHN20ufiYSnRiWwb-vJPNnW4IwutNhtKx15P_/exec";
     
-    // 城市映射库
-    const CITY_MAP = {
-        "DXB": {name: "Dubai", lat: 25.25, lon: 55.36},
-        "CKY": {name: "Conakry", lat: 9.57, lon: -13.61},
-        "DSS": {name: "Dakar", lat: 14.67, lon: -17.07},
-        "LHR": {name: "London", lat: 51.47, lon: -0.45}
+    const AIRPORT_DB = {
+        "CKY": {name: "Conakry", lat: 9.577, lon: -13.612},
+        "DSS": {name: "Dakar", lat: 14.672, lon: -17.073},
+        "DXB": {name: "Dubai", lat: 25.253, lon: 55.365}
     };
 
     let map, marker;
@@ -101,82 +99,15 @@
     }
 
     async function sync() {
-        // 1. 时间日期
+        // 更新本地时钟
         const n = new Date();
         document.getElementById('main-clock').innerText = n.getHours().toString().padStart(2,'0')+":"+n.getMinutes().toString().padStart(2,'0');
         const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
         document.getElementById('date-val').innerText = n.getDate() + " " + months[n.getMonth()];
         document.getElementById('day-val').innerText = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"][n.getDay()];
 
-        // 2. 所在地天气
+        // 更新本地天气
         try {
             const w = await (await fetch("https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true")).json();
-            document.getElementById('loc-temp').innerText = Math.round(w.current_weather.temperature) + "°";
+            document.getElementById('local-temp').innerText = Math.round(w.current_weather.temperature) + "°";
         } catch(e){}
-
-        // 3. 航班数据
-        try {
-            const res = await fetch(GAS_URL);
-            const data = await res.json();
-            if (data.hasFlight) {
-                updateFlightUI(data);
-            }
-        } catch(e){}
-    }
-
-    function updateFlightUI(data) {
-        const depTime = new Date(data.departureTime);
-        // 修正 Pickup 时间计算：起飞时间 - 135 分钟
-        const pickTime = new Date(depTime.getTime() - 135 * 60000);
-        
-        document.getElementById('brief-title').innerText = data.title;
-        document.getElementById('brief-pickup').innerText = `PICKUP: ${pickTime.getHours().toString().padStart(2,'0')}:${pickTime.getMinutes().toString().padStart(2,'0')}`;
-        document.getElementById('hud-id').innerText = data.title;
-
-        // 获取目的地城市天气
-        const dest = CITY_MAP[data.destCode] || {name: data.destCode, lat: 0, lon: 0};
-        fetchDestWeather(dest);
-
-        // 追踪雷达
-        trackRadar(data);
-    }
-
-    async function fetchDestWeather(dest) {
-        if(dest.lat === 0) return;
-        const res = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${dest.lat}&longitude=${dest.lon}&current_weather=true`)).json();
-        const temp = Math.round(res.current_weather.temperature);
-        document.getElementById('brief-dest-wx').innerText = `DEST (${dest.name}): ${temp}°C / ${res.current_weather.weathercode < 3 ? 'Clear' : 'Cloudy'}`;
-        document.getElementById('st-dest-wx').innerText = `${temp}°C / ${dest.name}`;
-        
-        // 模拟 NOTAM 人话解析
-        let risk = "RUNWAY DRY / NO HAZARDS";
-        if(temp > 35) risk = "CAUTION: HIGH TEMP OPS";
-        if(res.current_weather.weathercode > 60) risk = "CAUTION: WET RUNWAY / LOW VIS";
-        document.getElementById('st-notam').innerText = risk;
-    }
-
-    async function trackRadar(data) {
-        let rawNo = data.title.split('-')[0].replace(/\D/g, "");
-        const callsigns = ["UAE"+rawNo, "UAE"+rawNo.substring(1)];
-        
-        let ac = null;
-        for(let c of callsigns) {
-            const r = await fetch(`https://api.airplanes.live/v2/callsign/${c}`);
-            const d = await r.json();
-            if(d.ac && d.ac.length > 0) { ac = d.ac[0]; break; }
-        }
-
-        if (ac && ac.alt_baro > 500) { // 判定为已起飞
-            document.body.classList.add('in-flight');
-            document.getElementById('st-gs').innerText = `GS ${Math.round(ac.gs)} KT | FL ${Math.round(ac.alt_baro/100)}`;
-            marker.setLatLng([ac.lat, ac.lon]);
-            map.panTo([ac.lat, ac.lon]);
-        } else {
-            document.body.classList.remove('in-flight');
-        }
-    }
-
-    initMap(); sync(); setInterval(sync, 30000);
-</script>
-</body>
-</html>
