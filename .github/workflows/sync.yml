@@ -10,60 +10,69 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - run: pip install requests ics
+      - name: Install libs
+        run: pip install requests ics
 
-      - name: Parse Flight Data
+      - name: Convert calendar to JSON (SAFE VERSION)
         run: |
           python - <<EOF
           import requests
           from ics import Calendar
           import json
-          import re
 
-          raw_url = """http://p206-caldav.icloud.com/published/2/%0AMTkyMTc5MzcwNDYxOTIxN_ayvhztknFLls9NRXK_Mcke3hK6muYeh4YJdh%0AKYgJ7n%D0%9CpsCc%D0%90K7gHleg-%D0%A0%7C9GjleyzhYkhd%7C9mcew%7CQF%D0%95gP%D1%85%D0%9Do"""
-          url = raw_url.replace("%0A","").replace("http://","https://")
+          url = "https://p206-caldav.icloud.com/published/2/XXXXXXXXXXXX.ics"
 
-          text = requests.get(url).text
+          print("Fetching:", url)
+
+          r = requests.get(url, timeout=20)
+
+          print("STATUS:", r.status_code)
+
+          if r.status_code != 200:
+              raise Exception("❌ Failed to fetch calendar")
+
+          text = r.text
+
+          # 🚨 关键：验证是不是 ICS
+          if "BEGIN:VCALENDAR" not in text:
+              print("RAW SAMPLE:")
+              print(text[:300])
+              raise Exception("❌ Not a valid ICS file")
+
           cal = Calendar(text)
 
           flights = []
 
           for e in cal.events:
-              title = str(e.name)
-
-              # 🔍 提取机场代码（3字）
-              codes = re.findall(r"[A-Z]{3}", title)
-
-              if len(codes) >= 2:
-                  dep = codes[0]
-                  arr = codes[1]
-              else:
-                  dep = "UNK"
-                  arr = "UNK"
-
               flights.append({
-                  "from": dep,
-                  "to": arr,
-                  "departure": str(e.begin),
-                  "arrival": str(e.end),
-                  "raw": title
+                  "title": e.name,
+                  "start": str(e.begin),
+                  "end": str(e.end),
+                  "description": getattr(e, "description", "")
               })
+
+          # 🚨 防止空数据写入
+          if len(flights) == 0:
+              raise Exception("❌ No flights found in calendar")
 
           with open("flights.json", "w") as f:
               json.dump({"flights": flights}, f, indent=2)
 
-          print("Flights parsed:", len(flights))
+          print("✅ Flights parsed:", len(flights))
           EOF
 
-      - run: |
-          git config user.name "bot"
-          git config user.email "bot@github.com"
+      - name: Commit update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
           git add flights.json
-          git commit -m "update flights" || echo "no change"
+          git commit -m "auto sync flights" || echo "no changes"
           git push
