@@ -1,6 +1,8 @@
-name: Sync Flights
+name: Sync Calendar to Flights JSON
 
 on:
+  schedule:
+    - cron: "0 */6 * * *"
   workflow_dispatch:
 
 jobs:
@@ -8,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
@@ -19,35 +21,54 @@ jobs:
       - name: Install libs
         run: pip install requests ics
 
-      - name: Run script
+      - name: Fetch calendar and convert
         run: |
           python - <<EOF
           import requests
           from ics import Calendar
           import json
 
-          url = "https://p206-caldav.icloud.com/published/2/%0AMTkyMTc5MzcwNDYxOTIxN_ayvhztknFLls9NRXK_Mcke3hK6muYeh4YJdh%0AKYgJ7n%D0%9CpsCc%D0%90K7gHleg-%D0%A0%7C9GjleyzhYkhd%7C9mcew%7CQF%D0%95gP%D1%85%D0%9Do"
+          # 👇你的原始链接（不用改）
+          raw_url = """http://p206-caldav.icloud.com/published/2/%0AMTkyMTc5MzcwNDYxOTIxN_ayvhztknFLls9NRXK_Mcke3hK6muYeh4YJdh%0AKYgJ7n%D0%9CpsCc%D0%90K7gHleg-%D0%A0%7C9GjleyzhYkhd%7C9mcew%7CQF%D0%95gP%D1%85%D0%9Do"""
 
-          data = requests.get(url).text
-          cal = Calendar(data)
+          # 🔧 自动清理错误（关键）
+          url = raw_url.replace("%0A", "").replace("webcal://", "https://").replace("http://", "https://")
+
+          print("Using URL:", url)
+
+          try:
+              response = requests.get(url)
+              response.raise_for_status()
+              text = response.text
+          except Exception as e:
+              print("Download failed:", e)
+              text = ""
 
           flights = []
 
-          for e in cal.events:
-              flights.append({
-                  "title": str(e.name),
-                  "start": str(e.begin),
-                  "end": str(e.end)
-              })
+          if text.strip():
+              cal = Calendar(text)
+
+              for e in cal.events:
+                  flights.append({
+                      "title": str(e.name),
+                      "start": str(e.begin),
+                      "end": str(e.end),
+                      "description": str(e.description)
+                  })
+          else:
+              print("No calendar data!")
 
           with open("flights.json", "w") as f:
-              json.dump(flights, f, indent=2)
+              json.dump({"flights": flights}, f, indent=2)
+
+          print("Flights count:", len(flights))
           EOF
 
-      - name: Commit
+      - name: Commit update
         run: |
-          git config user.name "bot"
-          git config user.email "bot@github.com"
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
           git add flights.json
-          git commit -m "update" || echo "no change"
+          git commit -m "auto sync flights" || echo "no changes"
           git push
