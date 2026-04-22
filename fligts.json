@@ -1,1 +1,58 @@
 
+name: Sync Calendar to Flights JSON
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install libs
+        run: pip install requests ics
+
+      - name: Convert calendar to JSON
+        run: |
+          python - <<EOF
+          import requests
+          from ics import Calendar
+          import json
+
+          # 🔴 在这里填你的 ICS 链接
+          url = "webcal://p206-caldav.icloud.com/published/2/%0AMTkyMTc5MzcwNDYxOTIxN_ayvhztknFLls9NRXK_Mcke3hK6muYeh4YJdh%0AKYgJ7n%D0%9CpsCc%D0%90K7gHleg-%D0%A0%7C9GjleyzhYkhd%7C9mcew%7CQF%D0%95gP%D1%85%D0%9Do"
+
+          text = requests.get(url).text
+          cal = Calendar(text)
+
+          flights = []
+
+          for e in cal.events:
+              flights.append({
+                  "title": e.name,
+                  "start": str(e.begin),
+                  "end": str(e.end),
+                  "description": e.description
+              })
+
+          with open("flights.json", "w") as f:
+              json.dump({"flights": flights}, f, indent=2)
+          EOF
+
+      - name: Commit update
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add flights.json
+          git commit -m "auto sync flights" || echo "no changes"
+          git push
