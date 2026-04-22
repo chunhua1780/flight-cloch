@@ -4,179 +4,197 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Pilot Dashboard</title>
+    <title>Cao's Pilot Dashboard</title>
     <style>
         :root {
             --bg-color: #000;
             --text-main: #ffffff;
             --accent-gold: #c1a35f;
-            --dim-gray: #2c2c2e;
-            --font-weight-thin: 200;
+            --dim-gray: #444;
         }
-
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
             margin: 0;
+            padding: 0;
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-family: "Helvetica Neue", Helvetica, sans-serif;
             overflow: hidden;
             height: 100vh;
             width: 100vw;
-        }
-
-        /* 顶部 1/4 区域：航班动态 */
-        #top-info {
-            height: 25vh;
-            border-bottom: 1px solid var(--dim-gray);
-            display: none; /* 默认隐藏 */
-            padding: 20px;
-            background: linear-gradient(180deg, #111 0%, #000 100%);
-        }
-
-        /* 航班模式下的网格布局 */
-        .flight-grid {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1.5fr;
-            height: 100%;
-            align-items: center;
-        }
-
-        /* 进度条 */
-        #progress-container {
-            grid-column: span 3;
-            height: 6px;
-            background: var(--dim-gray);
-            border-radius: 3px;
-            margin-bottom: 10px;
-            overflow: hidden;
-            display: none; /* 起飞后显示 */
-        }
-        #progress-bar {
-            height: 100%;
-            background: var(--accent-gold);
-            width: 0%;
-            transition: width 1s linear;
-        }
-
-        /* 下部 3/4 区域 */
-        #bottom-display {
-            height: 100vh; /* 默认全屏 */
-            display: flex;
-            transition: height 0.5s ease;
-        }
-
-        .panel {
-            flex: 1;
             display: flex;
             flex-direction: column;
+        }
+
+        /* 顶部航班模式 (1/4) - 仅在有任务时激活 */
+        #top-info {
+            height: 25vh;
+            border-bottom: 2px solid var(--dim-gray);
+            display: none; 
+            padding: 2vh 4vw;
+            box-sizing: border-box;
+            background: #080808;
+        }
+
+        /* 主显示区 - 自动撑满剩余空间 */
+        #main-display {
+            flex-grow: 1;
+            position: relative;
+            display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
         }
 
-        /* 时钟样式 */
-        #main-clock {
-            font-size: 14rem;
-            font-weight: var(--font-weight-thin);
+        /* 巨型数字时钟 */
+        #clock {
+            font-size: 35vh; /* 极其巨大的字体 */
+            font-weight: 200;
+            letter-spacing: -1vh;
             line-height: 1;
-            margin: 10px 0;
+            color: var(--text-main);
         }
 
-        .weather-text { font-size: 1.5rem; color: #aaa; margin-top: 10px; }
-        .temp { font-size: 3rem; color: var(--accent-gold); }
-        .city-label { font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; color: #666; }
+        /* 角落信息布局 */
+        .corner {
+            position: absolute;
+            text-align: center;
+        }
 
-        /* 状态切换辅助类 */
+        /* 左上角：日期 */
+        #date-box {
+            top: 4vh;
+            left: 4vw;
+            text-align: left;
+        }
+        #date-text { font-size: 4vh; font-weight: 300; }
+        #day-text { font-size: 3vh; color: var(--accent-gold); text-transform: uppercase; }
+
+        /* 右上角：迪拜天气 */
+        #weather-box {
+            top: 4vh;
+            right: 4vw;
+            text-align: right;
+        }
+        .temp-big { font-size: 8vh; font-weight: 200; color: var(--accent-gold); line-height: 1; }
+        .weather-desc { font-size: 2.5vh; color: #888; text-transform: uppercase; }
+
+        /* 左下角：地点/状态 */
+        #location-box {
+            bottom: 4vh;
+            left: 4vw;
+            font-size: 2.5vh;
+            color: #555;
+            letter-spacing: 0.5vw;
+        }
+
+        /* 航班模式激活时的字号调整 */
         .flight-active #top-info { display: block; }
-        .flight-active #bottom-display { height: 75vh; }
-        .flight-active #main-clock { font-size: 8rem; }
+        .flight-active #clock { font-size: 25vh; }
+
+        /* 进度条 */
+        .progress-bar-bg { width: 100%; height: 8px; background: #222; border-radius: 4px; margin-bottom: 2vh; }
+        #progress-bar-fill { height: 100%; background: var(--accent-gold); width: 0%; border-radius: 4px; }
+
+        .flight-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2vw; }
+        .flight-label { font-size: 2vh; color: #666; text-transform: uppercase; }
+        .flight-val { font-size: 4vh; font-weight: bold; color: var(--accent-gold); }
     </style>
 </head>
 <body>
 
     <div id="top-info">
-        <div id="progress-container"><div id="progress-bar"></div></div>
+        <div class="progress-bar-bg"><div id="progress-bar-fill"></div></div>
         <div class="flight-grid">
-            <div id="flight-left">
-                <div id="route-display" style="font-size: 1.8rem; font-weight: bold;">--</div>
-                <div id="pickup-display" style="font-size: 1.2rem; color: var(--accent-gold);"></div>
+            <div>
+                <div class="flight-label">Mission</div>
+                <div id="flight-no" class="flight-val">--</div>
+                <div id="pickup-time" style="font-size: 3vh; margin-top: 1vh;"></div>
             </div>
-            <div id="flight-center" style="text-align: center;">
-                <div class="city-label">DEST Weather</div>
-                <div id="dest-temp" class="temp">--°</div>
+            <div style="text-align: center;">
+                <div class="flight-label">Dest Temp</div>
+                <div id="dest-temp" class="flight-val">--°C</div>
+                <div id="dest-desc" style="font-size: 2vh; color: #888;">--</div>
             </div>
-            <div id="flight-right" style="font-size: 1rem; color: #888; overflow-y: auto;">
-                <div class="city-label">NOTAM (TL;DR)</div>
-                <div id="notam-summary">等待数据同步...</div>
+            <div style="text-align: right;">
+                <div class="flight-label">Suggestion</div>
+                <div id="dress-code" style="font-size: 2.2vh; color: #bbb;">Syncing data...</div>
             </div>
         </div>
     </div>
 
-    <div id="bottom-display">
-        <div class="panel" id="primary-panel">
-            <div class="city-label">Dubai</div>
-            <div id="main-clock">00:00</div>
-            <div id="dxb-weather" class="weather-text">加载天气中...</div>
+    <div id="main-display">
+        <div id="date-box" class="corner">
+            <div id="date-text">01 Jan</div>
+            <div id="day-text">Wednesday</div>
         </div>
-        
-        <div class="panel" id="secondary-panel" style="display: none; border-left: 1px solid var(--dim-gray);">
-            <div id="dest-city-name" class="city-label">Destination</div>
-            <div id="dest-clock" style="font-size: 5rem; font-weight: 200;">00:00</div>
-            <div id="dest-weather-detail" class="weather-text">--</div>
+
+        <div id="weather-box" class="corner">
+            <div id="dxb-temp" class="temp-big">--°</div>
+            <div id="dxb-desc" class="weather-desc">Updating</div>
+        </div>
+
+        <div id="clock">00:00</div>
+
+        <div id="location-box" class="corner">
+            DUBAI INTERNATIONAL · OMDB
         </div>
     </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbymazjvqvO225sN40UpVmjXJaaXdMMlOQgC7E2Cnt1z7g4z0vnQXtcs8uWvPyuqLwi5/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbymazjvqvO225sN40UpVmjXJaaXdMMlOQgC7E2Cnt1z7g4z0vnQXtcs8uWvPyuqLwi5/exec";
 
-    function updateTime() {
+    function updateClock() {
         const now = new Date();
-        document.getElementById('main-clock').innerText = 
+        // 更新时间
+        document.getElementById('clock').innerText = 
             now.getHours().toString().padStart(2, '0') + ":" + 
             now.getMinutes().toString().padStart(2, '0');
         
-        // 如果有目的地时钟，这里也要同步更新
+        // 更新日期
+        const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        document.getElementById('date-text').innerText = now.getDate() + " " + months[now.getMonth()];
+        document.getElementById('day-text').innerText = days[now.getDay()];
     }
 
-    async function checkSchedule() {
+    async function fetchWeather() {
         try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true`;
+            const res = await fetch(url);
+            const data = await res.json();
+            document.getElementById('dxb-temp').innerText = Math.round(data.current_weather.temperature) + "°";
+            document.getElementById('dxb-desc').innerText = "Dubai";
+        } catch (e) { console.error("Weather failed"); }
+    }
+
+    async function syncFlights() {
+        try {
+            const res = await fetch(GAS_URL);
+            const data = await res.json();
             if (data.hasFlight) {
                 document.body.classList.add('flight-active');
-                renderFlightData(data);
+                document.getElementById('flight-no').innerText = data.title;
+                const pick = new Date(data.pickupTime);
+                document.getElementById('pickup-time').innerText = "PICKUP: " + 
+                    pick.getHours().toString().padStart(2, '0') + ":" + 
+                    pick.getMinutes().toString().padStart(2, '0');
+                
+                // 模拟目的地天气获取
+                document.getElementById('dest-temp').innerText = "18°C";
+                document.getElementById('dress-code').innerText = "Cloudy. Light jacket recommended.";
             } else {
                 document.body.classList.remove('flight-active');
-                document.getElementById('secondary-panel').style.display = 'none';
             }
-        } catch (e) {
-            console.log("Data fetch failed");
-        }
+        } catch (e) { console.log("GAS Sync Error"); }
     }
 
-    function renderFlightData(data) {
-        // 显示航线
-        document.getElementById('route-display').innerText = data.title;
-        
-        // 计算 Pick up 时间 (GAS已经计算好了传过来)
-        const p = new Date(data.pickupTime);
-        document.getElementById('pickup-display').innerText = 
-            "Pickup: " + p.getHours().toString().padStart(2, '0') + ":" + 
-            p.getMinutes().toString().padStart(2, '0');
-
-        // 这里预留天气和进度条逻辑
-    }
-
-    // 初始化
-    setInterval(updateTime, 1000);
-    setInterval(checkSchedule, 600000); // 每10分钟检查一次日历
-    updateTime();
-    checkSchedule();
-
+    // 运行
+    updateClock();
+    fetchWeather();
+    syncFlights();
+    setInterval(updateClock, 1000);
+    setInterval(fetchWeather, 1800000); // 30分钟更一次天气
+    setInterval(syncFlights, 600000);   // 10分钟检查一次日历
 </script>
 </body>
 </html>
