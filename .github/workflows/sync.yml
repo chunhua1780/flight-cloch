@@ -10,65 +10,60 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Install libs
-        run: pip install requests ics
+      - run: pip install requests ics
 
-      - name: Fetch calendar and convert
+      - name: Parse Flight Data
         run: |
           python - <<EOF
           import requests
           from ics import Calendar
           import json
+          import re
 
-          # 👇你的原始链接（不用改）
           raw_url = """http://p206-caldav.icloud.com/published/2/%0AMTkyMTc5MzcwNDYxOTIxN_ayvhztknFLls9NRXK_Mcke3hK6muYeh4YJdh%0AKYgJ7n%D0%9CpsCc%D0%90K7gHleg-%D0%A0%7C9GjleyzhYkhd%7C9mcew%7CQF%D0%95gP%D1%85%D0%9Do"""
+          url = raw_url.replace("%0A","").replace("http://","https://")
 
-          # 🔧 自动清理错误（关键）
-          url = raw_url.replace("%0A", "").replace("webcal://", "https://").replace("http://", "https://")
-
-          print("Using URL:", url)
-
-          try:
-              response = requests.get(url)
-              response.raise_for_status()
-              text = response.text
-          except Exception as e:
-              print("Download failed:", e)
-              text = ""
+          text = requests.get(url).text
+          cal = Calendar(text)
 
           flights = []
 
-          if text.strip():
-              cal = Calendar(text)
+          for e in cal.events:
+              title = str(e.name)
 
-              for e in cal.events:
-                  flights.append({
-                      "title": str(e.name),
-                      "start": str(e.begin),
-                      "end": str(e.end),
-                      "description": str(e.description)
-                  })
-          else:
-              print("No calendar data!")
+              # 🔍 提取机场代码（3字）
+              codes = re.findall(r"[A-Z]{3}", title)
+
+              if len(codes) >= 2:
+                  dep = codes[0]
+                  arr = codes[1]
+              else:
+                  dep = "UNK"
+                  arr = "UNK"
+
+              flights.append({
+                  "from": dep,
+                  "to": arr,
+                  "departure": str(e.begin),
+                  "arrival": str(e.end),
+                  "raw": title
+              })
 
           with open("flights.json", "w") as f:
               json.dump({"flights": flights}, f, indent=2)
 
-          print("Flights count:", len(flights))
+          print("Flights parsed:", len(flights))
           EOF
 
-      - name: Commit update
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
+      - run: |
+          git config user.name "bot"
+          git config user.email "bot@github.com"
           git add flights.json
-          git commit -m "auto sync flights" || echo "no changes"
+          git commit -m "update flights" || echo "no change"
           git push
