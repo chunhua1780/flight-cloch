@@ -1,58 +1,49 @@
+import requests
+from ics import Calendar
+import json
 
-name: Sync Calendar to Flights JSON
+url = "https://p206-caldav.icloud.com/published/2/XXXXXXXX.ics"
 
-on:
-  schedule:
-    - cron: "0 */6 * * *"
-  workflow_dispatch:
+r = requests.get(url, timeout=20)
+text = r.text
 
-jobs:
-  sync:
-    runs-on: ubuntu-latest
+print("STATUS:", r.status_code)
+print("RAW HEAD:", text[:200])
 
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+flights = []
+status = "ok"
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
+try:
+    if "BEGIN:VCALENDAR" not in text:
+        raise Exception("Not ICS")
 
-      - name: Install libs
-        run: pip install requests ics
+    cal = Calendar(text)
 
-      - name: Convert calendar to JSON
-        run: |
-          python - <<EOF
-          import requests
-          from ics import Calendar
-          import json
+    events = list(cal.events)
+    print("EVENT COUNT:", len(events))
 
-          # 🔴 在这里填你的 ICS 链接
-          url = "https://p206-caldav.icloud.com/published/2/%0AMTkyMTc5MzcwNDYxOTIxN_ayvhztknFLls9NRXK_Mcke3hK6muYeh4YJdh%0AKYgJ7n%D0%9CpsCc%D0%90K7gHleg-%D0%A0%7C9GjleyzhYkhd%7C9mcew%7CQF%D0%95gP%D1%85%D0%9Do"
+    if len(events) == 0:
+        status = "empty"
 
-          text = requests.get(url).text
-          cal = Calendar(text)
+    for e in events:
+        flights.append({
+            "title": e.name,
+            "start": str(e.begin),
+            "end": str(e.end)
+        })
 
-          flights = []
+except Exception as e:
+    print("ERROR:", str(e))
+    status = "error"
 
-          for e in cal.events:
-              flights.append({
-                  "title": e.name,
-                  "start": str(e.begin),
-                  "end": str(e.end),
-                  "description": e.description
-              })
+# 🧠 强制结构输出（关键修复）
+output = {
+    "status": status,
+    "count": len(flights),
+    "flights": flights
+}
 
-          with open("flights.json", "w") as f:
-              json.dump({"flights": flights}, f, indent=2)
-          EOF
+with open("flights.json", "w") as f:
+    json.dump(output, f, indent=2)
 
-      - name: Commit update
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add flights.json
-          git commit -m "auto sync flights" || echo "no changes"
-          git push
+print("FINAL COUNT:", len(flights))
