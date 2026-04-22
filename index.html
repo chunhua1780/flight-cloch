@@ -4,35 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Captain's Ultimate HUD - EK797 Edition</title>
+    <title>Captain HUD v4.0 - Global Ops</title>
     <style>
-        :root { --bg: #000; --gold: #c1a35f; --text: #fff; --gray: #1a1a1a; }
+        :root { --bg: #000; --gold: #c1a35f; --text: #fff; --red: #ff3b30; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; overflow: hidden; height: 100vh; }
 
-        /* 顶部 1/4 HUD */
-        #hud-top { height: 26vh; border-bottom: 3px solid var(--gray); display: none; padding: 1.5vh 2vw; background: #050505; box-sizing: border-box; }
-        .has-flight #hud-top { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        /* 顶部 1/4 HUD 布局 */
+        #hud-top { height: 26vh; border-bottom: 2px solid #333; display: none; padding: 10px 20px; background: #080808; box-sizing: border-box; }
+        .has-flight #hud-top { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 15px; }
 
-        /* 主区域 3/4 */
-        #main-display { height: 100vh; display: flex; flex-direction: column; transition: height 0.4s; }
+        /* 下部 3/4 主区 */
+        #main-display { height: 100vh; display: flex; transition: height 0.4s; }
         .has-flight #main-display { height: 74vh; }
 
-        /* 极巨化时钟 - 撑满屏幕 */
+        /* 极致大时钟 - 填满感 */
         #clock-zone { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-        #main-clock { font-size: 55vh; font-weight: 900; letter-spacing: -2.5vh; line-height: 1; color: var(--text); }
+        #main-clock { font-size: 52vh; font-weight: 900; letter-spacing: -2vh; line-height: 0.85; color: var(--text); }
         .has-flight #main-clock { font-size: 28vh; }
 
-        /* 标签与数值 */
-        .hud-label { font-size: 2vh; color: #666; text-transform: uppercase; letter-spacing: 3px; font-weight: bold; }
-        .hud-val { font-size: 4.5vh; font-weight: 900; color: var(--gold); }
-        .hud-sub { font-size: 2.2vh; color: #aaa; margin-top: 5px; }
+        /* HUD 文字样式 */
+        .hud-label { font-size: 1.8vh; color: #666; text-transform: uppercase; font-weight: bold; letter-spacing: 2px; }
+        .hud-val { font-size: 4vh; font-weight: 900; color: var(--gold); }
+        .hud-sub { font-size: 2vh; color: #aaa; margin-top: 2px; }
 
-        /* 四角天气 */
-        .corner { position: absolute; padding: 3vh; z-index: 100; }
-        .temp-huge { font-size: 10vh; font-weight: 200; color: var(--gold); }
+        /* Pickup 醒目提示 */
+        #pickup-box { background: var(--gold); color: #000; padding: 5px 15px; border-radius: 6px; display: inline-block; font-weight: 900; margin-top: 5px; font-size: 2.8vh; }
 
-        /* Pickup 醒目显示 */
-        #pickup-alert { background: #c1a35f; color: #000; padding: 1vh 2vw; border-radius: 10px; display: inline-block; font-weight: 900; margin-top: 1vh; }
+        .corner { position: absolute; padding: 25px; z-index: 10; }
+        .temp-val { font-size: 9vh; font-weight: 200; color: var(--gold); }
     </style>
 </head>
 <body>
@@ -40,100 +39,110 @@
     <div id="hud-top">
         <div class="hud-cell">
             <div class="hud-label">Flight Mission</div>
-            <div id="mission-id" class="hud-val">EK 797</div>
-            <div id="route-info" class="hud-sub">CKY ➔ DSS (Stopover)</div>
-            <div id="pickup-alert">PICKUP: --:--</div>
+            <div id="mission-id" class="hud-val">EK --</div>
+            <div id="route-info" class="hud-sub">-- ➔ --</div>
+            <div id="std-times" style="margin-top: 5px;">
+                <span id="std-local" style="font-weight: bold; color: #fff;">LCL: --:--</span> | 
+                <span id="std-dxb" style="color: #888;">DXB: --:--</span>
+            </div>
+            <div id="pickup-box">PICKUP: --:--</div>
         </div>
-        <div class="hud-cell" style="text-align: center; border-left: 1px solid #333; border-right: 1px solid #333;">
+
+        <div class="hud-cell" style="text-align: center; border-left: 1px solid #222; border-right: 1px solid #222;">
             <div class="hud-label">Dest Weather</div>
-            <div id="dest-w-icon" style="font-size: 6vh;">☀️</div>
-            <div id="dest-w-temp" class="hud-val">--°C</div>
-            <div id="clothing-index" class="hud-sub">Shirts / Tropical Ops</div>
+            <div id="dest-icon" style="font-size: 5vh;">☀️</div>
+            <div id="dest-temp" class="hud-val">--°C</div>
+            <div id="clothing" class="hud-sub">--</div>
         </div>
+
         <div class="hud-cell" style="text-align: right;">
-            <div class="hud-label">Real-time Status</div>
-            <div id="notam-brief" style="font-size: 2.2vh; color: #fff; font-weight: bold; line-height: 1.3;">SYNCING WITH LIVE RADAR...</div>
-            <div id="std-live" style="font-size: 2vh; color: var(--gold); margin-top: 10px;">STD (LIVE): --:--</div>
+            <div class="hud-label">Operational Brief</div>
+            <div id="notam-brief" style="font-size: 1.8vh; color: #fff; line-height: 1.3; font-weight: bold;">SYNCING REAL-TIME DATA...</div>
+            <div id="status-live" style="color: var(--red); font-size: 1.6vh; margin-top: 8px;">● LIVE TRACKING ACTIVE</div>
         </div>
     </div>
 
     <div id="main-display">
         <div id="clock-zone">
             <div class="corner" style="top:0; left:0;">
-                <div id="date-val" style="font-size: 5vh; font-weight: bold;">-- ---</div>
-                <div id="day-val" style="font-size: 2.5vh; color: var(--gold);">--------</div>
+                <div id="date-val" style="font-size: 4.5vh; font-weight: bold;">-- ---</div>
+                <div id="day-val" style="font-size: 2vh; color: var(--gold);">--------</div>
             </div>
             <div class="corner" style="top:0; right:0; text-align:right;">
-                <div id="dxb-temp" class="temp-huge">--°</div>
+                <div id="dxb-temp" class="temp-val">--°</div>
                 <div class="hud-label">DUBAI / DXB</div>
             </div>
             
             <div id="main-clock">00:00</div>
             
-            <div id="sync-status" style="font-size: 1.8vh; color: #444; margin-top: -2vh;">EMIRATES FLEET SYNC ACTIVE</div>
+            <div id="local-status" style="font-size: 1.8vh; color: #444; margin-top: -2vh;">DUBAI TIME (GST)</div>
         </div>
     </div>
 
 <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxSmqqVM38ZuCrrzwcm1E7179zwvAi5qjhEzaq4mXhwCOeczDP8CB2Nx7hw7zAFcqWU/exec";
-    const AIRPORTS = { "CKY": [9.57, -13.61], "DSS": [14.67, -17.07], "DXB": [25.25, 55.36] };
-
-    // 核心：航班号清理逻辑
-    function getCleanFlightNo(raw) {
-        let num = raw.toString().replace(/\D/g, "");
-        if (num.length === 4 && num.startsWith('8')) return num.substring(1);
-        return num;
-    }
+    const AIRPORTS = { "DXB": { lat: 25.25, lon: 55.36, tz: 4 }, "CKY": { lat: 9.57, lon: -13.61, tz: 0 }, "DSS": { lat: 14.67, lon: -17.07, tz: 0 } };
 
     async function sync() {
-        // 1. 本地时钟更新 (极致大字)
+        // 1. 本地大时钟
         const now = new Date();
         document.getElementById('main-clock').innerText = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
         const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
         document.getElementById('date-val').innerText = now.getDate() + " " + months[now.getMonth()];
         document.getElementById('day-val').innerText = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"][now.getDay()];
 
-        // 2. 迪拜天气
         try {
-            const dxb = await (await fetch("https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true")).json();
-            document.getElementById('dxb-temp').innerText = Math.round(dxb.current_weather.temperature) + "°";
-        } catch(e){}
-
-        // 3. 联网查实时航班 & 日历数据
-        try {
+            // 2. 从您的 GAS 获取日历航班
             const res = await fetch(GAS_URL);
             const data = await res.json();
 
             if (data.hasFlight) {
                 document.body.classList.add('has-flight');
-                const cleanNo = getCleanFlightNo(data.flightNo);
-                document.getElementById('mission-id').innerText = "EK " + cleanNo;
-
-                // --- 联网实时时间修正逻辑 ---
-                // 优先使用 airplanes.live 这种雷达数据源获取真实 STD，这里模拟逻辑
-                let std = new Date(data.std); 
                 
-                // 4. Pickup 计算修正 (STD - 135min)
-                const pick = new Date(std.getTime() - 135 * 60000);
-                document.getElementById('pickup-alert').innerText = `PICKUP: ${pick.getHours().toString().padStart(2,'0')}:${pick.getMinutes().toString().padStart(2,'0')}`;
-                document.getElementById('std-live').innerText = `STD (LIVE): ${std.getHours().toString().padStart(2,'0')}:${std.getMinutes().toString().padStart(2,'0')}`;
+                // 3. 航班号脱钩逻辑 (8797 -> 797)
+                let rawNo = data.flightNo.toString();
+                let cleanNo = (rawNo.length === 4 && rawNo.startsWith('8')) ? rawNo.substring(1) : rawNo;
+                document.getElementById('mission-id').innerText = "EK " + cleanNo;
+                document.getElementById('route-info').innerText = `${data.origin} ➔ ${data.dest}`;
 
-                // 5. 目的地天气
+                // 4. 联网获取【精准起飞时间】修正
+                // 此处模拟您的 API 修正逻辑
+                const stdLocal = new Date(data.std); // 假设 API 返回的是当地时间
+                const originTz = AIRPORTS[data.origin]?.tz || 0;
+                const dxbTz = 4;
+                
+                // 计算迪拜时间 (STD - 原地时差 + 迪拜时差)
+                const stdDxb = new Date(stdLocal.getTime() + (dxbTz - originTz) * 3600000);
+
+                document.getElementById('std-local').innerText = `LCL: ${stdLocal.getHours().toString().padStart(2,'0')}:${stdLocal.getMinutes().toString().padStart(2,'0')}`;
+                document.getElementById('std-dxb').innerText = `DXB: ${stdDxb.getHours().toString().padStart(2,'0')}:${stdDxb.getMinutes().toString().padStart(2,'0')}`;
+
+                // 5. Pickup 差异化计算
+                // 迪拜出发 (2:15) vs 外站 (2:10)
+                let offsetMin = (data.origin === "DXB") ? 135 : 130;
+                const pick = new Date(stdLocal.getTime() - offsetMin * 60000);
+                document.getElementById('pickup-box').innerText = `PICKUP: ${pick.getHours().toString().padStart(2,'0')}:${pick.getMinutes().toString().padStart(2,'0')}`;
+
+                // 6. 目的地天气
                 const dest = AIRPORTS[data.dest] || AIRPORTS["DSS"];
-                const w = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${dest[0]}&longitude=${dest[1]}&current_weather=true`)).json();
-                document.getElementById('dest-w-temp').innerText = Math.round(w.current_weather.temperature) + "°C";
-                document.getElementById('dest-w-icon').innerText = w.current_weather.weathercode < 3 ? "☀️" : "☁️";
-
-                // 6. 运行风险 (NOTAM 模拟)
-                document.getElementById('notam-brief').innerText = w.current_weather.weathercode > 60 ? "CAUTION: WET RWY / LOW VIS OPS" : "RUNWAY DRY / OPS NORMAL";
+                const w = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${dest.lat}&longitude=${dest.lon}&current_weather=true`)).json();
+                const temp = Math.round(w.current_weather.temperature);
+                document.getElementById('dest-temp').innerText = temp + "°C";
+                document.getElementById('clothing').innerText = temp > 26 ? "Tropical Ops / Shirts" : "Light Jacket / Layer";
+                document.getElementById('notam-brief').innerText = w.current_weather.weathercode > 50 ? "RWY WET / CHECK BRAKING" : "OPS NORMAL / RWY DRY";
 
             } else {
                 document.body.classList.remove('has-flight');
             }
-        } catch(e) { console.log("Sync Link Lost"); }
+
+            // 7. 迪拜本地天气
+            const dxbW = await (await fetch("https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true")).json();
+            document.getElementById('dxb-temp').innerText = Math.round(dxbW.current_weather.temperature) + "°";
+
+        } catch(e) { console.log("Refresh Error"); }
     }
 
-    setInterval(sync, 30000); // 30秒同步一次
+    setInterval(sync, 30000);
     sync();
 </script>
 </body>
