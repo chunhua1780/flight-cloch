@@ -1,4 +1,4 @@
-name: Sync Calendar to Flights JSON
+name: Sync Calendar to Flights JSON (Dual Safe Mode)
 
 on:
   schedule:
@@ -21,58 +21,81 @@ jobs:
       - name: Install libs
         run: pip install requests ics
 
-      - name: Convert calendar to JSON (SAFE VERSION)
+      - name: Build flights.json (with fallback)
         run: |
           python - <<EOF
           import requests
           from ics import Calendar
           import json
+          import os
 
-          url = "https://p206-caldav.icloud.com/published/2/XXXXXXXXXXXX.ics"
-
-          print("Fetching:", url)
-
-          r = requests.get(url, timeout=20)
-
-          print("STATUS:", r.status_code)
-
-          if r.status_code != 200:
-              raise Exception("❌ Failed to fetch calendar")
-
-          text = r.text
-
-          # 🚨 关键：验证是不是 ICS
-          if "BEGIN:VCALENDAR" not in text:
-              print("RAW SAMPLE:")
-              print(text[:300])
-              raise Exception("❌ Not a valid ICS file")
-
-          cal = Calendar(text)
+          ICS_URL = "https://p206-caldav.icloud.com/published/2/XXXXXXXXXXXX.ics"
 
           flights = []
 
-          for e in cal.events:
-              flights.append({
-                  "title": e.name,
-                  "start": str(e.begin),
-                  "end": str(e.end),
-                  "description": getattr(e, "description", "")
-              })
+          def load_backup():
+              if os.path.exists("backup_flights.json"):
+                  with open("backup_flights.json","r") as f:
+                      data = json.load(f)
+                      return data.get("flights", [])
+              return []
 
-          # 🚨 防止空数据写入
-          if len(flights) == 0:
-              raise Exception("❌ No flights found in calendar")
+          try:
+              print("🔄 Fetching iCloud calendar...")
+              r = requests.get(ICS_URL, timeout=20)
 
-          with open("flights.json", "w") as f:
+              if r.status_code != 200:
+                  raise Exception("Bad status")
+
+              text = r.text
+
+              if "BEGIN:VCALENDAR" not in text:
+                  raise Exception("Not ICS")
+
+              cal = Calendar(text)
+
+              for e in cal.events:
+                  flights.append({
+                      "title": e.name,
+                      "start": str(e.begin),
+                      "end": str(e.end),
+                      "description": getattr(e, "description","")
+                  })
+
+              if len(flights) == 0:
+                  raise Exception("Empty calendar")
+
+              print("✅ iCloud flights loaded:", len(flights))
+
+              # 💾 同步保存备份（关键）
+              with open("backup_flights.json","w") as f:
+                  json.dump({"flights": flights}, f, indent=2)
+
+          except Exception as e:
+              print("⚠️ iCloud failed:", str(e))
+              print("🔁 Switching to backup...")
+
+              flights = load_backup()
+
+              if len(flights) == 0:
+                  flights = [{
+                      "title": "NO FLIGHT DATA",
+                      "start": "",
+                      "end": "",
+                      "description": "Fallback mode active"
+                  }]
+
+          # 🚨 永远保证有输出
+          with open("flights.json","w") as f:
               json.dump({"flights": flights}, f, indent=2)
 
-          print("✅ Flights parsed:", len(flights))
+          print("📦 Final flights count:", len(flights))
           EOF
 
       - name: Commit update
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add flights.json
-          git commit -m "auto sync flights" || echo "no changes"
+          git add flights.json backup_flights.json
+          git commit -m "sync flights (dual safe mode)" || echo "no changes"
           git push
