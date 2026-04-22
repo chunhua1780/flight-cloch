@@ -5,109 +5,161 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>777 Captain HUD - DXB</title>
     <style>
         :root { --bg: #000; --gold: #c1a35f; --text: #fff; --gray: #222; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: "SF Pro Display", sans-serif; overflow: hidden; height: 100vh; }
+        
+        /* 1/4 顶部 HUD 动态区 */
+        #top-hud { height: 25vh; border-bottom: 2px solid var(--gray); display: none; padding: 1.5vh 2vw; box-sizing: border-box; background: #080808; }
+        .flight-mode #top-hud { display: block; }
 
-        /* 顶部 1/4 HUD：仅起飞后显示 */
-        #top-hud { height: 25vh; border-bottom: 2px solid var(--gray); display: none; padding: 1.5vh 2vw; background: #050505; }
-        .in-flight #top-hud { display: block; }
-
-        /* 进度条系统 */
-        .prog-wrap { width: 94%; height: 4px; background: #333; margin: 4vh auto; position: relative; }
+        /* 进度条 */
+        .prog-line { width: 94%; height: 4px; background: #333; margin: 4vh auto; position: relative; }
         #plane-icon { position: absolute; top: -18px; left: 0%; font-size: 30px; transition: left 1s linear; }
 
-        /* 主区域 3/4 */
-        #main-display { height: 100vh; display: flex; transition: all 0.5s; }
-        .in-flight #main-display { height: 75vh; }
+        /* HUD 三段式布局 */
+        .hud-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; height: 100%; gap: 20px; }
+        .hud-val { font-size: 3.8vh; font-weight: bold; color: var(--gold); }
+        .hud-label { font-size: 1.6vh; color: #666; text-transform: uppercase; }
+
+        /* 主显示区 3/4 */
+        #main-display { height: 100vh; display: flex; transition: height 0.5s; }
+        .flight-mode #main-display { height: 75vh; }
+        .layover-mode #main-display { display: grid; grid-template-columns: 1fr 1fr; }
 
         /* 极致大时钟 */
         #clock-zone { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-        #main-clock { font-size: 48vh; font-weight: 100; letter-spacing: -2vh; line-height: 1; }
-        .in-flight #main-clock { font-size: 25vh; }
+        #main-clock { font-size: 45vh; font-weight: 100; letter-spacing: -2vh; line-height: 1; }
+        .flight-mode #main-clock { font-size: 25vh; }
+        .layover-mode #main-clock { font-size: 18vh; }
 
-        /* 侧边雷达：仅起飞后显示 */
-        #sidebar { flex: 0.45; display: none; background: #050505; border-left: 1px solid var(--gray); flex-direction: column; }
-        .in-flight #sidebar { display: flex; }
-
-        /* 四角信息 */
-        .corner { position: absolute; padding: 3vh; z-index: 100; }
-        .temp-big { font-size: 9vh; color: var(--gold); font-weight: 200; }
-        .label-sm { font-size: 1.8vh; color: #666; text-transform: uppercase; letter-spacing: 2px; }
-
-        /* 航班信息板（起飞前显示） */
-        #preflight-info { position: absolute; bottom: 5vh; width: 100%; text-align: center; }
-        .in-flight #preflight-info { display: none; }
+        /* 四角天气与日期 */
+        .corner { position: absolute; padding: 3vh; z-index: 10; }
+        .weather-huge { font-size: 8vh; color: var(--gold); font-weight: 200; }
+        
+        /* 右下角雷达图 */
+        #radar-box { position: absolute; bottom: 2vh; right: 2vw; width: 35vw; height: 35vh; border: 1px solid var(--gray); border-radius: 15px; overflow: hidden; display: none; }
+        .in-flight #radar-box { display: block; }
     </style>
 </head>
 <body>
 
     <div id="top-hud">
-        <div class="prog-wrap"><div id="plane-icon">✈️</div></div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
-            <div><div class="label-sm">Mission</div><div id="hud-id" style="font-size: 4vh; font-weight: bold; color: var(--gold);">--</div></div>
-            <div style="text-align: center;"><div class="label-sm">Live Radar</div><div id="hud-telemetry" style="font-size: 3vh;">GS --- KT | FL ---</div></div>
-            <div style="text-align: right;"><div class="label-sm">Risk Assessment</div><div id="hud-risk" style="font-size: 2.2vh; color: #aaa;">ANALYZING NOTAMs...</div></div>
+        <div id="hud-content" class="hud-grid">
+            <div class="hud-cell">
+                <div class="hud-label">Flight Mission</div>
+                <div id="hud-id" class="hud-val">--</div>
+                <div id="hud-pickup" style="font-size: 2vh; color: #888;">PICKUP: --:--</div>
+            </div>
+            <div class="hud-cell" style="text-align: center;">
+                <div id="hud-dest-w-icon" style="font-size: 5vh;">☀️</div>
+                <div id="hud-dest-temp" class="hud-val">--°C</div>
+                <div id="hud-dest-city" class="hud-label">DESTINATION</div>
+            </div>
+            <div class="hud-cell" style="text-align: right;">
+                <div class="hud-label">NOTAM Human-Summary</div>
+                <div id="hud-notam" style="font-size: 1.8vh; color: #bbb; line-height: 1.3;">Scanning airport data...</div>
+            </div>
         </div>
+        <div id="hud-cruise" style="display:none; width:100%;"><div class="prog-line"><div id="plane-icon">✈️</div></div></div>
     </div>
 
     <div id="main-display">
         <div id="clock-zone">
             <div class="corner" style="top:0; left:0;">
-                <div id="date-val" style="font-size: 5vh;">-- ---</div>
-                <div id="day-val" style="font-size: 2.5vh; color: var(--gold);">--------</div>
+                <div id="date-val" style="font-size: 4vh;">-- ---</div>
+                <div id="day-val" style="font-size: 2vh; color: var(--gold);">--------</div>
             </div>
             <div class="corner" style="top:0; right:0; text-align:right;">
-                <div id="local-temp" class="temp-big">--°</div>
-                <div id="local-city" class="label-sm">Dubai / DXB</div>
+                <div id="dxb-w-icon" style="font-size: 6vh;">☀️</div>
+                <div id="dxb-temp" class="weather-huge">--°</div>
             </div>
-            
             <div id="main-clock">00:00</div>
-
-            <div id="preflight-info">
-                <div id="f-title" style="font-size: 5vh; color: var(--gold); font-weight: bold;">--</div>
-                <div id="f-pickup" style="font-size: 4vh; color: #fff; margin: 1vh 0;">PICKUP: --:--</div>
-                <div id="f-dest-wx" style="font-size: 2.5vh; color: #888;">--</div>
-            </div>
+            <div id="radar-box"><div id="map" style="width:100%; height:100%;"></div></div>
         </div>
 
-        <div id="sidebar">
-            <div id="map" style="height: 55%; width: 100%;"></div>
-            <div style="padding: 2vh;">
-                <div class="label-sm">Dist Remaining</div><div id="st-dist" style="font-size: 3.5vh; color: var(--gold); font-family: monospace;">--- NM</div>
-                <div class="label-sm" style="margin-top:2vh;">Dest Weather</div><div id="st-dest-wx" style="font-size: 3vh; color: #fff;">--</div>
-            </div>
+        <div id="layover-panel" style="display: none; flex-direction: column; justify-content: center; align-items: center; border-left: 1px solid var(--gray);">
+            <div id="lay-city" style="font-size: 3vh; color: #666; letter-spacing: 5px;">STATION</div>
+            <div id="lay-clock" style="font-size: 18vh; font-weight: 100;">00:00</div>
+            <div id="lay-temp" class="weather-huge">--°C</div>
         </div>
     </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // 你的最新 GAS URL
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxJ9BARIJhAraHdd-nCnumx583NWrNFHN20ufiYSnRiWwb-vJPNnW4IwutNhtKx15P_/exec";
-    
-    const AIRPORT_DB = {
-        "CKY": {name: "Conakry", lat: 9.577, lon: -13.612},
-        "DSS": {name: "Dakar", lat: 14.672, lon: -17.073},
-        "DXB": {name: "Dubai", lat: 25.253, lon: 55.365}
-    };
+    const AIRPORTS = { "CKY": [9.57, -13.61], "DSS": [14.67, -17.07], "DXB": [25.25, 55.36] };
+    const WX_ICONS = { 0: "☀️", 1: "🌤️", 2: "⛅", 3: "☁️", 45: "🌫️", 61: "🌧️", 95: "⛈️" };
 
     let map, marker;
     function initMap() {
-        map = L.map('map', {zoomControl:false, attributionControl:false}).setView([25, 55], 3);
+        map = L.map('map', {zoomControl: false, attributionControl: false}).setView([25, 55], 3);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         marker = L.marker([25, 55], {icon: L.divIcon({html:"<div style='font-size:24px'>✈️</div>", className:''})}).addTo(map);
     }
 
     async function sync() {
-        // 更新本地时钟
-        const n = new Date();
-        document.getElementById('main-clock').innerText = n.getHours().toString().padStart(2,'0')+":"+n.getMinutes().toString().padStart(2,'0');
+        // 1. 本地时钟
+        const now = new Date();
+        document.getElementById('main-clock').innerText = now.getHours().toString().padStart(2,'0')+":"+now.getMinutes().toString().padStart(2,'0');
         const months = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
-        document.getElementById('date-val').innerText = n.getDate() + " " + months[n.getMonth()];
+        document.getElementById('date-val').innerText = now.getDate() + " " + months[now.getMonth()];
         document.getElementById('day-val').innerText = ["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"][n.getDay()];
 
-        // 更新本地天气
+        // 2. 本地天气
         try {
             const w = await (await fetch("https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true")).json();
-            document.getElementById('local-temp').innerText = Math.round(w.current_weather.temperature) + "°";
+            document.getElementById('dxb-temp').innerText = Math.round(w.current_weather.temperature) + "°";
+            document.getElementById('dxb-w-icon').innerText = WX_ICONS[w.current_weather.weathercode] || "☀️";
         } catch(e){}
+
+        // 3. 航班动态
+        try {
+            const res = await fetch(GAS_URL);
+            const data = await res.json();
+            if (data.hasFlight) {
+                document.body.classList.add('flight-mode');
+                processFlight(data);
+            } else {
+                document.body.className = "";
+            }
+        } catch(e){}
+    }
+
+    async function processFlight(data) {
+        document.getElementById('hud-id').innerText = data.title;
+        let dep = new Date(data.departureTime);
+        let pick = new Date(dep.getTime() - 135 * 60000); // 准确减去 2h 15m
+        document.getElementById('hud-pickup').innerText = `PICKUP: ${pick.getHours().toString().padStart(2,'0')}:${pick.getMinutes().toString().padStart(2,'0')}`;
+        
+        // 天气 & NOTAM 模拟逻辑
+        const dest = AIRPORTS[data.destCode] || [0,0];
+        if(dest[0] !== 0) {
+            const res = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${dest[0]}&longitude=${dest[1]}&current_weather=true`)).json();
+            document.getElementById('hud-dest-temp').innerText = Math.round(res.current_weather.temperature) + "°C";
+            document.getElementById('hud-dest-w-icon').innerText = WX_ICONS[res.current_weather.weathercode] || "☀️";
+            document.getElementById('hud-notam').innerText = res.current_weather.weathercode > 60 ? "CAUTION: WET RUNWAY & LOW VISIBILITY" : "RUNWAY DRY / OPS NORMAL";
+        }
+
+        // 雷达追踪
+        let rawNo = data.title.split('-')[0].replace(/\D/g, "");
+        const callsigns = ["UAE"+rawNo, "UAE"+rawNo.substring(1)];
+        for(let c of callsigns) {
+            const r = await (await fetch(`https://api.airplanes.live/v2/callsign/${c}`)).json();
+            if(r.ac && r.ac.length > 0) {
+                const ac = r.ac[0];
+                if(ac.alt_baro > 500) {
+                    document.body.classList.add('in-flight');
+                    marker.setLatLng([ac.lat, ac.lon]);
+                    map.panTo([ac.lat, ac.lon]);
+                }
+                break;
+            }
+        }
+    }
+
+    initMap(); sync(); setInterval(sync, 40000);
+</script>
+</body>
+</html>
