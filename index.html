@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flight Cockpit V23</title>
+<title>Flight Cockpit V24</title>
 
 <style>
 body{
@@ -14,50 +14,38 @@ font-family:-apple-system;
 overflow:hidden;
 }
 
-/* CLOCK */
+/* ================= LAYOUT ================= */
+.layout-single #left,.layout-single #right{display:none;}
+.layout-double #right{display:none;}
+.layout-triple #left,#right{display:block;}
+
+/* ================= ELEMENTS ================= */
 #clock{
-font-size:32vh;
+font-size:30vh;
 text-align:center;
-margin-top:6vh;
-font-weight:800;
+margin-top:5vh;
 cursor:move;
 }
 
-#date{
+#date,#city,#country{
 text-align:center;
 font-size:3vh;
 color:#aaa;
 cursor:move;
 }
 
-/* WEATHER */
 #weather{
 position:absolute;
 top:20px;
 right:20px;
 text-align:right;
-cursor:move;
+cursor:ns-resize; /* only vertical */
 }
+
 #wicon{font-size:6vh;}
 #wtemp{font-size:2vh;color:#aaa;}
 
-/* BUTTONS */
-#menuBtn,#editBtn,#mgrBtn{
-position:fixed;
-right:20px;
-padding:12px 14px;
-border-radius:50%;
-background:#c1a35f;
-color:#000;
-display:none;
-z-index:9999;
-}
-
-#menuBtn{bottom:20px;}
-#editBtn{top:20px;}
-#mgrBtn{bottom:80px;}
-
-/* PANELS */
+/* ================= PANELS ================= */
 .panel{
 position:fixed;
 top:10%;
@@ -68,7 +56,7 @@ padding:15px;
 border-radius:12px;
 display:none;
 z-index:10000;
-width:300px;
+width:320px;
 max-height:70vh;
 overflow:auto;
 }
@@ -82,45 +70,62 @@ color:#fff;
 border:1px solid #333;
 }
 
-button{
-width:100%;
-margin-top:6px;
-padding:8px;
-background:#222;
-color:#fff;
-border:1px solid #444;
+/* ================= BUTTONS ================= */
+#menu,#edit,#calendarBtn{
+position:fixed;
+right:20px;
+background:#c1a35f;
+color:#000;
+padding:12px;
+border-radius:50%;
+display:none;
+z-index:9999;
 }
 
-/* DRAG MODE */
+#menu{bottom:20px;}
+#edit{top:20px;}
+#calendarBtn{bottom:80px;}
+
+/* ================= DRAG ================= */
 .draggable{
 position:absolute;
 cursor:move;
 }
 
-/* FLIGHT LIST */
-.flightItem{
-background:#000;
-padding:6px;
-margin:4px 0;
-border:1px solid #333;
+.resizeable{
+resize:both;
+overflow:auto;
 }
 
-.smallBtn{
+/* ================= CALENDAR ================= */
+#calendar{
+display:grid;
+grid-template-columns:repeat(7,1fr);
+gap:2px;
 font-size:12px;
-padding:4px;
-margin-top:4px;
 }
+
+.day{
+background:#000;
+border:1px solid #333;
+padding:8px;
+min-height:40px;
+cursor:pointer;
+}
+
+.day:hover{background:#111;}
 
 </style>
 </head>
 
-<body>
+<body class="layout-single">
 
 <!-- CLOCK -->
 <div id="clock" class="draggable">00:00</div>
 
-<!-- DATE -->
 <div id="date" class="draggable">---</div>
+<div id="city" class="draggable">Dubai</div>
+<div id="country" class="draggable">UAE</div>
 
 <!-- WEATHER -->
 <div id="weather" class="draggable">
@@ -129,137 +134,73 @@ margin-top:4px;
 </div>
 
 <!-- BUTTONS -->
-<div id="menuBtn">✈</div>
-<div id="editBtn">⚙</div>
-<div id="mgrBtn">📅</div>
+<div id="menu">✈</div>
+<div id="edit">⚙</div>
+<div id="calendarBtn">📅</div>
 
-<!-- FLIGHT MANAGER -->
-<div id="manager" class="panel">
+<!-- SETTINGS -->
+<div id="settings" class="panel">
 
-<div style="color:#c1a35f;">FLIGHT MANAGER</div>
+<div style="color:#c1a35f;">LAYOUT</div>
 
-<input id="fno" placeholder="EK838">
-<input id="org" placeholder="DXB">
-<input id="dst" placeholder="LHR">
-<input id="ftime" type="datetime-local">
+<button onclick="setLayout('layout-single')">Single</button>
+<button onclick="setLayout('layout-double')">Double</button>
+<button onclick="setLayout('layout-triple')">Triple</button>
 
-<button onclick="addFlight()">ADD FLIGHT</button>
+<hr>
 
-<div id="list"></div>
+<div style="color:#c1a35f;">ADD ELEMENT</div>
+
+<button onclick="addElement('date')">Date</button>
+<button onclick="addElement('city')">City</button>
+<button onclick="addElement('country')">Country</button>
+
+</div>
+
+<!-- CALENDAR -->
+<div id="calendarPanel" class="panel">
+
+<div style="display:flex;justify-content:space-between;">
+<button onclick="prevMonth()">◀</button>
+<div id="month"></div>
+<button onclick="nextMonth()">▶</button>
+</div>
+
+<div id="calendar"></div>
 
 </div>
 
 <script>
 
-/* ================= DATA ================= */
-let flights=JSON.parse(localStorage.getItem("flights")||"[]");
-
-/* ================= SHOW MENU ================= */
+/* ================= MENU ================= */
 let t;
 
 document.body.onclick=()=>{
 
-menuBtn.style.display="block";
-editBtn.style.display="block";
-mgrBtn.style.display="block";
+menu.style.display="block";
+edit.style.display="block";
+calendarBtn.style.display="block";
 
 clearTimeout(t);
-
 t=setTimeout(()=>{
-menuBtn.style.display="none";
-editBtn.style.display="none";
-mgrBtn.style.display="none";
+menu.style.display="none";
+edit.style.display="none";
+calendarBtn.style.display="none";
 },5000);
 
 };
 
-/* ================= OPEN MANAGER ================= */
-mgrBtn.onclick=()=>{
+/* ================= OPEN ================= */
+edit.onclick=()=>settings.style.display="block";
+calendarBtn.onclick=()=>calendarPanel.style.display="block";
 
-manager.style.display="block";
-renderList();
-
-};
-
-/* ================= CLOCK ================= */
-function clock(){
-
-let n=new Date();
-
-clock.innerText=
-n.getHours().toString().padStart(2,'0')+":"+
-n.getMinutes().toString().padStart(2,'0');
-
-date.innerText=
-n.toDateString();
-
+/* ================= LAYOUT ================= */
+function setLayout(v){
+document.body.className=v;
+localStorage.setItem("layout",v);
 }
 
-/* ================= WEATHER ================= */
-function weather(){
-wicon.innerText="☀️";
-wtemp.innerText="28°";
-}
-
-/* ================= ADD FLIGHT ================= */
-function addFlight(){
-
-flights.push({
-id:Date.now(),
-no:fno.value,
-org:org.value,
-dst:dst.value,
-time:ftime.value
-});
-
-save();
-
-renderList();
-
-}
-
-/* ================= DELETE ================= */
-function del(id){
-
-flights=flights.filter(f=>f.id!==id);
-
-save();
-
-renderList();
-
-}
-
-/* ================= RENDER LIST ================= */
-function renderList(){
-
-list.innerHTML="";
-
-flights.forEach(f=>{
-
-let div=document.createElement("div");
-div.className="flightItem";
-
-div.innerHTML=`
-${f.no}<br>
-${f.org} → ${f.dst}<br>
-${f.time}<br>
-<button class="smallBtn" onclick="del(${f.id})">DELETE</button>
-`;
-
-list.appendChild(div);
-
-});
-
-}
-
-/* ================= SAVE ================= */
-function save(){
-
-localStorage.setItem("flights",JSON.stringify(flights));
-
-}
-
-/* ================= DRAG SYSTEM ================= */
+/* ================= DRAG ================= */
 function drag(el){
 
 let ox,oy;
@@ -282,19 +223,75 @@ document.onmouseup=()=>document.onmousemove=null;
 
 }
 
-function enableDrag(){
-
 document.querySelectorAll(".draggable").forEach(drag);
+
+/* ================= ADD ELEMENT ================= */
+function addElement(type){
+
+let el=document.createElement("div");
+el.className="draggable";
+el.innerText=type.toUpperCase();
+el.style.top="200px";
+el.style.left="200px";
+
+document.body.appendChild(el);
+
+drag(el);
 
 }
 
-/* ================= EDIT MODE ================= */
-editBtn.onclick=()=>enableDrag();
+/* ================= CALENDAR ================= */
+let now=new Date();
 
-/* ================= LOOP ================= */
-setInterval(clock,1000);
+function renderCalendar(){
 
-clock();
+let y=now.getFullYear();
+let m=now.getMonth();
+
+month.innerText=y+"-"+(m+1);
+
+calendar.innerHTML="";
+
+let first=new Date(y,m,1).getDay();
+let days=new Date(y,m+1,0).getDate();
+
+for(let i=0;i<first;i++){
+calendar.innerHTML+="<div></div>";
+}
+
+for(let d=1;d<=days;d++){
+
+let div=document.createElement("div");
+div.className="day";
+div.innerText=d;
+
+div.onclick=()=>{
+
+let f=prompt("Flight for "+d);
+
+if(f){
+localStorage.setItem("flight_"+y+"_"+m+"_"+d,f);
+}
+
+};
+
+calendar.appendChild(div);
+
+}
+
+}
+
+function prevMonth(){now.setMonth(now.getMonth()-1);renderCalendar();}
+function nextMonth(){now.setMonth(now.getMonth()+1);renderCalendar();}
+
+/* ================= WEATHER ================= */
+function weather(){
+wicon.innerText="☀️";
+wtemp.innerText="28°";
+}
+
+/* ================= INIT ================= */
+renderCalendar();
 weather();
 
 </script>
