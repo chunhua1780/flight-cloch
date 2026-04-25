@@ -1,301 +1,229 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>V30 Cockpit System</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>777 Captain Dashboard v4</title>
 
 <style>
+:root{
+    --bg:#000;
+    --gold:#c1a35f;
+    --text:#fff;
+    --gray:#1a1a1a;
+    --green:#34c759;
+    --red:#ff3b30;
+}
+
 body{
-margin:0;
-background:#000;
-color:#fff;
-font-family:-apple-system;
-overflow:hidden;
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system, sans-serif;
+    overflow:hidden;
+    height:100vh;
 }
 
-/* ================= MAIN CLOCK MODE ================= */
+/* ================= MODES ================= */
+
+#hud{
+    height:26vh;
+    display:none;
+    padding:1.5vh 2vw;
+    background:#050505;
+    border-bottom:2px solid #1a1a1a;
+}
+
+.dual #hud{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+}
+
+/* MAIN */
+#main{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+}
+
+.dual #main{
+    height:74vh;
+}
+
 #clock{
-position:absolute;
-top:10%;
-width:100%;
-text-align:center;
-font-size:30vh;
-font-weight:800;
+    font-size:52vh;
+    font-weight:900;
 }
 
-#date{
-position:absolute;
-bottom:8%;
-width:100%;
-text-align:center;
-font-size:3vh;
-color:#aaa;
+.dual #clock{
+    font-size:30vh;
 }
 
-/* ================= WEATHER ================= */
-#weather{
-position:absolute;
-top:20px;
-right:20px;
-text-align:right;
-font-size:6vh;
+/* HUD blocks */
+.box{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
 }
 
-/* ================= MENU ================= */
-#menu{
-position:fixed;
-bottom:20px;
-right:20px;
-background:#c1a35f;
-color:#000;
-padding:12px;
-border-radius:50%;
-display:none;
-z-index:9999;
+.title{
+    font-size:12px;
+    color:#777;
 }
 
-/* ================= PANEL ================= */
-#panel{
-position:fixed;
-top:10%;
-left:50%;
-transform:translateX(-50%);
-background:#111;
-padding:15px;
-width:340px;
-display:none;
-z-index:9999;
+.val{
+    font-size:3.5vh;
+    color:var(--gold);
+    font-weight:800;
 }
 
-/* ================= LAYOUT ================= */
-body.single .flight,
-body.single .left,
-body.single .right{display:none;}
-
-body.dual .flight{display:none;}
-
-/* ================= TRIPLE ================= */
-#flightBar{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:20%;
-background:#111;
-display:none;
+/* Weather */
+.weatherIcon{
+    font-size:8vh;
+    color:var(--gold);
 }
 
-#left,#right{
-position:absolute;
-top:20%;
-bottom:0;
-width:50%;
+/* overlay switch */
+#touch{
+    position:absolute;
+    width:100%;
+    height:100%;
+    z-index:999;
 }
 
-#left{left:0;background:#050505;}
-#right{right:0;background:#080808;}
-
-/* ================= NODE SYSTEM ================= */
-.node{
-position:absolute;
-padding:6px;
-cursor:move;
-user-select:none;
-border:1px dashed transparent;
-}
-
-.edit .node{
-border:1px dashed #444;
-}
-
-/* resize handle */
-.node::after{
-content:"";
-position:absolute;
-right:0;
-bottom:0;
-width:12px;
-height:12px;
-background:#c1a35f;
-display:none;
-cursor:nwse-resize;
-}
-
-.edit .node::after{
-display:block;
-}
-
-/* ================= BUTTON ================= */
-button{
-width:100%;
-margin:4px 0;
-padding:8px;
-background:#222;
-color:#fff;
-border:1px solid #444;
-}
-
+/* screensaver */
+.saver #hud{opacity:0;}
+.saver #clock{font-size:60vh;}
 </style>
 </head>
 
-<body class="single">
+<body>
 
-<!-- MAIN SCREEN -->
-<div id="clock">00:00</div>
-<div id="date">---</div>
-<div id="weather">☀️ 28°</div>
+<div id="hud">
 
-<!-- TRIPLE MODE -->
-<div id="flightBar">FLIGHT PROGRESS</div>
-<div id="left">DXB WEATHER</div>
-<div id="right">DEST WEATHER</div>
+    <div class="box">
+        <div class="title">FLIGHT</div>
+        <div id="flightNo" class="val">--</div>
+        <div id="pickup" style="font-size:2vh;color:#aaa;">--</div>
+    </div>
 
-<!-- MENU -->
-<div id="menu">✈</div>
+    <div class="box" style="text-align:center;">
+        <div id="wxIcon" class="weatherIcon">☀️</div>
+        <div id="wxTemp" class="val">--°</div>
+    </div>
 
-<!-- PANEL -->
-<div id="panel">
-
-<div style="color:#c1a35f;">LAYOUT</div>
-
-<button onclick="setLayout('single')">Single</button>
-<button onclick="setLayout('dual')">Dual</button>
-<button onclick="setLayout('triple')">Triple</button>
-
-<hr>
-
-<div style="color:#c1a35f;">EDIT</div>
-
-<button onclick="addNode('time')">Add Time</button>
-<button onclick="addNode('date')">Add Date</button>
-<button onclick="addNode('city')">Add City</button>
-<button onclick="addNode('airport')">Add Airport</button>
+    <div class="box" style="text-align:right;">
+        <div class="title">STATUS</div>
+        <div id="status">READY</div>
+    </div>
 
 </div>
 
+<div id="main">
+
+    <div id="clock">00:00</div>
+
+    <div style="position:absolute;top:10px;left:10px;">
+        <div id="date"></div>
+    </div>
+
+    <div style="position:absolute;top:10px;right:10px;text-align:right;">
+        <div id="dxbIcon" style="font-size:8vh;">☀️</div>
+        <div id="dxbTemp">--</div>
+    </div>
+
+</div>
+
+<div id="touch" onclick="toggleMode()"></div>
+
 <script>
 
-/* ================= MENU ================= */
-let t;
+// ================= CONFIG =================
+const GAS_URL="https://script.google.com/macros/s/AKfycbxSmqqVM38ZuCrrzwcm1E7179zwvAi5qjhEzaq4mXhwCOeczDP8CB2Nx7hw7zAFcqWU/exec";
 
-document.body.onclick=()=>{
+// ================= STATE =================
+let mode="SINGLE";
+let lastTouch=Date.now();
 
-menu.style.display="block";
-
-clearTimeout(t);
-
-t=setTimeout(()=>menu.style.display="none",5000);
-
-};
-
-menu.onclick=()=>panel.style.display="block";
-
-/* ================= CLOCK ================= */
-function update(){
-
-const now=new Date();
-
-clock.innerText=
-new Intl.DateTimeFormat("en-GB",{
-timeZone:"Asia/Dubai",
-hour:"2-digit",
-minute:"2-digit"
-}).format(now);
-
-date.innerText=
-new Intl.DateTimeFormat("en-GB",{
-timeZone:"Asia/Dubai",
-weekday:"long",
-year:"numeric",
-month:"short",
-day:"numeric"
-}).format(now);
-
+// ================= WEATHER ICON =================
+function wx(code){
+    if(code===0)return"☀️";
+    if(code<=2)return"🌤️";
+    if(code<=3)return"☁️";
+    if(code>=51&&code<=67)return"🌧️";
+    if(code>=71&&code<=77)return"🌨️";
+    if(code>=80&&code<=82)return"🌦️";
+    if(code>=95)return"⛈️";
+    return"🌡️";
 }
 
-setInterval(update,1000);
+// ================= MODE =================
+function toggleMode(){
+    mode=(mode==="SINGLE")?"DUAL":"SINGLE";
+    applyMode();
+    lastTouch=Date.now();
+}
+
+function applyMode(){
+    document.body.classList.toggle("dual",mode==="DUAL");
+}
+
+// ================= SAFE FETCH =================
+async function get(url){
+    try{return await (await fetch(url)).json();}
+    catch(e){return null;}
+}
+
+// ================= UPDATE =================
+async function update(){
+
+    const now=new Date();
+
+    document.getElementById("clock").innerText=
+        now.getHours().toString().padStart(2,"0")+":"+
+        now.getMinutes().toString().padStart(2,"0");
+
+    document.getElementById("date").innerText=
+        now.toDateString();
+
+    // WEATHER DXB
+    const w=await get("https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true");
+
+    if(w?.current_weather){
+        document.getElementById("dxbTemp").innerText=
+            Math.round(w.current_weather.temperature)+"°";
+
+        document.getElementById("dxbIcon").innerText=
+            wx(w.current_weather.weathercode);
+    }
+
+    // FLIGHT
+    const f=await get(GAS_URL);
+
+    if(f?.hasFlight){
+        document.getElementById("flightNo").innerText="EK "+(f.flightNo||"--");
+        document.getElementById("status").innerText="FLIGHT ACTIVE";
+    }else{
+        document.getElementById("status").innerText="GROUND";
+    }
+}
+
+// ================= SCREENSAVER =================
+setInterval(()=>{
+    if(Date.now()-lastTouch>60000){
+        document.body.classList.add("saver");
+    }else{
+        document.body.classList.remove("saver");
+    }
+},5000);
+
+// ================= START =================
+applyMode();
 update();
-
-/* ================= LAYOUT ================= */
-function setLayout(l){
-document.body.className=l;
-}
-
-/* ================= NODE ENGINE ================= */
-function addNode(type){
-
-let el=document.createElement("div");
-el.className="node";
-
-/* default smart binding */
-if(type==="time") el.innerText="00:00";
-if(type==="date") el.innerText=new Date().toDateString();
-if(type==="city") el.innerText="Dubai";
-if(type==="airport") el.innerText="DXB";
-
-/* drag */
-drag(el);
-
-/* resize */
-resize(el);
-
-document.body.appendChild(el);
-
-}
-
-/* ================= DRAG ================= */
-function drag(el){
-
-let ox,oy;
-
-el.onmousedown=(e)=>{
-
-ox=e.offsetX;
-oy=e.offsetY;
-
-document.onmousemove=(e)=>{
-
-if(!document.body.classList.contains("edit")) return;
-
-el.style.left=(e.pageX-ox)+"px";
-el.style.top=(e.pageY-oy)+"px";
-
-};
-
-document.onmouseup=()=>document.onmousemove=null;
-
-};
-
-}
-
-/* ================= RESIZE ================= */
-function resize(el){
-
-let startX,startY,startW,startH;
-
-el.onmousedown=(e)=>{
-
-if(e.offsetX < el.clientWidth-15) return;
-
-startX=e.pageX;
-startY=e.pageY;
-
-startW=el.clientWidth;
-startH=el.clientHeight;
-
-document.onmousemove=(e)=>{
-
-el.style.width=startW+(e.pageX-startX)+"px";
-el.style.height=startH+(e.pageY-startY)+"px";
-
-};
-
-document.onmouseup=()=>document.onmousemove=null;
-
-};
-
-}
+setInterval(update,30000);
 
 </script>
 
