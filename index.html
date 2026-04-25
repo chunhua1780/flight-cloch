@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>V26 Cockpit Engine</title>
+<title>V27 Cockpit Engine</title>
 
 <style>
 body{
@@ -15,16 +15,32 @@ overflow:hidden;
 }
 
 /* ================= EDIT MODE ================= */
-.edit-mode .element{
-outline:1px dashed #444;
+.edit .node{
+outline:1px dashed #555;
 cursor:move;
 }
 
-/* ================= ELEMENT ================= */
-.element{
+/* ================= NODE SYSTEM ================= */
+.node{
 position:absolute;
-padding:6px;
 user-select:none;
+}
+
+/* drag + resize handle */
+.node::after{
+content:"";
+position:absolute;
+right:0;
+bottom:0;
+width:12px;
+height:12px;
+background:#c1a35f;
+cursor:nwse-resize;
+display:none;
+}
+
+.edit .node::after{
+display:block;
 }
 
 /* ================= CLOCK ================= */
@@ -32,18 +48,13 @@ user-select:none;
 font-size:28vh;
 text-align:center;
 font-weight:800;
-top:10vh;
-left:50%;
-transform:translateX(-50%);
 }
 
 /* ================= DATE ================= */
 #date{
 font-size:3vh;
 color:#aaa;
-top:45vh;
-left:50%;
-transform:translateX(-50%);
+text-align:center;
 }
 
 /* ================= WEATHER ================= */
@@ -53,58 +64,15 @@ right:20px;
 text-align:right;
 }
 
-#wicon{font-size:6vh;}
-#wtemp{font-size:2vh;color:#aaa;}
-
 /* ================= LAYOUT ================= */
-body.single .side,
-body.single .topbar{display:none;}
+body.single #left, body.single #right, body.single #topbar{display:none;}
 
-body.dual .side{display:none;}
+body.dual #left, body.dual #right{display:none;}
 
-body.triple .topbar{display:block;}
+body.triple #topbar{display:block;}
+body.triple #left, body.triple #right{display:block;}
 
-/* ================= TOP BAR ================= */
-#topbar{
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:10vh;
-background:#111;
-display:none;
-align-items:center;
-justify-content:center;
-}
-
-/* ================= SIDES ================= */
-.side{
-position:absolute;
-top:10vh;
-bottom:0;
-width:50%;
-}
-
-#left{left:0;background:#050505;}
-#right{right:0;background:#080808;}
-
-/* ================= BUTTONS ================= */
-#menu,#edit,#layout{
-position:fixed;
-right:20px;
-background:#c1a35f;
-color:#000;
-padding:12px;
-border-radius:50%;
-display:none;
-z-index:9999;
-}
-
-#menu{bottom:20px;}
-#edit{top:20px;}
-#layout{bottom:80px;}
-
-/* ================= PANEL ================= */
+/* ================= PANELS ================= */
 #panel{
 position:fixed;
 top:10%;
@@ -113,9 +81,8 @@ transform:translateX(-50%);
 background:#111;
 padding:15px;
 width:320px;
-border-radius:12px;
 display:none;
-z-index:10000;
+z-index:9999;
 }
 
 button{
@@ -127,95 +94,117 @@ color:#fff;
 border:1px solid #444;
 }
 
+/* ================= TRIPLE AREA ================= */
+#topbar{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:12vh;
+background:#111;
+display:none;
+}
+
+#left,#right{
+position:absolute;
+top:12vh;
+bottom:0;
+width:50%;
+}
+
+#left{left:0;background:#050505;}
+#right{right:0;background:#080808;}
+
 </style>
 </head>
 
 <body class="single">
 
 <!-- CORE -->
-<div id="clock" class="element">00:00</div>
-<div id="date" class="element">---</div>
+<div id="clock" class="node">00:00</div>
+<div id="date" class="node">---</div>
 
 <!-- WEATHER -->
-<div id="weather" class="element">
-<div id="wicon">☀️</div>
-<div id="wtemp">--°</div>
+<div id="weather" class="node">
+<div>☀️</div>
+<div>28°</div>
 </div>
 
 <!-- TRIPLE MODE -->
-<div id="topbar" class="topbar">FLIGHT STATUS BAR</div>
-<div id="left" class="side">DXB WEATHER</div>
-<div id="right" class="side">DEST WEATHER</div>
+<div id="topbar">FLIGHT STATUS BAR</div>
+<div id="left">DXB WEATHER + DATE</div>
+<div id="right">DEST WEATHER + DATE</div>
 
-<!-- BUTTONS -->
-<div id="menu">✈</div>
-<div id="edit">⚙</div>
-<div id="layout">🧭</div>
+<!-- BUTTON -->
+<button onclick="toggleEdit()" style="position:fixed;top:10px;right:10px;z-index:9999;">
+EDIT
+</button>
 
-<!-- PANEL -->
-<div id="panel">
-
-<div style="color:#c1a35f;">LAYOUT</div>
-
-<button onclick="setLayout('single')">Single</button>
-<button onclick="setLayout('dual')">Dual</button>
-<button onclick="setLayout('triple')">Triple</button>
-
-<hr>
-
-<div style="color:#c1a35f;">ELEMENTS</div>
-
-<button onclick="addElement('date')">Add Date</button>
-<button onclick="addElement('city')">Add City</button>
-<button onclick="addElement('country')">Add Country</button>
-<button onclick="addElement('delete-mode')">Enable Delete Mode</button>
-
-</div>
+<button onclick="setLayout('single')" style="position:fixed;bottom:20px;right:20px;">S</button>
+<button onclick="setLayout('dual')" style="position:fixed;bottom:60px;right:20px;">D</button>
+<button onclick="setLayout('triple')" style="position:fixed;bottom:100px;right:20px;">T</button>
 
 <script>
 
-/* ================= STATE ================= */
-let deleteMode=false;
-
-/* ================= MENU ================= */
-let t;
-
-document.body.onclick=()=>{
-
-menu.style.display="block";
-edit.style.display="block";
-layout.style.display="block";
-
-clearTimeout(t);
-t=setTimeout(()=>{
-menu.style.display="none";
-edit.style.display="none";
-layout.style.display="none";
-},5000);
-
-};
-
-/* ================= PANEL ================= */
-edit.onclick=()=>{
-document.body.classList.toggle("edit-mode");
-panel.style.display="block";
-};
+/* ================= EDIT MODE ================= */
+function toggleEdit(){
+document.body.classList.toggle("edit");
+}
 
 /* ================= LAYOUT ================= */
 function setLayout(l){
-
 document.body.className=l;
-
-localStorage.setItem("layout",l);
-
 }
 
-/* ================= CLOCK FIX ================= */
-function updateClock(){
+/* ================= DRAG + RESIZE ENGINE ================= */
+let activeNode=null;
+let resizeMode=false;
+
+document.querySelectorAll(".node").forEach(node=>{
+
+let ox,oy;
+
+node.onmousedown=(e)=>{
+
+if(document.body.classList.contains("edit")==false) return;
+
+if(e.offsetX > node.clientWidth-12 && e.offsetY > node.clientHeight-12){
+resizeMode=true;
+activeNode=node;
+return;
+}
+
+ox=e.offsetX;
+oy=e.offsetY;
+
+activeNode=node;
+
+document.onmousemove=(e)=>{
+
+if(!resizeMode){
+node.style.left=(e.pageX-ox)+"px";
+node.style.top=(e.pageY-oy)+"px";
+}
+
+};
+
+document.onmouseup=()=>{
+
+document.onmousemove=null;
+resizeMode=false;
+
+};
+
+};
+
+});
+
+/* ================= CLOCK (FIXED DUBAI) ================= */
+function clock(){
 
 const now=new Date();
 
-clock.innerText=
+document.getElementById("clock").innerText=
 new Intl.DateTimeFormat("en-GB",{
 timeZone:"Asia/Dubai",
 hour:"2-digit",
@@ -223,7 +212,7 @@ minute:"2-digit",
 hour12:false
 }).format(now);
 
-date.innerText=
+document.getElementById("date").innerText=
 new Intl.DateTimeFormat("en-GB",{
 timeZone:"Asia/Dubai",
 weekday:"long",
@@ -234,73 +223,8 @@ day:"numeric"
 
 }
 
-/* ================= ELEMENT ENGINE ================= */
-function addElement(type){
-
-let el=document.createElement("div");
-
-el.className="element";
-el.innerText=type.toUpperCase();
-
-/* auto value */
-if(type==="date") el.innerText=new Date().toDateString();
-if(type==="city") el.innerText="Dubai";
-if(type==="country") el.innerText="UAE";
-
-/* DELETE SUPPORT */
-el.onclick=()=>{
-
-if(deleteMode){
-el.remove();
-save();
-}
-
-};
-
-drag(el);
-
-document.body.appendChild(el);
-
-}
-
-/* ================= DRAG ENGINE ================= */
-function drag(el){
-
-let ox,oy;
-
-el.onmousedown=(e)=>{
-
-ox=e.offsetX;
-oy=e.offsetY;
-
-document.onmousemove=(e)=>{
-
-if(!document.body.classList.contains("edit-mode")) return;
-
-el.style.left=(e.pageX-ox)+"px";
-el.style.top=(e.pageY-oy)+"px";
-
-};
-
-document.onmouseup=()=>document.onmousemove=null;
-
-};
-
-}
-
-/* ================= DELETE MODE ================= */
-function enableDelete(){
-
-deleteMode=!deleteMode;
-
-alert("Delete Mode: "+deleteMode);
-
-}
-
-/* ================= LOOP ================= */
-setInterval(updateClock,1000);
-
-updateClock();
+setInterval(clock,1000);
+clock();
 
 </script>
 
