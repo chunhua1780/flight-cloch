@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>V29 Cockpit UI Engine</title>
+<title>V30 Cockpit System</title>
 
 <style>
 body{
@@ -14,46 +14,89 @@ font-family:-apple-system;
 overflow:hidden;
 }
 
-/* ================= CANVAS ================= */
-#canvas{
+/* ================= MAIN CLOCK MODE ================= */
+#clock{
 position:absolute;
-left:0;
-top:0;
+top:10%;
 width:100%;
-height:100%;
+text-align:center;
+font-size:30vh;
+font-weight:800;
 }
 
-/* ================= LEFT TOOLBAR (Photoshop style) ================= */
-#toolbar{
+#date{
+position:absolute;
+bottom:8%;
+width:100%;
+text-align:center;
+font-size:3vh;
+color:#aaa;
+}
+
+/* ================= WEATHER ================= */
+#weather{
+position:absolute;
+top:20px;
+right:20px;
+text-align:right;
+font-size:6vh;
+}
+
+/* ================= MENU ================= */
+#menu{
 position:fixed;
-left:0;
-top:0;
-width:220px;
-height:100%;
-background:#0f0f0f;
-border-right:1px solid #222;
-padding:10px;
-overflow:auto;
+bottom:20px;
+right:20px;
+background:#c1a35f;
+color:#000;
+padding:12px;
+border-radius:50%;
+display:none;
 z-index:9999;
 }
 
-.tool{
-background:#1a1a1a;
-margin:6px 0;
-padding:8px;
-cursor:pointer;
-border:1px solid #333;
+/* ================= PANEL ================= */
+#panel{
+position:fixed;
+top:10%;
+left:50%;
+transform:translateX(-50%);
+background:#111;
+padding:15px;
+width:340px;
+display:none;
+z-index:9999;
 }
 
-input,select{
+/* ================= LAYOUT ================= */
+body.single .flight,
+body.single .left,
+body.single .right{display:none;}
+
+body.dual .flight{display:none;}
+
+/* ================= TRIPLE ================= */
+#flightBar{
+position:absolute;
+top:0;
+left:0;
 width:100%;
-margin:4px 0;
-background:#000;
-color:#fff;
-border:1px solid #333;
+height:20%;
+background:#111;
+display:none;
 }
 
-/* ================= NODE ================= */
+#left,#right{
+position:absolute;
+top:20%;
+bottom:0;
+width:50%;
+}
+
+#left{left:0;background:#050505;}
+#right{right:0;background:#080808;}
+
+/* ================= NODE SYSTEM ================= */
 .node{
 position:absolute;
 padding:6px;
@@ -63,7 +106,7 @@ border:1px dashed transparent;
 }
 
 .edit .node{
-border:1px dashed #555;
+border:1px dashed #444;
 }
 
 /* resize handle */
@@ -72,8 +115,8 @@ content:"";
 position:absolute;
 right:0;
 bottom:0;
-width:10px;
-height:10px;
+width:12px;
+height:12px;
 background:#c1a35f;
 display:none;
 cursor:nwse-resize;
@@ -83,130 +126,139 @@ cursor:nwse-resize;
 display:block;
 }
 
-/* ================= MAIN AREA OFFSET ================= */
-#canvas{
-left:220px;
-width:calc(100% - 220px);
-}
-
-/* ================= FLOAT UI ================= */
-#menu{
-position:fixed;
-bottom:20px;
-right:20px;
-background:#c1a35f;
-color:#000;
-padding:10px;
-border-radius:50%;
-z-index:10000;
+/* ================= BUTTON ================= */
+button{
+width:100%;
+margin:4px 0;
+padding:8px;
+background:#222;
+color:#fff;
+border:1px solid #444;
 }
 
 </style>
 </head>
 
-<body>
+<body class="single">
 
-<!-- TOOLBAR -->
-<div id="toolbar">
+<!-- MAIN SCREEN -->
+<div id="clock">00:00</div>
+<div id="date">---</div>
+<div id="weather">☀️ 28°</div>
 
-<div style="color:#c1a35f;">ADD ELEMENT</div>
+<!-- TRIPLE MODE -->
+<div id="flightBar">FLIGHT PROGRESS</div>
+<div id="left">DXB WEATHER</div>
+<div id="right">DEST WEATHER</div>
 
-<div class="tool" onclick="addNode('time')">Time</div>
-<div class="tool" onclick="addNode('date')">Date</div>
-<div class="tool" onclick="addNode('city')">City</div>
-<div class="tool" onclick="addNode('airport')">Airport</div>
-<div class="tool" onclick="addNode('flight')">Flight</div>
+<!-- MENU -->
+<div id="menu">✈</div>
 
-<hr>
-
-<div style="color:#c1a35f;">STYLE</div>
-
-<input type="color" onchange="setColor(this.value)">
-<input type="range" min="10" max="100" onchange="setSize(this.value)">
-
-<hr>
+<!-- PANEL -->
+<div id="panel">
 
 <div style="color:#c1a35f;">LAYOUT</div>
 
-<button onclick="toggleEdit()">Edit Mode</button>
+<button onclick="setLayout('single')">Single</button>
+<button onclick="setLayout('dual')">Dual</button>
+<button onclick="setLayout('triple')">Triple</button>
+
+<hr>
+
+<div style="color:#c1a35f;">EDIT</div>
+
+<button onclick="addNode('time')">Add Time</button>
+<button onclick="addNode('date')">Add Date</button>
+<button onclick="addNode('city')">Add City</button>
+<button onclick="addNode('airport')">Add Airport</button>
 
 </div>
 
-<!-- CANVAS -->
-<div id="canvas"></div>
-
-<!-- FLOAT MENU -->
-<div id="menu">✈</div>
-
 <script>
 
-/* ================= STATE ================= */
-let edit=false;
-let selected=null;
+/* ================= MENU ================= */
+let t;
 
-/* ================= EDIT MODE ================= */
-function toggleEdit(){
-edit=!edit;
-document.body.classList.toggle("edit");
-}
+document.body.onclick=()=>{
 
-/* ================= ADD NODE ================= */
-function addNode(type){
+menu.style.display="block";
 
-let el=document.createElement("div");
+clearTimeout(t);
 
-el.className="node";
-el.dataset.type=type;
+t=setTimeout(()=>menu.style.display="none",5000);
 
-/* SMART BINDING (核心联动逻辑) */
-if(type==="date"){
-el.innerText=new Date().toDateString();
-}
+};
 
-if(type==="time"){
-el.innerText="00:00";
-setInterval(()=>{
+menu.onclick=()=>panel.style.display="block";
+
+/* ================= CLOCK ================= */
+function update(){
 
 const now=new Date();
-el.innerText=
+
+clock.innerText=
 new Intl.DateTimeFormat("en-GB",{
 timeZone:"Asia/Dubai",
 hour:"2-digit",
 minute:"2-digit"
 }).format(now);
 
-},1000);
+date.innerText=
+new Intl.DateTimeFormat("en-GB",{
+timeZone:"Asia/Dubai",
+weekday:"long",
+year:"numeric",
+month:"short",
+day:"numeric"
+}).format(now);
+
 }
 
+setInterval(update,1000);
+update();
+
+/* ================= LAYOUT ================= */
+function setLayout(l){
+document.body.className=l;
+}
+
+/* ================= NODE ENGINE ================= */
+function addNode(type){
+
+let el=document.createElement("div");
+el.className="node";
+
+/* default smart binding */
+if(type==="time") el.innerText="00:00";
+if(type==="date") el.innerText=new Date().toDateString();
 if(type==="city") el.innerText="Dubai";
 if(type==="airport") el.innerText="DXB";
-if(type==="flight") el.innerText="EK---";
 
-/* DRAG */
+/* drag */
 drag(el);
 
-/* CLICK SELECT */
-el.onclick=()=>selected=el;
+/* resize */
+resize(el);
 
-canvas.appendChild(el);
+document.body.appendChild(el);
 
 }
 
-/* ================= DRAG ENGINE ================= */
+/* ================= DRAG ================= */
 function drag(el){
 
 let ox,oy;
 
 el.onmousedown=(e)=>{
 
-if(!edit) return;
-
 ox=e.offsetX;
 oy=e.offsetY;
 
 document.onmousemove=(e)=>{
 
-el.style.left=(e.pageX-ox-220)+"px";
+if(!document.body.classList.contains("edit")) return;
+
+el.style.left=(e.pageX-ox)+"px";
 el.style.top=(e.pageY-oy)+"px";
 
 };
@@ -217,27 +269,31 @@ document.onmouseup=()=>document.onmousemove=null;
 
 }
 
-/* ================= STYLE CONTROL ================= */
-function setColor(c){
-if(selected) selected.style.color=c;
-}
+/* ================= RESIZE ================= */
+function resize(el){
 
-function setSize(v){
-if(selected) selected.style.fontSize=v+"px";
-}
+let startX,startY,startW,startH;
 
-/* ================= SMART LINK SYSTEM ================= */
-function autoLink(el){
+el.onmousedown=(e)=>{
 
-let type=el.dataset.type;
+if(e.offsetX < el.clientWidth-15) return;
 
-if(type==="airport"){
-// future: DSS → Dakar → Senegal → weather
-}
+startX=e.pageX;
+startY=e.pageY;
 
-if(type==="date"){
-// future: auto timezone bind
-}
+startW=el.clientWidth;
+startH=el.clientHeight;
+
+document.onmousemove=(e)=>{
+
+el.style.width=startW+(e.pageX-startX)+"px";
+el.style.height=startH+(e.pageY-startY)+"px";
+
+};
+
+document.onmouseup=()=>document.onmousemove=null;
+
+};
 
 }
 
