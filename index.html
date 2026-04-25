@@ -3,192 +3,133 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EFB v9 - Airline Dispatch System</title>
+<title>Flight Life OS v12</title>
 
 <style>
-:root{
-    --bg:#000;
-    --gold:#c1a35f;
-    --green:#34c759;
-    --red:#ff3b30;
-    --gray:#222;
-}
-
 body{
     margin:0;
-    background:var(--bg);
+    background:#000;
     color:#fff;
     font-family:-apple-system;
     overflow:hidden;
 }
 
 /* ================= LAYOUT ================= */
-#hud{
-    height:26vh;
+#top{
+    height:25vh;
     display:none;
-    grid-template-columns:1fr 1fr 1fr;
+    border-bottom:1px solid #222;
     padding:2vh;
-    background:#050505;
-    border-bottom:1px solid var(--gray);
+    box-sizing:border-box;
 }
-
-.dual #hud{display:grid;}
 
 #main{
     height:100vh;
     display:flex;
-    justify-content:center;
-    align-items:center;
-    position:relative;
 }
 
-.dual #main{height:74vh;}
+/* ================= SPLIT ================= */
+.half{
+    width:50%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
 
-#clock{
-    font-size:52vh;
+/* ================= CLOCK ================= */
+.clock{
+    font-size:18vh;
     font-weight:900;
 }
 
-.dual #clock{font-size:30vh;}
-
-#date{
-    font-size:4vh;
+.small{
+    font-size:3vh;
     color:#aaa;
-    text-align:center;
 }
 
-/* ================= HUD ================= */
-.box{display:flex;flex-direction:column;}
-.val{font-size:4vh;color:var(--gold);font-weight:800;}
-.small{font-size:2vh;color:#aaa;}
-
-#phase{
-    font-size:2vh;
-    color:var(--green);
-}
-
-/* ================= PROGRESS ================= */
-#bar{
+/* ================= WEATHER ================= */
+.wx{
     position:absolute;
-    bottom:30px;
-    left:10%;
-    width:80%;
-    height:4px;
-    background:#222;
+    top:20px;
+    right:20px;
+    text-align:right;
 }
 
-#plane{
-    position:absolute;
-    top:-10px;
-    transition:left 1s linear;
+.wxIcon{
+    font-size:8vh;
 }
 
-/* ================= SCREEN ================= */
-.saver #hud{opacity:0;}
-.saver #clock{font-size:60vh;}
+.wxTemp{
+    font-size:4vh;
+}
+
+/* ================= TOP BAR ================= */
+#topBar{
+    font-size:2.5vh;
+    color:#c1a35f;
+}
+
+/* ================= MODES ================= */
+.mode0 #main{flex-direction:column;}
+.mode1 #top{display:block;}
+.mode2 #top{display:block;}
+.mode3 #top{display:block;}
+.mode4 #top{display:block;}
 </style>
 </head>
 
 <body>
 
-<div id="hud">
+<div id="top">
 
-    <div class="box">
-        <div>FLIGHT OPS</div>
-        <div id="flightNo" class="val">--</div>
-        <div id="phase">--</div>
-    </div>
-
-    <div class="box" style="text-align:center;">
-        <div id="eta" class="val">--</div>
-        <div class="small">ETA (REAL CALC)</div>
-    </div>
-
-    <div class="box" style="text-align:right;">
-        <div id="status">READY</div>
-        <div id="distance" class="small">-- NM</div>
-        <div id="wind" class="small">-- KT</div>
-    </div>
+    <div id="topBar">SYSTEM</div>
 
 </div>
 
 <div id="main">
 
-    <div>
-        <div id="clock">00:00</div>
-        <div id="date"></div>
+    <!-- LEFT -->
+    <div class="half">
+        <div class="clock" id="leftClock">00:00</div>
+        <div class="small" id="leftInfo"></div>
     </div>
 
-    <div id="bar">
-        <div id="plane">✈️</div>
+    <!-- RIGHT -->
+    <div class="half">
+        <div class="clock" id="rightClock">00:00</div>
+        <div class="small" id="rightInfo"></div>
     </div>
 
 </div>
 
+<!-- WEATHER -->
+<div class="wx">
+    <div class="wxIcon" id="wxIcon">☀️</div>
+    <div class="wxTemp" id="wxTemp">--°</div>
+</div>
+
 <script>
 
-/* ================= CORE OPS ENGINE ================= */
-const OPS = {
+/* ================= DATA ================= */
+const GAS_URL="https://script.google.com/macros/s/AKfycbxSmqqVM38ZuCrrzwcm1E7179zwvAi5qjhEzaq4mXhwCOeczDP8CB2Nx7hw7zAFcqWU/exec";
 
-    flight:null,
-
-    set(f){ this.flight=f; },
-
-    dep(){ return new Date(this.flight.std); },
-
-    // v9：动态block time（不是固定6h）
-    arr(){
-
-        const dist=this.flight.distance || 2500; // NM fallback
-        const gs=450; // cruise speed assumption
-
-        const hours=dist/gs;
-
-        return new Date(this.dep().getTime()+hours*3600000);
-    },
-
-    phase(now){
-
-        const t=now.getTime();
-        const d=this.dep().getTime();
-        const a=this.arr().getTime();
-
-        if(t<d-20*60000) return "PRE-FLIGHT";
-        if(t<d) return "BOARDING";
-        if(t<d+30*60000) return "CLIMB";
-        if(t<a-90*60000) return "CRUISE";
-        if(t<a) return "DESCENT";
-        return "ARRIVED";
-    },
-
-    progress(now){
-        const d=this.dep().getTime();
-        const a=this.arr().getTime();
-        return Math.min(1,Math.max(0,(now-d)/(a-d)));
-    }
-};
-
-/* ================= DISTANCE ENGINE ================= */
-function haversine(lat1,lon1,lat2,lon2){
-
-    const R=6371;
-
-    const dLat=(lat2-lat1)*Math.PI/180;
-    const dLon=(lon2-lon1)*Math.PI/180;
-
-    const a=
-        Math.sin(dLat/2)**2 +
-        Math.cos(lat1*Math.PI/180)*
-        Math.cos(lat2*Math.PI/180)*
-        Math.sin(dLon/2)**2;
-
-    return 2*R*Math.asin(Math.sqrt(a));
+/* ================= TIME ================= */
+function fmt(d){
+    return d.getHours().toString().padStart(2,"0")+":"+
+           d.getMinutes().toString().padStart(2,"0");
 }
 
-/* ================= FETCH ================= */
-async function get(url){
-    try{return await (await fetch(url)).json();}
-    catch(e){return null;}
+/* ================= MODE ================= */
+let mode=0;
+
+/* ================= WEATHER ICON ================= */
+function wx(c){
+    if(c<=1) return "☀️";
+    if(c<=3) return "🌤️";
+    if(c<=6) return "☁️";
+    if(c>=51) return "🌧️";
+    return "🌡️";
 }
 
 /* ================= MAIN ================= */
@@ -196,63 +137,74 @@ async function update(){
 
     const now=new Date();
 
-    document.getElementById("clock").innerText=
-        now.getHours().toString().padStart(2,"0")+":"+
-        now.getMinutes().toString().padStart(2,"0");
+    const f=await fetch(GAS_URL).then(r=>r.json()).catch(()=>null);
 
-    document.getElementById("date").innerText=
-        now.toDateString();
+    const noFlight=!f?.hasFlight;
 
-    const f=await get("https://script.google.com/macros/s/AKfycbxSmqqVM38ZuCrrzwcm1E7179zwvAi5qjhEzaq4mXhwCOeczDP8CB2Nx7hw7zAFcqWU/exec");
-
-    if(!f?.hasFlight){
-        document.getElementById("status").innerText="NO OPS";
-        return;
-    }
-
-    /* ================= CORE SET ================= */
-    OPS.set(f);
-
-    const phase=OPS.phase(now);
-
-    document.getElementById("phase").innerText=phase;
-
-    /* ================= ETA ================= */
-    const dep=OPS.dep();
-    const arr=OPS.arr();
-
-    let cd;
-
-    if(now<dep){
-        cd=Math.floor((dep-now)/60000);
-        document.getElementById("status").innerText="DEP IN";
+    /* ================= MODE SELECT ================= */
+    if(noFlight){
+        mode=0;
     }else{
-        cd=Math.floor((arr-now)/60000);
-        document.getElementById("status").innerText="ETA";
+        const dep=new Date(f.std);
+        const diff=(dep-now)/3600000;
+
+        if(diff>2) mode=1;
+        else if(diff<=2 && diff>0) mode=2;
+        else mode=3;
     }
 
-    document.getElementById("eta").innerText=cd+" min";
+    document.body.className="mode"+mode;
 
-    /* ================= PROGRESS ================= */
-    const p=OPS.progress(now);
+    /* ================= MODE 0 ================= */
+    if(mode===0){
 
-    document.getElementById("plane").style.left=(p*100)+"%";
+        document.getElementById("leftClock").innerText=fmt(now);
+        document.getElementById("rightClock").innerText="";
 
-    /* ================= DISTANCE ================= */
-    document.getElementById("distance").innerText=
-        Math.round((1-p)*(f.distance||2800))+" NM";
+        document.getElementById("leftInfo").innerText=
+            "Dubai · "+now.toDateString();
 
-    /* ================= WIND MODEL (SIMPLIFIED v9) ================= */
-    const wind=15+Math.round(Math.random()*35);
+        document.getElementById("rightInfo").innerText="";
 
-    document.getElementById("wind").innerText=wind+" KT";
+        document.getElementById("wxTemp").innerText="28°";
+        document.getElementById("wxIcon").innerText="☀️";
+    }
 
-    document.getElementById("flightNo").innerText="EK "+f.flightNo;
+    /* ================= MODE 1 ================= */
+    if(mode===1){
+
+        document.getElementById("topBar").innerText=
+            "UPCOMING FLIGHT";
+
+        document.getElementById("leftClock").innerText=fmt(now);
+        document.getElementById("rightClock").innerText=fmt(now);
+
+        document.getElementById("leftInfo").innerText=
+            "DXB · Dubai";
+
+        document.getElementById("rightInfo").innerText=
+            "DEST · "+(f.dest||"--");
+    }
+
+    /* ================= MODE 2 ================= */
+    if(mode===2){
+
+        document.getElementById("topBar").innerText=
+            "READY FOR DEPARTURE";
+
+    }
+
+    /* ================= MODE 3 ================= */
+    if(mode===3){
+
+        document.getElementById("topBar").innerText=
+            "ACTIVE FLIGHT / IN AIR";
+    }
 }
 
-/* ================= INIT ================= */
+/* ================= LOOP ================= */
 update();
-setInterval(update,10000);
+setInterval(update,30000);
 
 </script>
 
