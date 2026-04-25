@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flight Cockpit V25 Engine</title>
+<title>V26 Cockpit Engine</title>
 
 <style>
 body{
@@ -14,63 +14,82 @@ font-family:-apple-system;
 overflow:hidden;
 }
 
-/* ================= CLOCK FIX ================= */
-#clock{
-font-size:30vh;
-text-align:center;
-margin-top:6vh;
-font-weight:800;
+/* ================= EDIT MODE ================= */
+.edit-mode .element{
+outline:1px dashed #444;
 cursor:move;
-}
-
-#date{
-text-align:center;
-font-size:3vh;
-color:#aaa;
-cursor:move;
-}
-
-/* ================= WEATHER ================= */
-#weather{
-position:absolute;
-top:20px;
-right:20px;
-text-align:right;
-cursor:move;
-}
-
-#wicon{font-size:6vh;}
-#wtemp{font-size:2vh;color:#aaa;}
-
-/* ================= LAYOUT ================= */
-.single .flight,.single .side{display:none;}
-.dual .side{display:none;}
-.triple .side{display:block;}
-
-/* ================= PANELS ================= */
-.panel{
-position:fixed;
-top:10%;
-left:50%;
-transform:translateX(-50%);
-background:#111;
-padding:15px;
-border-radius:12px;
-display:none;
-z-index:10000;
-width:320px;
 }
 
 /* ================= ELEMENT ================= */
 .element{
 position:absolute;
 padding:6px;
-cursor:move;
 user-select:none;
 }
 
-/* ================= BUTTON ================= */
-#menu,#edit,#layoutBtn{
+/* ================= CLOCK ================= */
+#clock{
+font-size:28vh;
+text-align:center;
+font-weight:800;
+top:10vh;
+left:50%;
+transform:translateX(-50%);
+}
+
+/* ================= DATE ================= */
+#date{
+font-size:3vh;
+color:#aaa;
+top:45vh;
+left:50%;
+transform:translateX(-50%);
+}
+
+/* ================= WEATHER ================= */
+#weather{
+top:20px;
+right:20px;
+text-align:right;
+}
+
+#wicon{font-size:6vh;}
+#wtemp{font-size:2vh;color:#aaa;}
+
+/* ================= LAYOUT ================= */
+body.single .side,
+body.single .topbar{display:none;}
+
+body.dual .side{display:none;}
+
+body.triple .topbar{display:block;}
+
+/* ================= TOP BAR ================= */
+#topbar{
+position:absolute;
+top:0;
+left:0;
+width:100%;
+height:10vh;
+background:#111;
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+/* ================= SIDES ================= */
+.side{
+position:absolute;
+top:10vh;
+bottom:0;
+width:50%;
+}
+
+#left{left:0;background:#050505;}
+#right{right:0;background:#080808;}
+
+/* ================= BUTTONS ================= */
+#menu,#edit,#layout{
 position:fixed;
 right:20px;
 background:#c1a35f;
@@ -83,7 +102,30 @@ z-index:9999;
 
 #menu{bottom:20px;}
 #edit{top:20px;}
-#layoutBtn{bottom:80px;}
+#layout{bottom:80px;}
+
+/* ================= PANEL ================= */
+#panel{
+position:fixed;
+top:10%;
+left:50%;
+transform:translateX(-50%);
+background:#111;
+padding:15px;
+width:320px;
+border-radius:12px;
+display:none;
+z-index:10000;
+}
+
+button{
+width:100%;
+margin:4px 0;
+padding:8px;
+background:#222;
+color:#fff;
+border:1px solid #444;
+}
 
 </style>
 </head>
@@ -100,13 +142,18 @@ z-index:9999;
 <div id="wtemp">--°</div>
 </div>
 
+<!-- TRIPLE MODE -->
+<div id="topbar" class="topbar">FLIGHT STATUS BAR</div>
+<div id="left" class="side">DXB WEATHER</div>
+<div id="right" class="side">DEST WEATHER</div>
+
 <!-- BUTTONS -->
 <div id="menu">✈</div>
 <div id="edit">⚙</div>
-<div id="layoutBtn">🧭</div>
+<div id="layout">🧭</div>
 
 <!-- PANEL -->
-<div id="panel" class="panel">
+<div id="panel">
 
 <div style="color:#c1a35f;">LAYOUT</div>
 
@@ -116,21 +163,19 @@ z-index:9999;
 
 <hr>
 
-<div style="color:#c1a35f;">ADD ELEMENT</div>
+<div style="color:#c1a35f;">ELEMENTS</div>
 
-<button onclick="addElement('date')">Date</button>
-<button onclick="addElement('city')">City</button>
-<button onclick="addElement('country')">Country</button>
-<button onclick="addElement('flight')">Flight</button>
+<button onclick="addElement('date')">Add Date</button>
+<button onclick="addElement('city')">Add City</button>
+<button onclick="addElement('country')">Add Country</button>
+<button onclick="addElement('delete-mode')">Enable Delete Mode</button>
 
 </div>
 
 <script>
 
 /* ================= STATE ================= */
-let state={
-elements:[]
-};
+let deleteMode=false;
 
 /* ================= MENU ================= */
 let t;
@@ -139,33 +184,44 @@ document.body.onclick=()=>{
 
 menu.style.display="block";
 edit.style.display="block";
-layoutBtn.style.display="block";
+layout.style.display="block";
 
 clearTimeout(t);
 t=setTimeout(()=>{
 menu.style.display="none";
 edit.style.display="none";
-layoutBtn.style.display="none";
+layout.style.display="none";
 },5000);
 
 };
 
 /* ================= PANEL ================= */
-edit.onclick=()=>panel.style.display="block";
+edit.onclick=()=>{
+document.body.classList.toggle("edit-mode");
+panel.style.display="block";
+};
+
+/* ================= LAYOUT ================= */
+function setLayout(l){
+
+document.body.className=l;
+
+localStorage.setItem("layout",l);
+
+}
 
 /* ================= CLOCK FIX ================= */
 function updateClock(){
 
 const now=new Date();
 
-const time=new Intl.DateTimeFormat("en-GB",{
+clock.innerText=
+new Intl.DateTimeFormat("en-GB",{
 timeZone:"Asia/Dubai",
 hour:"2-digit",
 minute:"2-digit",
 hour12:false
 }).format(now);
-
-clock.innerText=time;
 
 date.innerText=
 new Intl.DateTimeFormat("en-GB",{
@@ -178,57 +234,36 @@ day:"numeric"
 
 }
 
-/* ================= WEATHER ================= */
-function weather(){
-wicon.innerText="☀️";
-wtemp.innerText="28°";
-}
-
-/* ================= LAYOUT ENGINE ================= */
-function setLayout(l){
-
-document.body.className=l;
-
-localStorage.setItem("layout",l);
-
-}
-
 /* ================= ELEMENT ENGINE ================= */
 function addElement(type){
 
 let el=document.createElement("div");
 
 el.className="element";
+el.innerText=type.toUpperCase();
 
-el.dataset.type=type;
+/* auto value */
+if(type==="date") el.innerText=new Date().toDateString();
+if(type==="city") el.innerText="Dubai";
+if(type==="country") el.innerText="UAE";
 
-/* AUTO VALUE SYSTEM */
-if(type==="date"){
-el.innerText=new Date().toDateString();
+/* DELETE SUPPORT */
+el.onclick=()=>{
+
+if(deleteMode){
+el.remove();
+save();
 }
 
-if(type==="city"){
-el.innerText="Dubai";
-}
+};
 
-if(type==="country"){
-el.innerText="UAE";
-}
-
-if(type==="flight"){
-el.innerText="EK---";
-}
-
-/* DRAG */
 drag(el);
 
 document.body.appendChild(el);
 
-state.elements.push(el);
-
 }
 
-/* ================= DRAG ================= */
+/* ================= DRAG ENGINE ================= */
 function drag(el){
 
 let ox,oy;
@@ -239,6 +274,8 @@ ox=e.offsetX;
 oy=e.offsetY;
 
 document.onmousemove=(e)=>{
+
+if(!document.body.classList.contains("edit-mode")) return;
 
 el.style.left=(e.pageX-ox)+"px";
 el.style.top=(e.pageY-oy)+"px";
@@ -251,25 +288,19 @@ document.onmouseup=()=>document.onmousemove=null;
 
 }
 
-/* ================= AUTO COUNTRY ================= */
-function detectLocation(){
+/* ================= DELETE MODE ================= */
+function enableDelete(){
 
-navigator.geolocation?.getCurrentPosition(pos=>{
+deleteMode=!deleteMode;
 
-// simplified mapping
-state.location="Dubai";
-
-});
+alert("Delete Mode: "+deleteMode);
 
 }
 
 /* ================= LOOP ================= */
 setInterval(updateClock,1000);
-setInterval(weather,60000);
 
 updateClock();
-weather();
-detectLocation();
 
 </script>
 
