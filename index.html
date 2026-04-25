@@ -3,223 +3,265 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FlightOps V9 Ultimate</title>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<title>Flight Cockpit V22 Stable</title>
 
 <style>
-body{margin:0;background:#000;color:#fff;font-family:-apple-system;overflow:hidden}
-#clock{font-size:28vh;text-align:center;margin-top:5vh}
-#hud{display:none;height:20vh;padding:10px}
-.active #hud{display:flex;justify-content:space-between}
-#map{height:40vh}
-#bottom{display:none;height:40vh}
-.flight #bottom{display:flex}
-.col{width:50%;text-align:center}
-.weather{font-size:6vh}
-#progressBar{height:6px;background:#222}
-#progress{height:100%;width:0;background:#c1a35f}
-#overlayBtns,#bottomBtn{display:none;position:fixed;z-index:999}
-#overlayBtns{top:20px;right:20px}
-#bottomBtn{bottom:30px;left:50%;transform:translateX(-50%)}
+body{
+margin:0;
+background:#000;
+color:#fff;
+font-family:-apple-system;
+overflow:hidden;
+}
+
+/* CLOCK */
+#clock{
+font-size:34vh;
+text-align:center;
+margin-top:6vh;
+font-weight:800;
+letter-spacing:-2px;
+}
+
+/* DATE */
+#date{
+text-align:center;
+font-size:3vh;
+color:#aaa;
+}
+
+/* WEATHER */
+#weather{
+position:absolute;
+top:20px;
+right:20px;
+text-align:right;
+}
+#wicon{font-size:6vh;}
+#wtemp{font-size:2.2vh;color:#aaa;}
+
+/* FLIGHT */
+#flight{
+position:absolute;
+top:20px;
+left:20px;
+background:#111;
+padding:12px;
+border-radius:10px;
+min-width:220px;
+display:none;
+white-space:pre-line;
+}
+
+#flight.active{display:block;}
+
+/* BUTTONS */
+#menuBtn,#setBtn{
+position:fixed;
+right:20px;
+padding:12px 14px;
+border-radius:50%;
+background:#c1a35f;
+color:#000;
+display:none;
+z-index:9999;
+}
+
+#menuBtn{bottom:20px;}
+#setBtn{top:20px;}
+
+/* PANEL */
+.panel{
+position:fixed;
+top:15%;
+left:50%;
+transform:translateX(-50%);
+background:#111;
+padding:15px;
+border-radius:12px;
+display:none;
+z-index:10000;
+width:260px;
+}
+
+input{
+width:100%;
+margin:4px 0;
+padding:6px;
+background:#000;
+color:#fff;
+border:1px solid #333;
+}
+
+button{
+width:100%;
+margin-top:6px;
+padding:8px;
+background:#222;
+color:#fff;
+border:1px solid #444;
+}
+
 </style>
 </head>
 
 <body>
 
-<div id="overlayBtns"><button onclick="manualPanel.style.display='block'">⚙️</button></div>
-<div id="bottomBtn"><button onclick="manualPanel.style.display='block'">＋</button></div>
-
-<div id="hud">
-<div>
-<div id="fno"></div>
-<div id="route"></div>
-<div id="pickup"></div>
-</div>
-<div>
-<div id="status"></div>
-<div id="live"></div>
-</div>
+<!-- WEATHER -->
+<div id="weather">
+<div id="wicon">☀️</div>
+<div id="wtemp">--°</div>
 </div>
 
-<div id="progressBar"><div id="progress"></div></div>
-<div id="map"></div>
-
-<div id="bottom">
-<div class="col"><div id="depTemp" class="weather"></div></div>
-<div class="col"><div id="arrTemp" class="weather"></div></div>
-</div>
-
+<!-- CLOCK -->
 <div id="clock">--:--</div>
 
-<div id="manualPanel" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#111;padding:20px">
-<input id="mFlight" placeholder="EK202"><br>
-<input id="mFrom" placeholder="DXB"><br>
-<input id="mTo" placeholder="LHR"><br>
-<input id="mTime" type="datetime-local"><br>
-<button onclick="saveManual()">保存</button>
+<!-- DATE -->
+<div id="date">---</div>
+
+<!-- FLIGHT -->
+<div id="flight"></div>
+
+<!-- BUTTONS -->
+<div id="menuBtn">✈</div>
+<div id="setBtn">⚙</div>
+
+<!-- FLIGHT PANEL -->
+<div id="flightPanel" class="panel">
+
+<div style="color:#c1a35f;">ADD FLIGHT</div>
+
+<input id="fno" placeholder="838 / EK838">
+<input id="org" placeholder="DXB">
+<input id="dst" placeholder="LHR">
+<input id="ftime" type="datetime-local">
+
+<button onclick="saveFlight()">SAVE FLIGHT</button>
+
 </div>
 
 <script>
 
-/* CONFIG */
-const GAS_URL="https://script.google.com/macros/s/AKfycbz1iR3ELklG4f2LVM8O3pA8LKK_Q641MizOPowcJQXP6WFVOxptt35h4QGjsG9nfwwS/exec";
+/* ================= CONFIG ================= */
+const TZ="Asia/Dubai";
 
-/* AIRPORT DB */
-const APT={
-DXB:{lat:25.25,lon:55.36,city:"Dubai"},
-LHR:{lat:51.47,lon:-0.45,city:"London"},
-PVG:{lat:31.14,lon:121.8,city:"Shanghai"}
-};
-
-/* MAP */
-let map=L.map('map').setView([25,55],4);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-let planeMarker,routeLine;
-
-/* UTILS */
-function fmt(t){return t.getHours()+":"+t.getMinutes().toString().padStart(2,'0')}
-function dist(a,b,c,d){
-let R=6371;
-let dLat=(c-a)*Math.PI/180;
-let dLon=(d-b)*Math.PI/180;
-let x=Math.sin(dLat/2)**2+
-Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLon/2)**2;
-return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
-}
-
-/* WIND */
-async function wind(lat,lon){
-let r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-let j=await r.json();
-return j.current_weather;
-}
-
-/* RADAR */
-async function radar(cs){
-let r=await fetch(`https://opensky-network.org/api/states/all?callsign=${cs}`);
-return await r.json();
-}
-
-/* ROUTE */
-function drawRoute(dep,arr){
-let pts=[[dep.lat,dep.lon],[arr.lat,arr.lon]];
-if(routeLine)map.removeLayer(routeLine);
-routeLine=L.polyline(pts,{color:"gold"}).addTo(map);
-}
-
-/* UPDATE */
-async function update(){
-
-clock.innerText=fmt(new Date());
-
-let data;
-let manual=localStorage.getItem("manualFlight");
-
-if(manual){
-data=JSON.parse(manual);
-}else{
-let r=await fetch(GAS_URL);
-let j=await r.json();
-if(!j.hasFlight)return;
-data=j;
-}
-
-document.body.classList.add("active","flight");
-
-/* flight */
-let num=data.flightNo.replace(/\D/g,"");
-if(num.startsWith("8"))num=num.substring(1);
-
-fno.innerText="EK "+num;
-route.innerText=data.origin+"→"+data.dest;
-
-/* pickup */
-let std=new Date(data.std);
-pickup.innerText="PICKUP "+fmt(new Date(std-135*60000));
-
-/* weather */
-let dep=APT[data.origin]||APT.DXB;
-let arr=APT[data.dest]||APT.LHR;
-
-let w1=await wind(dep.lat,dep.lon);
-let w2=await wind(arr.lat,arr.lon);
-
-depTemp.innerText=Math.round(w1.temperature)+"°";
-arrTemp.innerText=Math.round(w2.temperature)+"°";
-
-/* radar */
-let r=await radar("UAE"+num);
-
-if(r.states && r.states.length>0){
-
-let s=r.states[0];
-let lat=s[6],lon=s[5],gs=s[9],track=s[10],alt=s[7];
-
-if(!planeMarker){
-planeMarker=L.marker([lat,lon]).addTo(map);
-}else{
-planeMarker.setLatLng([lat,lon]);
-}
-
-map.panTo([lat,lon]);
-
-drawRoute(dep,arr);
-
-/* distance */
-let d=dist(lat,lon,arr.lat,arr.lon);
-
-/* wind */
-let wc=Math.cos((w2.winddirection-track)*Math.PI/180)*w2.windspeed;
-
-/* eta */
-let effGS=gs+wc;
-let eta=Math.round(d/(effGS*1.852)*60);
-
-/* tod */
-let tod=d-(alt/300);
-
-live.innerText=`ETA ${eta}min | ${Math.round(d)}km | TOD ${Math.round(tod)}km`;
-
-status.innerText=(alt>500)?"IN FLIGHT":"GROUND";
-
-/* progress */
-let etd=new Date(std.getTime()+8*3600000);
-progress.style.width=((Date.now()-std)/(etd-std)*100)+"%";
-
-}
-
-/* roster（简单版） */
-}
-
-function saveManual(){
-localStorage.setItem("manualFlight",JSON.stringify({
-flightNo:mFlight.value,
-origin:mFrom.value,
-dest:mTo.value,
-std:new Date(mTime.value).toISOString()
-}));
-manualPanel.style.display="none";
-}
-
-/* UI */
+/* ================= UI TRIGGER ================= */
 let t;
+
 document.body.onclick=()=>{
-overlayBtns.style.display="block";
-bottomBtn.style.display="block";
+
+menuBtn.style.display="block";
+setBtn.style.display="block";
+
 clearTimeout(t);
 t=setTimeout(()=>{
-overlayBtns.style.display="none";
-bottomBtn.style.display="none";
+menuBtn.style.display="none";
+setBtn.style.display="none";
 },5000);
+
+};
+
+/* ================= OPEN PANEL ================= */
+menuBtn.onclick=()=>flightPanel.style.display="block";
+
+/* ================= CLOCK (FIXED + SAFE) ================= */
+function updateClock(){
+
+const now=new Date();
+
+const time=new Intl.DateTimeFormat("en-GB",{
+timeZone:TZ,
+hour:"2-digit",
+minute:"2-digit",
+hour12:false
+}).format(now);
+
+const date=new Intl.DateTimeFormat("en-GB",{
+timeZone:TZ,
+weekday:"long",
+year:"numeric",
+month:"short",
+day:"numeric"
+}).format(now);
+
+clock.innerText=time;
+date.innerText=date;
+
 }
 
-setInterval(update,30000);
-setInterval(()=>clock.innerText=fmt(new Date()),1000);
+/* ================= WEATHER ================= */
+async function updateWeather(){
 
-update();
+try{
+
+const r=await fetch(
+"https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true"
+);
+
+const d=await r.json();
+
+wtemp.innerText=Math.round(d.current_weather.temperature)+"°C";
+wicon.innerText="☀️";
+
+}catch(e){
+wtemp.innerText="--°";
+}
+
+}
+
+/* ================= DATA SOURCE ================= */
+function getManual(){
+
+return JSON.parse(localStorage.getItem("manualFlight")||"null");
+
+}
+
+/* ================= FLIGHT RENDER ================= */
+function renderFlight(){
+
+let f=getManual();
+
+if(!f){
+flight.classList.remove("active");
+return;
+}
+
+flight.classList.add("active");
+
+flight.innerText=
+`${f.flightNo}
+${f.origin} → ${f.dest}`;
+
+}
+
+/* ================= SAVE FLIGHT ================= */
+function saveFlight(){
+
+let f={
+flightNo: (fno.value.startsWith("EK")?fno.value:"EK"+fno.value),
+origin:org.value,
+dest:dst.value,
+std:new Date(ftime.value).toISOString()
+};
+
+localStorage.setItem("manualFlight",JSON.stringify(f));
+
+flightPanel.style.display="none";
+
+location.reload();
+
+}
+
+/* ================= LOOP ================= */
+setInterval(updateClock,1000);
+setInterval(updateWeather,60000);
+setInterval(renderFlight,3000);
+
+updateClock();
+updateWeather();
+renderFlight();
 
 </script>
+
 </body>
 </html>
