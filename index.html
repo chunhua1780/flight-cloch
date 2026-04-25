@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flight Cockpit V22 Stable</title>
+<title>Flight Cockpit V23</title>
 
 <style>
 body{
@@ -16,18 +16,18 @@ overflow:hidden;
 
 /* CLOCK */
 #clock{
-font-size:34vh;
+font-size:32vh;
 text-align:center;
 margin-top:6vh;
 font-weight:800;
-letter-spacing:-2px;
+cursor:move;
 }
 
-/* DATE */
 #date{
 text-align:center;
 font-size:3vh;
 color:#aaa;
+cursor:move;
 }
 
 /* WEATHER */
@@ -36,27 +36,13 @@ position:absolute;
 top:20px;
 right:20px;
 text-align:right;
+cursor:move;
 }
 #wicon{font-size:6vh;}
-#wtemp{font-size:2.2vh;color:#aaa;}
-
-/* FLIGHT */
-#flight{
-position:absolute;
-top:20px;
-left:20px;
-background:#111;
-padding:12px;
-border-radius:10px;
-min-width:220px;
-display:none;
-white-space:pre-line;
-}
-
-#flight.active{display:block;}
+#wtemp{font-size:2vh;color:#aaa;}
 
 /* BUTTONS */
-#menuBtn,#setBtn{
+#menuBtn,#editBtn,#mgrBtn{
 position:fixed;
 right:20px;
 padding:12px 14px;
@@ -68,12 +54,13 @@ z-index:9999;
 }
 
 #menuBtn{bottom:20px;}
-#setBtn{top:20px;}
+#editBtn{top:20px;}
+#mgrBtn{bottom:80px;}
 
-/* PANEL */
+/* PANELS */
 .panel{
 position:fixed;
-top:15%;
+top:10%;
 left:50%;
 transform:translateX(-50%);
 background:#111;
@@ -81,10 +68,12 @@ padding:15px;
 border-radius:12px;
 display:none;
 z-index:10000;
-width:260px;
+width:300px;
+max-height:70vh;
+overflow:auto;
 }
 
-input{
+input,select{
 width:100%;
 margin:4px 0;
 padding:6px;
@@ -102,164 +91,211 @@ color:#fff;
 border:1px solid #444;
 }
 
+/* DRAG MODE */
+.draggable{
+position:absolute;
+cursor:move;
+}
+
+/* FLIGHT LIST */
+.flightItem{
+background:#000;
+padding:6px;
+margin:4px 0;
+border:1px solid #333;
+}
+
+.smallBtn{
+font-size:12px;
+padding:4px;
+margin-top:4px;
+}
+
 </style>
 </head>
 
 <body>
 
+<!-- CLOCK -->
+<div id="clock" class="draggable">00:00</div>
+
+<!-- DATE -->
+<div id="date" class="draggable">---</div>
+
 <!-- WEATHER -->
-<div id="weather">
+<div id="weather" class="draggable">
 <div id="wicon">☀️</div>
 <div id="wtemp">--°</div>
 </div>
 
-<!-- CLOCK -->
-<div id="clock">--:--</div>
-
-<!-- DATE -->
-<div id="date">---</div>
-
-<!-- FLIGHT -->
-<div id="flight"></div>
-
 <!-- BUTTONS -->
 <div id="menuBtn">✈</div>
-<div id="setBtn">⚙</div>
+<div id="editBtn">⚙</div>
+<div id="mgrBtn">📅</div>
 
-<!-- FLIGHT PANEL -->
-<div id="flightPanel" class="panel">
+<!-- FLIGHT MANAGER -->
+<div id="manager" class="panel">
 
-<div style="color:#c1a35f;">ADD FLIGHT</div>
+<div style="color:#c1a35f;">FLIGHT MANAGER</div>
 
-<input id="fno" placeholder="838 / EK838">
+<input id="fno" placeholder="EK838">
 <input id="org" placeholder="DXB">
 <input id="dst" placeholder="LHR">
 <input id="ftime" type="datetime-local">
 
-<button onclick="saveFlight()">SAVE FLIGHT</button>
+<button onclick="addFlight()">ADD FLIGHT</button>
+
+<div id="list"></div>
 
 </div>
 
 <script>
 
-/* ================= CONFIG ================= */
-const TZ="Asia/Dubai";
+/* ================= DATA ================= */
+let flights=JSON.parse(localStorage.getItem("flights")||"[]");
 
-/* ================= UI TRIGGER ================= */
+/* ================= SHOW MENU ================= */
 let t;
 
 document.body.onclick=()=>{
 
 menuBtn.style.display="block";
-setBtn.style.display="block";
+editBtn.style.display="block";
+mgrBtn.style.display="block";
 
 clearTimeout(t);
+
 t=setTimeout(()=>{
 menuBtn.style.display="none";
-setBtn.style.display="none";
+editBtn.style.display="none";
+mgrBtn.style.display="none";
 },5000);
 
 };
 
-/* ================= OPEN PANEL ================= */
-menuBtn.onclick=()=>flightPanel.style.display="block";
+/* ================= OPEN MANAGER ================= */
+mgrBtn.onclick=()=>{
 
-/* ================= CLOCK (FIXED + SAFE) ================= */
-function updateClock(){
+manager.style.display="block";
+renderList();
 
-const now=new Date();
+};
 
-const time=new Intl.DateTimeFormat("en-GB",{
-timeZone:TZ,
-hour:"2-digit",
-minute:"2-digit",
-hour12:false
-}).format(now);
+/* ================= CLOCK ================= */
+function clock(){
 
-const date=new Intl.DateTimeFormat("en-GB",{
-timeZone:TZ,
-weekday:"long",
-year:"numeric",
-month:"short",
-day:"numeric"
-}).format(now);
+let n=new Date();
 
-clock.innerText=time;
-date.innerText=date;
+clock.innerText=
+n.getHours().toString().padStart(2,'0')+":"+
+n.getMinutes().toString().padStart(2,'0');
+
+date.innerText=
+n.toDateString();
 
 }
 
 /* ================= WEATHER ================= */
-async function updateWeather(){
-
-try{
-
-const r=await fetch(
-"https://api.open-meteo.com/v1/forecast?latitude=25.25&longitude=55.36&current_weather=true"
-);
-
-const d=await r.json();
-
-wtemp.innerText=Math.round(d.current_weather.temperature)+"°C";
+function weather(){
 wicon.innerText="☀️";
-
-}catch(e){
-wtemp.innerText="--°";
+wtemp.innerText="28°";
 }
 
-}
+/* ================= ADD FLIGHT ================= */
+function addFlight(){
 
-/* ================= DATA SOURCE ================= */
-function getManual(){
+flights.push({
+id:Date.now(),
+no:fno.value,
+org:org.value,
+dst:dst.value,
+time:ftime.value
+});
 
-return JSON.parse(localStorage.getItem("manualFlight")||"null");
+save();
 
-}
-
-/* ================= FLIGHT RENDER ================= */
-function renderFlight(){
-
-let f=getManual();
-
-if(!f){
-flight.classList.remove("active");
-return;
-}
-
-flight.classList.add("active");
-
-flight.innerText=
-`${f.flightNo}
-${f.origin} → ${f.dest}`;
+renderList();
 
 }
 
-/* ================= SAVE FLIGHT ================= */
-function saveFlight(){
+/* ================= DELETE ================= */
+function del(id){
 
-let f={
-flightNo: (fno.value.startsWith("EK")?fno.value:"EK"+fno.value),
-origin:org.value,
-dest:dst.value,
-std:new Date(ftime.value).toISOString()
+flights=flights.filter(f=>f.id!==id);
+
+save();
+
+renderList();
+
+}
+
+/* ================= RENDER LIST ================= */
+function renderList(){
+
+list.innerHTML="";
+
+flights.forEach(f=>{
+
+let div=document.createElement("div");
+div.className="flightItem";
+
+div.innerHTML=`
+${f.no}<br>
+${f.org} → ${f.dst}<br>
+${f.time}<br>
+<button class="smallBtn" onclick="del(${f.id})">DELETE</button>
+`;
+
+list.appendChild(div);
+
+});
+
+}
+
+/* ================= SAVE ================= */
+function save(){
+
+localStorage.setItem("flights",JSON.stringify(flights));
+
+}
+
+/* ================= DRAG SYSTEM ================= */
+function drag(el){
+
+let ox,oy;
+
+el.onmousedown=(e)=>{
+
+ox=e.offsetX;
+oy=e.offsetY;
+
+document.onmousemove=(e)=>{
+
+el.style.left=(e.pageX-ox)+"px";
+el.style.top=(e.pageY-oy)+"px";
+
 };
 
-localStorage.setItem("manualFlight",JSON.stringify(f));
+document.onmouseup=()=>document.onmousemove=null;
 
-flightPanel.style.display="none";
-
-location.reload();
+};
 
 }
 
-/* ================= LOOP ================= */
-setInterval(updateClock,1000);
-setInterval(updateWeather,60000);
-setInterval(renderFlight,3000);
+function enableDrag(){
 
-updateClock();
-updateWeather();
-renderFlight();
+document.querySelectorAll(".draggable").forEach(drag);
+
+}
+
+/* ================= EDIT MODE ================= */
+editBtn.onclick=()=>enableDrag();
+
+/* ================= LOOP ================= */
+setInterval(clock,1000);
+
+clock();
+weather();
 
 </script>
 
