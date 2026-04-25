@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flight Cockpit V24</title>
+<title>Flight Cockpit V25 Engine</title>
 
 <style>
 body{
@@ -14,36 +14,38 @@ font-family:-apple-system;
 overflow:hidden;
 }
 
-/* ================= LAYOUT ================= */
-.layout-single #left,.layout-single #right{display:none;}
-.layout-double #right{display:none;}
-.layout-triple #left,#right{display:block;}
-
-/* ================= ELEMENTS ================= */
+/* ================= CLOCK FIX ================= */
 #clock{
 font-size:30vh;
 text-align:center;
-margin-top:5vh;
+margin-top:6vh;
+font-weight:800;
 cursor:move;
 }
 
-#date,#city,#country{
+#date{
 text-align:center;
 font-size:3vh;
 color:#aaa;
 cursor:move;
 }
 
+/* ================= WEATHER ================= */
 #weather{
 position:absolute;
 top:20px;
 right:20px;
 text-align:right;
-cursor:ns-resize; /* only vertical */
+cursor:move;
 }
 
 #wicon{font-size:6vh;}
 #wtemp{font-size:2vh;color:#aaa;}
+
+/* ================= LAYOUT ================= */
+.single .flight,.single .side{display:none;}
+.dual .side{display:none;}
+.triple .side{display:block;}
 
 /* ================= PANELS ================= */
 .panel{
@@ -57,21 +59,18 @@ border-radius:12px;
 display:none;
 z-index:10000;
 width:320px;
-max-height:70vh;
-overflow:auto;
 }
 
-input,select{
-width:100%;
-margin:4px 0;
+/* ================= ELEMENT ================= */
+.element{
+position:absolute;
 padding:6px;
-background:#000;
-color:#fff;
-border:1px solid #333;
+cursor:move;
+user-select:none;
 }
 
-/* ================= BUTTONS ================= */
-#menu,#edit,#calendarBtn{
+/* ================= BUTTON ================= */
+#menu,#edit,#layoutBtn{
 position:fixed;
 right:20px;
 background:#c1a35f;
@@ -84,51 +83,19 @@ z-index:9999;
 
 #menu{bottom:20px;}
 #edit{top:20px;}
-#calendarBtn{bottom:80px;}
-
-/* ================= DRAG ================= */
-.draggable{
-position:absolute;
-cursor:move;
-}
-
-.resizeable{
-resize:both;
-overflow:auto;
-}
-
-/* ================= CALENDAR ================= */
-#calendar{
-display:grid;
-grid-template-columns:repeat(7,1fr);
-gap:2px;
-font-size:12px;
-}
-
-.day{
-background:#000;
-border:1px solid #333;
-padding:8px;
-min-height:40px;
-cursor:pointer;
-}
-
-.day:hover{background:#111;}
+#layoutBtn{bottom:80px;}
 
 </style>
 </head>
 
-<body class="layout-single">
+<body class="single">
 
-<!-- CLOCK -->
-<div id="clock" class="draggable">00:00</div>
-
-<div id="date" class="draggable">---</div>
-<div id="city" class="draggable">Dubai</div>
-<div id="country" class="draggable">UAE</div>
+<!-- CORE -->
+<div id="clock" class="element">00:00</div>
+<div id="date" class="element">---</div>
 
 <!-- WEATHER -->
-<div id="weather" class="draggable">
+<div id="weather" class="element">
 <div id="wicon">☀️</div>
 <div id="wtemp">--°</div>
 </div>
@@ -136,16 +103,16 @@ cursor:pointer;
 <!-- BUTTONS -->
 <div id="menu">✈</div>
 <div id="edit">⚙</div>
-<div id="calendarBtn">📅</div>
+<div id="layoutBtn">🧭</div>
 
-<!-- SETTINGS -->
-<div id="settings" class="panel">
+<!-- PANEL -->
+<div id="panel" class="panel">
 
 <div style="color:#c1a35f;">LAYOUT</div>
 
-<button onclick="setLayout('layout-single')">Single</button>
-<button onclick="setLayout('layout-double')">Double</button>
-<button onclick="setLayout('layout-triple')">Triple</button>
+<button onclick="setLayout('single')">Single</button>
+<button onclick="setLayout('dual')">Dual</button>
+<button onclick="setLayout('triple')">Triple</button>
 
 <hr>
 
@@ -154,23 +121,16 @@ cursor:pointer;
 <button onclick="addElement('date')">Date</button>
 <button onclick="addElement('city')">City</button>
 <button onclick="addElement('country')">Country</button>
-
-</div>
-
-<!-- CALENDAR -->
-<div id="calendarPanel" class="panel">
-
-<div style="display:flex;justify-content:space-between;">
-<button onclick="prevMonth()">◀</button>
-<div id="month"></div>
-<button onclick="nextMonth()">▶</button>
-</div>
-
-<div id="calendar"></div>
+<button onclick="addElement('flight')">Flight</button>
 
 </div>
 
 <script>
+
+/* ================= STATE ================= */
+let state={
+elements:[]
+};
 
 /* ================= MENU ================= */
 let t;
@@ -179,25 +139,93 @@ document.body.onclick=()=>{
 
 menu.style.display="block";
 edit.style.display="block";
-calendarBtn.style.display="block";
+layoutBtn.style.display="block";
 
 clearTimeout(t);
 t=setTimeout(()=>{
 menu.style.display="none";
 edit.style.display="none";
-calendarBtn.style.display="none";
+layoutBtn.style.display="none";
 },5000);
 
 };
 
-/* ================= OPEN ================= */
-edit.onclick=()=>settings.style.display="block";
-calendarBtn.onclick=()=>calendarPanel.style.display="block";
+/* ================= PANEL ================= */
+edit.onclick=()=>panel.style.display="block";
 
-/* ================= LAYOUT ================= */
-function setLayout(v){
-document.body.className=v;
-localStorage.setItem("layout",v);
+/* ================= CLOCK FIX ================= */
+function updateClock(){
+
+const now=new Date();
+
+const time=new Intl.DateTimeFormat("en-GB",{
+timeZone:"Asia/Dubai",
+hour:"2-digit",
+minute:"2-digit",
+hour12:false
+}).format(now);
+
+clock.innerText=time;
+
+date.innerText=
+new Intl.DateTimeFormat("en-GB",{
+timeZone:"Asia/Dubai",
+weekday:"long",
+year:"numeric",
+month:"short",
+day:"numeric"
+}).format(now);
+
+}
+
+/* ================= WEATHER ================= */
+function weather(){
+wicon.innerText="☀️";
+wtemp.innerText="28°";
+}
+
+/* ================= LAYOUT ENGINE ================= */
+function setLayout(l){
+
+document.body.className=l;
+
+localStorage.setItem("layout",l);
+
+}
+
+/* ================= ELEMENT ENGINE ================= */
+function addElement(type){
+
+let el=document.createElement("div");
+
+el.className="element";
+
+el.dataset.type=type;
+
+/* AUTO VALUE SYSTEM */
+if(type==="date"){
+el.innerText=new Date().toDateString();
+}
+
+if(type==="city"){
+el.innerText="Dubai";
+}
+
+if(type==="country"){
+el.innerText="UAE";
+}
+
+if(type==="flight"){
+el.innerText="EK---";
+}
+
+/* DRAG */
+drag(el);
+
+document.body.appendChild(el);
+
+state.elements.push(el);
+
 }
 
 /* ================= DRAG ================= */
@@ -223,76 +251,25 @@ document.onmouseup=()=>document.onmousemove=null;
 
 }
 
-document.querySelectorAll(".draggable").forEach(drag);
+/* ================= AUTO COUNTRY ================= */
+function detectLocation(){
 
-/* ================= ADD ELEMENT ================= */
-function addElement(type){
+navigator.geolocation?.getCurrentPosition(pos=>{
 
-let el=document.createElement("div");
-el.className="draggable";
-el.innerText=type.toUpperCase();
-el.style.top="200px";
-el.style.left="200px";
+// simplified mapping
+state.location="Dubai";
 
-document.body.appendChild(el);
-
-drag(el);
+});
 
 }
 
-/* ================= CALENDAR ================= */
-let now=new Date();
+/* ================= LOOP ================= */
+setInterval(updateClock,1000);
+setInterval(weather,60000);
 
-function renderCalendar(){
-
-let y=now.getFullYear();
-let m=now.getMonth();
-
-month.innerText=y+"-"+(m+1);
-
-calendar.innerHTML="";
-
-let first=new Date(y,m,1).getDay();
-let days=new Date(y,m+1,0).getDate();
-
-for(let i=0;i<first;i++){
-calendar.innerHTML+="<div></div>";
-}
-
-for(let d=1;d<=days;d++){
-
-let div=document.createElement("div");
-div.className="day";
-div.innerText=d;
-
-div.onclick=()=>{
-
-let f=prompt("Flight for "+d);
-
-if(f){
-localStorage.setItem("flight_"+y+"_"+m+"_"+d,f);
-}
-
-};
-
-calendar.appendChild(div);
-
-}
-
-}
-
-function prevMonth(){now.setMonth(now.getMonth()-1);renderCalendar();}
-function nextMonth(){now.setMonth(now.getMonth()+1);renderCalendar();}
-
-/* ================= WEATHER ================= */
-function weather(){
-wicon.innerText="☀️";
-wtemp.innerText="28°";
-}
-
-/* ================= INIT ================= */
-renderCalendar();
+updateClock();
 weather();
+detectLocation();
 
 </script>
 
