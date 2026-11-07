@@ -692,7 +692,6 @@ let STATE = {
     apiChecks: { outDepDone: false, outArrDone: false, inDepDone: false, inArrDone: false }
 };
 
-const OPENSKY_AUTH = btoa('chunhua1799@gmail.com-api-client:wiwHeRsyyP9r9zsCnyWMsE7OHb8FQImY');
 
 function init() {
     console.log("✈️ Flight Deck Pro Initializing...");
@@ -883,9 +882,7 @@ async function fetchOpenSky(flightCode) {
     try {
         const icaoCallsign = flightCode.replace('EK', 'UAE'); 
         
-        const res = await fetch('https://opensky-network.org/api/states/all', {
-            headers: { 'Authorization': 'Basic ' + OPENSKY_AUTH }
-        });
+        const res = await fetch('https://opensky-network.org/api/states/all');
         if(!res.ok) throw new Error("OpenSky API Error");
         const data = await res.json();
         const target = data.states.find(s => s[1] && s[1].trim().includes(icaoCallsign));
