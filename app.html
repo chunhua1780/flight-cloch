@@ -329,7 +329,7 @@ body:not(.lite) .ics-box{display:none}
 </div>
 
 <div id="err" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:3000;background:#2a0f0f;color:#ffb4ae;border:1px solid #6b2a26;border-radius:12px;padding:10px 14px;font:13px/1.4 -apple-system,sans-serif;white-space:pre-wrap"></div>
-<script src="scene.js?v=20261112133100"></script>
+<script src="scene.js?v=20261113060525"></script>
 <script>
 window.onerror = function (m, src, line) {
   var e = document.getElementById('err');
@@ -1619,7 +1619,7 @@ addEventListener('resize', () => { S.view = null; render(true); });
 addEventListener('resize', () => { if (map && L_route && document.body.dataset.mode === 'flight') fitMap(L_route.getLatLngs()); });
 
 /* ---------- 自动更新：发现新版本就自己刷新（kiosk 里不用手动刷新） ---------- */
-const APP_VER = '20261112133100';
+const APP_VER = '20261113060525';
 // 在外壳（index.html）里运行时，由外壳负责无缝更新；直接打开 app.html 时才自己刷新
 if (window.top === window.self) setInterval(() => {
   fetch('version.txt?_=' + Date.now(), { cache: 'no-store' }).then(r => r.ok ? r.text() : '').then(v => {
