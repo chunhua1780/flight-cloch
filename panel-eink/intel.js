@@ -192,14 +192,21 @@ function firHere(lat, lon, L) {
     label: (/FIR|UIR|OCEANIC|CONTROL/.test(nm) ? nm : nm + ' FIR') + ' – ' + f.id
   };
 }
+var FIRGEO = {
+  KZWY: 'KZNY'
+};
 function firRings(code) {
   if (!FIRB || !code) return null;
-  var f = FIRB.find(function (x) {
-    return x.id === code;
-  }) || FIRB.find(function (x) {
+  var id = FIRGEO[code] || code;
+  var F = FIRB.filter(function (x) {
+    return x.id === id;
+  });
+  if (!F.length) F = FIRB.filter(function (x) {
     return x.id === (FIRALIAS[code] || code);
   });
-  return f ? f.rings : null;
+  return F.length ? [].concat.apply([], F.map(function (f) {
+    return f.rings;
+  })) : null;
 }
 var FIDB = null,
   WPTI = {},
@@ -401,7 +408,7 @@ function alongNm(N, cum, el) {
   return cum[cum.length - 1];
 }
 var ackKey = function ackKey(L, a) {
-  return 'ack.' + L.k + '.' + a.x.id + '.' + (a.x.ver || 0);
+  return 'ack.' + L.k + '.' + a.x.id + '.' + (a.x.ver || 0) + (a.state === 'in' && a.x.repeatMin ? '.r' + Math.floor(NOW() / (a.x.repeatMin * MIN)) : '');
 };
 var acked = function acked(L, a) {
   return !!ls(ackKey(L, a));
@@ -448,8 +455,46 @@ var fmtMin = function fmtMin(m) {
 var flLab = function flLab(v) {
   return v >= 99999 ? 'UNL' : !v ? 'SFC' : v >= 10000 ? 'FL' + Math.round(v / 100) : v + 'ft';
 };
+function fillPhrase(t) {
+  var L = CUR;
+  if (!L || !t) return t || '';
+  var now = NOW(),
+    off = offOf(L),
+    el = (now - off) / MIN,
+    N = (L.n || []).filter(function (w) {
+      return w.length >= 4;
+    });
+  var nx = N.find(function (w) {
+      return w[1] > el;
+    }),
+    pv = N.filter(function (w) {
+      return w[1] <= el;
+    }).slice(-1)[0],
+    P = (wpos(L, el) || {}).p,
+    fh = P ? firHere(P[0], P[1], L) : null;
+  var trk = nx && pv ? (Math.atan2(dlon(nx[3], pv[3]) * Math.cos(pv[2] * Math.PI / 180), nx[2] - pv[2]) * 180 / Math.PI + 360) % 360 : 0;
+  var fl = GPS.fix && GPS.fix.alt > 5000 && !DEMO ? Math.round(GPS.fix.alt / 1000) * 10 : Math.round((L.fl || 35000) / 100);
+  var V = {
+    call_sign: csOf(L),
+    current_fir: fh ? fh.label.replace(/ – .*/, '') : '',
+    current_position: pv ? pv[0] : '',
+    current_time_utc: hmZ(now),
+    flight_level: fl,
+    direction: trk < 180 ? 'EAST' : 'WEST',
+    airway: '(AWY)',
+    next_wpt_or_crossing_awy: nx ? nx[0] : '',
+    next_est_time_utc: nx ? hmZ(off + nx[1] * MIN) : '',
+    next_wpt: (N[N.indexOf(nx) + 1] || [''])[0]
+  };
+  return t.replace(/\{(\w+)\}/g, function (m, k) {
+    return V[k] != null && V[k] !== '' ? V[k] : m;
+  });
+}
 function actList(x) {
-  var A = x.actions || [];
+  var A = (x.actions || []).concat(x.phrase ? [{
+    zh: '📻 ' + fillPhrase(x.phrase),
+    en: ''
+  }] : []);
   if (!A.length) return '';
   return '<ol class="acts">' + A.map(function (t) {
     return '<li>' + esc(LANG === 'en' ? t.en || t.zh : t.zh || t.en) + (LANG === 'both' && t.en && t.zh ? '<small>' + esc(t.en) + '</small>' : '') + '</li>';
