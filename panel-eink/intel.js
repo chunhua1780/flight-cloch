@@ -514,7 +514,7 @@ function alertHtml(L, list) {
 }
 function fiDetail(id) {
   if (PSEUDO[id] && PSEUDO[id].wac) return wacDetail(PSEUDO[id]);
-  var x = FIDB && FIDB.items.find(function (y) {
+  var x = PSEUDO[id] || FIDB && FIDB.items.find(function (y) {
     return y.id === id;
   });
   if (!x) return;
@@ -903,4 +903,168 @@ function wacDetail(x) {
     $('sheet').style.display = 'none';
     draw();
   };
+}
+var RULE_AREA = /^(before_entry|on_entry|after_entry|every|before_exit|on_exit)$/;
+var RULE_PH = {
+  before_std: '起飞前',
+  after_takeoff: '起飞后',
+  top_of_climb: '爬升顶点',
+  before_tod: '下降前',
+  before_landing: '落地前',
+  after_landing: '落地后',
+  before_entry: '进入前',
+  on_entry: '进入时',
+  after_entry: '进入后',
+  every: '区内每',
+  before_exit: '离开前',
+  on_exit: '离开时'
+};
+var RULE_PH_EN = {
+  before_std: 'before STD',
+  after_takeoff: 'after T/O',
+  top_of_climb: 'at TOC',
+  before_tod: 'before TOD',
+  before_landing: 'before landing',
+  after_landing: 'after landing',
+  before_entry: 'before entry',
+  on_entry: 'on entry',
+  after_entry: 'after entry',
+  every: 'every',
+  before_exit: 'before exit',
+  on_exit: 'on exit'
+};
+var RULEG = {};
+function ruleSpan(L, x) {
+  var ck = L.k + '|' + x.id + '|' + (x.ver || 0);
+  if (RULEG[ck] !== undefined) return RULEG[ck];
+  var G = fiGeom(Object.assign({
+    firOnly: !!(x.fir || (x.firs || []).length)
+  }, x));
+  var r = null;
+  if (G) {
+    var lo = (+x.lower || 0) - 1000,
+      hi = (x.upper ? +x.upper : 99999) + 1000,
+      N = (L.n || []).filter(function (w) {
+        return w.length >= 4;
+      }),
+      cum = cumNm(N);
+    var a = null,
+      b = null;
+    var spans = [];
+    for (var m = 0; m <= L.tr; m++) {
+      var p = (wpos(L, m) || {}).p,
+        al = altAt(L, 1, m),
+        inn = p && inGeom(G, p[0], p[1]) && al >= lo && al <= hi;
+      if (inn && a === null) a = m;
+      if (!inn && a !== null) {
+        spans.push([a, m]);
+        a = null;
+      }
+    }
+    if (a !== null) spans.push([a, L.tr]);
+    if (spans.length) r = {
+      spans: spans,
+      cum: cum,
+      N: N
+    };
+  }
+  RULEG[ck] = r;
+  return r;
+}
+function ruleAlerts(L, S, off, now) {
+  var out = [];
+  if (!FIDB || !FIDB.items || L.noOfp) return out;
+  var on = off + L.tr * MIN,
+    tod = on - 30 * MIN,
+    toc = off + 20 * MIN;
+  FIDB.items.forEach(function (x) {
+    if (x.kind !== 'rule' || !fiUsable(x, now) || !(x.steps || []).length) return;
+    var W = x.where || {},
+      areaR = W.fir || (W.firs || []).length || (W.poly || []).length >= 3 || W.circle;
+    if ((W.dep || W.arr || W.route) && !procMatch({
+      dep: W.dep,
+      arr: W.arr,
+      route: W.route,
+      arrExclude: W.arrExclude,
+      depExclude: W.depExclude
+    }, L)) return;
+    var sp0 = areaR ? ruleSpan(L, {
+      id: x.id,
+      ver: x.ver,
+      fir: W.fir,
+      firs: W.firs,
+      poly: W.poly,
+      circle: W.circle,
+      lower: x.lower,
+      upper: x.upper
+    }) : null;
+    if (areaR && !sp0) return;
+    (sp0 ? sp0.spans : [null]).forEach(function (ab, si) {
+      var sp = ab ? {
+        a: ab[0],
+        b: ab[1],
+        cum: sp0.cum,
+        N: sp0.N
+      } : null;
+      x.steps.forEach(function (st, i) {
+        if (si > 0 && !RULE_AREA.test(st.when)) return;
+        var T = null,
+          show = (st.show || 15) * MIN,
+          tag = '';
+        var m = +st.min || 0;
+        if (RULE_AREA.test(st.when)) {
+          if (!sp) return;
+          var tA = off + sp.a * MIN,
+            tB = off + sp.b * MIN;
+          if (st.when === 'before_entry') {
+            if (st.nm) {
+              var dA = alongNm(sp.N, sp.cum, sp.a);
+              var mm = sp.a;
+              while (mm > 0 && dA - alongNm(sp.N, sp.cum, mm) < st.nm) mm--;
+              T = off + mm * MIN;
+            } else T = tA - m * MIN;
+          } else if (st.when === 'on_entry') T = tA;else if (st.when === 'after_entry') T = tA + m * MIN;else if (st.when === 'every') {
+            if (now < tA || now > tB || !m) return;
+            var k = Math.floor((now - tA) / (m * MIN));
+            T = tA + k * m * MIN;
+            show = m * MIN;
+            tag = '.' + k;
+          } else if (st.when === 'before_exit') T = tB - m * MIN;else if (st.when === 'on_exit') T = tB;
+        } else {
+          if (st.when === 'before_std') T = L.std - m * MIN;else if (st.when === 'after_takeoff') T = off + m * MIN;else if (st.when === 'top_of_climb') T = toc + m * MIN;else if (st.when === 'before_tod') T = tod - m * MIN;else if (st.when === 'before_landing') T = on - m * MIN;else if (st.when === 'after_landing') T = on + m * MIN;else return;
+          if (/^(after_takeoff|top_of_climb|before_tod|before_landing)$/.test(st.when) && S.ph !== 1) return;
+        }
+        if (T === null || now < T || now >= T + show) return;
+        var lab = XS(RULE_PH[st.when] || st.when, RULE_PH_EN[st.when] || st.when) + (st.when === 'every' ? ' ' + m + ' min' : st.nm ? ' ' + st.nm + ' NM' : m ? ' ' + m + ' min' : '');
+        var id = 'rule:' + x.id + '.' + i + (si ? '.s' + si : '') + tag,
+          y = {
+            id: id,
+            kind: 'rule',
+            name: x.name + ' · ' + lab,
+            level: st.level || x.level || 'caution',
+            fir: W.fir || '',
+            msg: st.zh || st.en,
+            msgEn: st.en || st.zh,
+            actions: (st.do || []).length ? st.do : [{
+              zh: st.zh,
+              en: st.en
+            }],
+            notes: x.notes,
+            quote: x.quote,
+            src: x.src,
+            ver: x.ver || 1,
+            rev: x.rev
+          };
+        PSEUDO[id] = y;
+        out.push({
+          x: y,
+          state: 'proc',
+          label: hmZ(T) + 'Z',
+          min: 0,
+          nm: 0
+        });
+      });
+    });
+  });
+  return out;
 }

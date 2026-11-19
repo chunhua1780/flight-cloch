@@ -106,18 +106,37 @@ function pkgSections(L) {
       }).map(function (r) {
         return r[2];
       });
+    var rl = items.filter(function (x) {
+      return x.kind === 'rule' && x.where && (x.where.fir === f[1] || x.where.fir === code || (x.where.firs || []).some(function (c) {
+        return c === f[1] || c === code;
+      }));
+    });
+    var rlTxt = rl.map(function (x) {
+      return '提醒规则 ' + x.name + ': ' + x.steps.map(function (s0) {
+        return (RULE_PH[s0.when] || s0.when) + (s0.min ? ' ' + s0.min + ' 分钟' : '') + ' → ' + (s0.zh || s0.en) + ((s0.do || []).length ? '（' + s0.do.map(function (d) {
+          return d.zh || d.en;
+        }).join('；') + '）' : '');
+      }).join('；');
+    }).join('\n');
+    var rlHtml = rl.map(function (x) {
+      return '<div class="fi ' + esc(x.level) + '"><b>' + esc(x.name) + '</b><ol class="acts">' + x.steps.map(function (s0) {
+        return '<li><b>' + esc(RULE_PH[s0.when] || s0.when) + (s0.min ? ' ' + s0.min + ' min' : s0.nm ? ' ' + s0.nm + ' NM' : '') + '：</b>' + esc(s0.zh || s0.en) + ((s0.do || []).length ? '<br><span class="tm">' + s0.do.map(function (d) {
+          return esc(d.zh || d.en);
+        }).join(' · ') + '</span>' : '') + '</li>';
+      }).join('') + '</ol></div>';
+    }).join('');
     S.push({
       id: 'fir:' + f[1] + ':' + f[2],
       title: hmZ(off + f[3] * MIN) + 'Z · ' + f[1] + ' ' + f[0],
       when: hmZ(off + f[3] * MIN) + 'Z（入口 ' + f[2] + '）',
-      text: [fx.map(fiTxt).join('\n'), wc.map(function (c) {
+      text: [rlTxt, fx.map(fiTxt).join('\n'), wc.map(function (c) {
         return (c.t || []).filter(function (t) {
           return t.x;
         }).map(function (t) {
           return '应急程序 ' + c.n + ' ' + t.h + ': ' + t.x.slice(0, 1500);
         }).join('\n');
       }).join('\n'), rk(enr), ntTxt(code)].filter(Boolean).join('\n'),
-      raw: fx.map(pkgFi).join('') + wc.map(function (c) {
+      raw: rlHtml + fx.map(pkgFi).join('') + wc.map(function (c) {
         var tp = (c.t || []).filter(function (t) {
           return t.x;
         });
