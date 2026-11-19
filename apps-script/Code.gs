@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20m';
+const BACKEND_VER = '2026-11-20n';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1113,7 +1113,7 @@ function gemKeys_() {
   try { JSON.parse(props.getProperty('GEMINI_KEYS') || '[]').forEach(function (k) { if (k && out.indexOf(k) < 0) out.push(k); }); } catch (e) {}
   return out;
 }
-function gemModels_() { const m = PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL') || 'gemini-3.5-flash'; return [m, 'gemini-flash-lite-latest', 'gemini-flash-latest'].filter(function (x, i, a) { return a.indexOf(x) === i; }); }
+function gemModels_() { const m = PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL') || 'gemini-3.5-flash'; return [m, 'gemini-flash-lite-latest'].filter(function (x, i, a) { return a.indexOf(x) === i; }); }
 const gemOut_ = function (m, k) { return CacheService.getScriptCache().get('gq_' + m + '_' + hash_(k)) === '1'; };
 const gemMark_ = function (m, k, sec) { CacheService.getScriptCache().put('gq_' + m + '_' + hash_(k), '1', sec || 3600); };
 function gemReq_(m, k, body) { return { url: 'https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent', method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': k }, muteHttpExceptions: true, payload: JSON.stringify(body) }; }
