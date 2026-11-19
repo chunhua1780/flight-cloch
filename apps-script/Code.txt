@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20i';
+const BACKEND_VER = '2026-11-20j';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1493,5 +1493,11 @@ function pkgAi_(j) {
       const kept = P.filter(function (p) { return p && pkgPointOk_(src, String(p.t || '')); }).slice(0, 10).map(function (p) { return { t: String(p.t), lv: /^(red|amber|info)$/.test(p.lv) ? p.lv : 'info' }; });
       res[x.id] = { points: kept, dropped: P.length - kept.length, ok: !!M[x.id] }; });
   });
+  // 第二遍：空着回来、但资料里明明有跑道 / 导航 / GPS / 空域内容的部分，每部分单独再问一次
+  const again = secs.filter(function (x) { const r = res[x.id]; return r && !r.points.length && /RWY|TWY|VOR|ILS|DME|GNSS|GPS|CLSD|U\/S|DANGER|RESTRICTED|PROHIBITED|规定|Rule|OFP 提醒/i.test(x.text); }).slice(0, 8);
+  if (again.length) { const o2 = geminiAll_(again.map(function (x) { const gi = groups.findIndex(function (g) { return g.some(function (y) { return y.id === x.id; }); }); return prompts[gi].split('\n===== id=')[0] + '\n===== id=' + x.id + ' · ' + x.title + (x.when ? '（本航班约 ' + x.when + '）' : '') + ' =====\n' + String(x.text).slice(0, 14000); }), true);
+    again.forEach(function (x, i) { let M = {}; try { M = JSON.parse(o2[i] && o2[i].ok ? o2[i].out : '{}').secs || {}; } catch (e) {} const P = (M[x.id] && M[x.id].points) || [];
+      const kept = P.filter(function (p) { return p && pkgPointOk_(x.text, String(p.t || '')); }).slice(0, 10).map(function (p) { return { t: String(p.t), lv: /^(red|amber|info)$/.test(p.lv) ? p.lv : 'info' }; });
+      if (kept.length) res[x.id] = { points: kept, dropped: P.length - kept.length, ok: true, retry: 1 }; }); }
   return { ok: true, secs: res, t: Date.now(), raw: j.debug ? outs.map(function (o) { return { ok: o && o.ok, model: o && o.model, err: o && o.error, out: o && o.out && o.out.slice(0, 1500) }; }) : undefined };
 }
