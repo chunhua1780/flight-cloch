@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20f';
+const BACKEND_VER = '2026-11-20g';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1114,7 +1114,7 @@ function gemKeys_() {
 }
 function gemModels_() { const m = PropertiesService.getScriptProperties().getProperty('GEMINI_MODEL') || 'gemini-3.5-flash'; return [m, 'gemini-flash-lite-latest', 'gemini-flash-latest'].filter(function (x, i, a) { return a.indexOf(x) === i; }); }
 const gemOut_ = function (m, k) { return CacheService.getScriptCache().get('gq_' + m + '_' + hash_(k)) === '1'; };
-const gemMark_ = function (m, k) { CacheService.getScriptCache().put('gq_' + m + '_' + hash_(k), '1', 3600); };
+const gemMark_ = function (m, k, sec) { CacheService.getScriptCache().put('gq_' + m + '_' + hash_(k), '1', sec || 3600); };
 function gemReq_(m, k, body) { return { url: 'https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent', method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': k }, muteHttpExceptions: true, payload: JSON.stringify(body) }; }
 function gemText_(r) { try { const d = JSON.parse(r.getContentText()), c = d.candidates && d.candidates[0]; return c && c.content && c.content.parts ? c.content.parts.map(function (p) { return p.text || ''; }).join('').trim() : ''; } catch (e) { return ''; } }
 function gemCall_(body) {
@@ -1124,6 +1124,7 @@ function gemCall_(body) {
     const m = models[mi], k = keys[ki]; if (gemOut_(m, k)) { last = m + ' quota'; continue; }
     let r; try { r = UrlFetchApp.fetch(gemReq_(m, k, body).url, gemReq_(m, k, body)); } catch (e) { last = m + ' ' + e; continue; }
     const c = r.getResponseCode(); if (c === 429) { gemMark_(m, k); last = m + ' 429'; continue; }
+    if (c === 503 || c === 500) { gemMark_(m, k, 600); last = m + ' ' + c; continue; }   // 太忙：这个 Key 这个模型 10 分钟内不用
     if (c !== 200) { last = m + ' ' + c; break; }   // 这个模型有别的问题（不存在等）：换下一个模型
     const out = gemText_(r); if (out) return { ok: true, out: out, model: m, key: ki + 1 }; last = m + ' empty';
   }
@@ -1143,7 +1144,7 @@ function geminiAll_(prompts, json) {
   let rs = []; try { rs = UrlFetchApp.fetchAll(reqs); } catch (e) { rs = []; }
   return prompts.map(function (p, i) { const r = rs[i], sl = slots[i % slots.length];
     if (r && r.getResponseCode() === 200) { const out = gemText_(r); if (out) return { ok: true, out: out, model: sl[0] }; }
-    if (r && r.getResponseCode() === 429) gemMark_(sl[0], sl[1]);
+    if (r && r.getResponseCode() === 429) gemMark_(sl[0], sl[1]); if (r && (r.getResponseCode() === 503 || r.getResponseCode() === 500)) gemMark_(sl[0], sl[1], 600);
     return gemini_(p, json, 0); });
 }
 // 原文里的代号（跑道、滑行道、频率、时间…）翻译后必须都还在；滑行道不能变成跑道
