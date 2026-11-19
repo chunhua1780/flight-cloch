@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20l';
+const BACKEND_VER = '2026-11-20m';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -125,6 +125,7 @@ function postJson_(text) {
   // 诊断：每个 AI 模型回答一句话要多久
   // 额外的 Gemini Key：只存在这个后台的脚本属性里（不在网站、不在代码）
   if (j.action === 'setkeys') { const ks = (j.keys || []).map(String).filter(function (k) { return /^[\w.\-]{20,}$/.test(k); }); PropertiesService.getScriptProperties().setProperty('GEMINI_KEYS', JSON.stringify(ks)); return JSON.stringify({ ok: true, n: ks.length, total: gemKeys_().length }); }
+  if (j.action === 'gemreset') { const c = CacheService.getScriptCache(); gemKeys_().forEach(function (k) { gemModels_().forEach(function (m) { c.remove('gq_' + m + '_' + hash_(k)); }); }); return JSON.stringify({ ok: true }); }
   if (j.action === 'gemtest') { const props = PropertiesService.getScriptProperties(), key = props.getProperty('GEMINI_KEY') || GEMINI_KEY_INLINE, out = [];
     gemKeys_().forEach(function (key, ki) { [props.getProperty('GEMINI_MODEL') || 'gemini-3.5-flash', 'gemini-flash-lite-latest'].forEach(function (m) { const t0 = Date.now();
       try { const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent', { method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, muteHttpExceptions: true, payload: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'Reply OK' }] }] }) });
@@ -1123,7 +1124,7 @@ function gemCall_(body) {
   for (let mi = 0; mi < models.length; mi++) for (let ki = 0; ki < keys.length; ki++) {
     const m = models[mi], k = keys[ki]; if (gemOut_(m, k)) { last = m + ' quota'; continue; }
     let r; try { r = UrlFetchApp.fetch(gemReq_(m, k, body).url, gemReq_(m, k, body)); } catch (e) { last = m + ' ' + e; continue; }
-    const c = r.getResponseCode(); if (c === 429) { gemMark_(m, k); last = m + ' 429'; continue; }
+    const c = r.getResponseCode(); if (c === 429) { gemMark_(m, k, /PerDay|per day/i.test(r.getContentText()) ? 3 * 3600 : 70); last = m + ' 429'; continue; }   // 每天的额度用完：3 小时不用；每分钟的：等 1 分钟
     if (c === 503 || c === 500) { gemMark_(m, k, 600); last = m + ' ' + c; continue; }   // 太忙：这个 Key 这个模型 10 分钟内不用
     if (c !== 200) { last = m + ' ' + c; break; }   // 这个模型有别的问题（不存在等）：换下一个模型
     const out = gemText_(r); if (out) return { ok: true, out: out, model: m, key: ki + 1 }; last = m + ' empty';
@@ -1144,7 +1145,7 @@ function geminiAll_(prompts, json) {
   let rs = []; try { rs = UrlFetchApp.fetchAll(reqs); } catch (e) { rs = []; }
   return prompts.map(function (p, i) { const r = rs[i], sl = slots[i % slots.length];
     if (r && r.getResponseCode() === 200) { const out = gemText_(r); if (out) return { ok: true, out: out, model: sl[0] }; }
-    if (r && r.getResponseCode() === 429) gemMark_(sl[0], sl[1]); if (r && (r.getResponseCode() === 503 || r.getResponseCode() === 500)) gemMark_(sl[0], sl[1], 600);
+    if (r && r.getResponseCode() === 429) gemMark_(sl[0], sl[1], /PerDay|per day/i.test(r.getContentText()) ? 3 * 3600 : 70); if (r && (r.getResponseCode() === 503 || r.getResponseCode() === 500)) gemMark_(sl[0], sl[1], 600);
     return gemini_(p, json, 0); });
 }
 // 原文里的代号（跑道、滑行道、频率、时间…）翻译后必须都还在；滑行道不能变成跑道
