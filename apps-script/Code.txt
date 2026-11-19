@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20h';
+const BACKEND_VER = '2026-11-20i';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1493,5 +1493,5 @@ function pkgAi_(j) {
       const kept = P.filter(function (p) { return p && pkgPointOk_(src, String(p.t || '')); }).slice(0, 10).map(function (p) { return { t: String(p.t), lv: /^(red|amber|info)$/.test(p.lv) ? p.lv : 'info' }; });
       res[x.id] = { points: kept, dropped: P.length - kept.length, ok: !!M[x.id] }; });
   });
-  return { ok: true, secs: res, t: Date.now() };
+  return { ok: true, secs: res, t: Date.now(), raw: j.debug ? outs.map(function (o) { return { ok: o && o.ok, model: o && o.model, err: o && o.error, out: o && o.out && o.out.slice(0, 1500) }; }) : undefined };
 }
