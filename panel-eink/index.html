@@ -160,11 +160,17 @@ html.eink #menu.open{display:block}html.eink #menu .btn{display:inline-block;wid
 .tl{border-left:3px solid #000;margin:4px 0 8px 6px}.tli{position:relative;padding:3px 0 3px 12px;font-size:14px;line-height:1.3}.tli b{font-variant-numeric:tabular-nums;margin-right:6px}.tli i{font-style:normal;color:#666;margin-right:6px;font-size:12px}
 .tli.done{color:#999}.tli.nx{background:#eaf7ee;font-weight:800}.tli.nx:before{content:"▶";position:absolute;left:-9px;color:#0a8a3a}.tli small{color:#888}
 html.eink .tli.nx{background:#000;color:#fff}html.eink .tli.nx i{color:#fff}
+.lbh{font-size:18px;font-weight:900;text-align:center;margin:6px 0 2px;letter-spacing:.05em}.lbw{overflow:auto;-webkit-overflow-scrolling:touch;border:1.5px solid #000;max-height:68vh}
+.lbx{border-collapse:collapse;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}.lbx th,.lbx td{border:1px solid #888;padding:3px 5px;text-align:center}.lbx th{background:#eef1f6;font-size:11px;position:sticky;top:0}.lbx tr:nth-child(2) th{top:22px}
+.lbx td.b{font-weight:900}.lbx tr.tot td{font-weight:900;background:#f3f3f3}.lbx tr.bf td{color:#555;background:#fafafa}.lbx tr.q td{background:#fff8e0}.lbx td.lbt{text-decoration:underline dotted;cursor:pointer}.lbx sup{color:#888}
+.btn.sg{padding:4px 9px;font-size:13px}.btn.sg.on{background:#000;color:#fff}
+#top{position:relative}#ovw{display:none;position:absolute;left:6px;bottom:3px;max-width:62%;z-index:3;background:#fff;color:var(--red);font-weight:800;font-size:12.5px;line-height:1.25;border:2px solid var(--red);border-radius:8px;padding:2px 6px}#ovw b{font-size:15px;font-weight:900}
+@media (orientation:landscape) and (min-width:700px){#ovw{max-width:55%;font-size:14px}}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="top"><div id="sel"><span class="fl" id="fl"></span></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
+  <div id="top"><div id="sel"><span class="fl" id="fl"></span></div><div id="ovw"></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
   <div id="legs"></div>
   <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span>
     <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div></div></div>
@@ -643,7 +649,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611190857';
+var PAGEV = '202611190907';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -1130,7 +1136,7 @@ function cloudUp(text, o) {
   } catch (e) {}
 }
 var FIRN = [[/CONFLICT ZONE|HAZARDOUS SITUATION|SECURITY WARNING|MISSILE|ROCKET|HOSTILE|WEAPON|ARMED CONFLICT/, 'red', '冲突区 / 安全警告', 'Conflict zone / security warning'], [/VOLCANIC|\bVA\s+(CLOUD|ERUPTION)/, 'red', '火山灰', 'Volcanic ash'], [/(?:RTE|ROUTE|SEGMENT|AWY)S?\b[^.]{0,80}\bCLSD|AIRSPACE\s+CLSD|FIR\s+(?:IS\s+)?CLSD/, 'red', '航路 / 空域关闭', 'Route / airspace closed'], [/GNSS|\bGPS\b/, 'amber', 'GPS 干扰', 'GNSS interference'], [/(?:FREQ|HF)[^.]{0,120}\bU\/S\b|RADAR[^.]{0,80}(?:U\/S|NOT AVBL)|CPDLC[^.]{0,40}(?:U\/S|NOT AVBL)|ADS-C[^.]{0,40}NOT AVBL/, 'amber', 'ATC 频率 / 雷达部分不可用', 'ATC frequency / radar partly U/S'], [/\bBIRDS?\b[^.]{0,60}(?:ACTIVIT|MIGRAT|FLOCK|STRIKE)/, 'amber', '鸟群活动', 'Bird activity'], [/ARTILLERY|FIRING|\bEXER\b|MIL(?:ITARY)? EXERCISE|PARA DROP|DANGER AREA|DNG AREA|RESTRICTED AREA|PROHIBITED/, 'amber', '军事活动 / 限制区', 'Military activity / restricted area']];
-var SV = 2;
+var SV = 3;
 var FIRALIAS = {
   ZGGG: 'ZGZU',
   ZGNN: 'ZGZU',
@@ -1252,7 +1258,10 @@ function summarize(o) {
       towL: towL,
       ldw: z + tof - trip,
       lwL: lwL,
-      lf: tof - trip
+      lf: tof - trip,
+      z: z,
+      tof: tof,
+      taxi: F.taxi && F.taxi.fuel || 0
     };
     if (tm < 2000) leg.R.dep.push({
       lv: tm < 0 ? 'red' : 'amber',
@@ -1763,6 +1772,33 @@ var item = function item(x) {
 var tile = function tile(l, v, s, id) {
   return '<div class="c"' + (id ? ' id="' + id + '"' : '') + '><div class="l">' + l + '</div><div class="v">' + v + (s ? ' <span class="s">' + s + '</span>' : '') + '</div></div>';
 };
+var zfwOf = function zfwOf(L) {
+  return +(ls('zfw.' + L.k) || 0);
+};
+function ovwShow(L, ph, el) {
+  var w = L.w,
+    o = $('ovw');
+  var h = '';
+  if (w && w.tof && ph !== 2) {
+    var z = zfwOf(L) || w.z,
+      tof = w.tof,
+      trip = tof - w.lf,
+      tow = z + tof,
+      ldw = z + tof - trip,
+      src = zfwOf(L) ? '' : XS('（按计划 ZFW）', ' (plan ZFW)');
+    if (ph === 0 && tow > w.towL - 100) {
+      var mf = w.towL - 100 - z;
+      h += '<div>⛔ ' + XS('起飞超重 ', 'T/O overweight ') + T(tow - w.towL) + ' t' + src + ' → ' + XS('最大起飞油 ', 'max T/O fuel ') + '<b>' + T(mf) + ' t</b>' + (w.taxi ? XS('（加滑行油 ', ' (block ') + T(mf + w.taxi) + ' t）' : '') + '</div>';
+    }
+    if (ldw > w.lwL - 100 && (ph === 0 || L.tr - el <= 240)) {
+      var mz = w.lwL - 100 - (tof - trip);
+      h += '<div>⛔ ' + XS('落地超重 ', 'LDG overweight ') + T(ldw - w.lwL) + ' t' + src + ' → ' + XS('最大无油重 ', 'max ZFW ') + '<b>' + T(mz) + ' t</b></div>';
+    }
+  }
+  if (o.innerHTML !== h) o.innerHTML = h;
+  o.style.display = h ? 'block' : 'none';
+  if (h) fitFl();
+}
 var CUR = null,
   wplTouch = 0,
   HOV = null,
@@ -2182,10 +2218,11 @@ function showWarn(ms) {
 }
 function fitFl() {
   var box = $('sel'),
-    el = $('fl');
+    el = $('fl'),
+    ov = $('ovw');
   if (!box.clientWidth) return;
   el.style.fontSize = '100px';
-  var r = Math.min(box.clientWidth / el.scrollWidth, box.clientHeight * .92 / el.offsetHeight);
+  var r = Math.min(box.clientWidth / el.scrollWidth, (box.clientHeight - (ov && ov.style.display === 'block' ? ov.offsetHeight + 4 : 0)) * .92 / el.offsetHeight);
   el.style.fontSize = Math.max(28, Math.floor(100 * r)) + 'px';
 }
 function ntText(loc, id) {
@@ -2294,7 +2331,8 @@ function draw() {
     fx = ph === 2 ? null : FI.find(function (f) {
       return f[3] > Math.max(0, el);
     });
-  var row = tile(atdOf(L) ? 'ATD' : 'STD', '<span class="edit">' + hmZ(atdOf(L) || std) + 'Z</span>', atdOf(L) ? 'STD ' + hmZ(std) : '', 'c-atd') + tile('ETA', hmZ(on) + 'Z', L.noOfp ? X('按日历', 'roster') : dur(L.tr));
+  var row = tile(atdOf(L) ? 'ATD' : 'STD', '<span class="edit">' + hmZ(atdOf(L) || std) + 'Z</span>', atdOf(L) ? 'STD ' + hmZ(std) : '', 'c-atd') + tile('ETA', hmZ(on) + 'Z', L.noOfp ? X('按日历', 'roster') : dur(L.tr)) + (L.w && L.w.tof ? tile('ZFW', '<span class="edit">' + (zfwOf(L) ? T(zfwOf(L)) : XS('输入', 'enter')) + '</span>', zfwOf(L) ? XS('实际', 'actual') : XS('计划 ', 'plan ') + T(L.w.z), 'c-zfw') : '');
+  ovwShow(L, ph, el);
   if ($('row').innerHTML !== row) $('row').innerHTML = row;
   var pre = ph === 0 && !L.noOfp;
   $('board').style.display = pre ? 'block' : 'none';
@@ -2688,6 +2726,14 @@ $('zout').onclick = function () {
 $('row').addEventListener('click', function (e) {
   var L = CUR;
   if (!L) return;
+  if (e.target.closest('#c-zfw')) {
+    var v = prompt(XS('实际无油重量 ZFW（吨，例如 245.3；或公斤 245300；留空 = 用计划）', 'Actual ZFW (t, e.g. 245.3, or kg; empty = plan)'), zfwOf(L) ? T(zfwOf(L)) : '');
+    if (v === null) return;
+    var n = parseFloat(v.replace(/,/g, ''));
+    ls('zfw.' + L.k, isFinite(n) && n > 0 ? String(Math.round(n < 1000 ? n * 1000 : n)) : '');
+    draw();
+    return;
+  }
   if (e.target.closest('#c-fir')) {
     var FI = L.fi || [],
       el = (Date.now() - offOf(L)) / MIN,
@@ -2703,9 +2749,9 @@ $('row').addEventListener('click', function (e) {
       last = L.n.filter(function (w) {
         return w[1] <= _el;
       }).slice(-1)[0] || L.n[1] || L.n[0];
-    var v = prompt(X('过点时间：航路点 + UTC 时间（例如 ', 'Time over waypoint: name + UTC (e.g. ') + (last ? last[0] : 'CHILA') + ' ' + hmZ(Date.now()) + X('）；留空 = 取消过点修正', '); empty = clear'), last ? last[0] + ' ' + hmZ(Date.now()) : '');
-    if (v === null) return;
-    var mm = /^\s*([A-Z0-9]{2,8})\s+(\d{4})\s*$/i.exec(v);
+    var _v = prompt(X('过点时间：航路点 + UTC 时间（例如 ', 'Time over waypoint: name + UTC (e.g. ') + (last ? last[0] : 'CHILA') + ' ' + hmZ(Date.now()) + X('）；留空 = 取消过点修正', '); empty = clear'), last ? last[0] + ' ' + hmZ(Date.now()) : '');
+    if (_v === null) return;
+    var mm = /^\s*([A-Z0-9]{2,8})\s+(\d{4})\s*$/i.exec(_v);
     if (!mm) {
       ls('ato.' + L.k, '');
       draw();
@@ -2730,12 +2776,12 @@ $('row').addEventListener('click', function (e) {
     return;
   }
   if (e.target.closest('#c-atd')) {
-    var _v = prompt(L.no + X(' 实际起飞 ATD（UTC，4 位，例如 0815；留空 = 按计划）', ' actual T/O time (UTC, e.g. 0815; empty = plan)'), atdOf(L) ? hmZ(atdOf(L)) : '');
-    if (_v === null) return;
+    var _v2 = prompt(L.no + X(' 实际起飞 ATD（UTC，4 位，例如 0815；留空 = 按计划）', ' actual T/O time (UTC, e.g. 0815; empty = plan)'), atdOf(L) ? hmZ(atdOf(L)) : '');
+    if (_v2 === null) return;
     ls('ato.' + L.k, '');
-    if (!/^\d{4}$/.test(_v.trim())) ls('atd.' + L.k, '');else {
+    if (!/^\d{4}$/.test(_v2.trim())) ls('atd.' + L.k, '');else {
       var s = L.std,
-        _d = Date.UTC(new Date(s).getUTCFullYear(), new Date(s).getUTCMonth(), new Date(s).getUTCDate()) + (+_v.slice(0, 2) * 60 + +_v.slice(2)) * MIN;
+        _d = Date.UTC(new Date(s).getUTCFullYear(), new Date(s).getUTCMonth(), new Date(s).getUTCDate()) + (+_v2.slice(0, 2) * 60 + +_v2.slice(2)) * MIN;
       ls('atd.' + L.k, String([_d - 864e5, _d, _d + 864e5].sort(function (a, b) {
         return Math.abs(a - s) - Math.abs(b - s);
       })[0]));
