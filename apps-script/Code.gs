@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20w';
+const BACKEND_VER = '2026-11-20x';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -123,6 +123,8 @@ function postJson_(text) {
   // 这一班的共享状态（ATD、实际 ZFW、呼号、过点时间）：手机、iPad、家里的时钟共用；每个字段按「最新的赢」合并
   if (j.action === 'stput') return JSON.stringify(stPut_(j));
   // 测试：用一份 PDF 试「AI 从 PDF 读出全部通告」（不存任何东西）
+  // 测试（后台定时任务里跑，不受网页 5 分钟限制）：PDF 先存到云端，下一分钟处理，结果在 ?action=ver 的 mailOfp
+  if (j.action === 'aofpq') { ghPut_('ofpdata/_aofptest.pdf', String(j.b64), 'aofp test'); PropertiesService.getScriptProperties().setProperty('aofp_test', '1'); PropertiesService.getScriptProperties().setProperty('aofp_t', '0'); return JSON.stringify({ ok: true }); }
   if (j.action === 'aofptest') { const d = aofpRead_(Utilities.base64Decode(j.b64)); return JSON.stringify({ ok: !!d.d, err: d.err, dbg: d.dbg, groups: d.groups, locs: d.d && d.d.locs, n: d.nt.length, flight: d.d && d.d.flight, date: d.d && d.d.date, std: d.d && d.d.std_utc, sample: d.nt.slice(0, 5) }); }
   // 简报包 AI 要点：存云端，其它设备直接用，不再花 AI
   if (j.action === 'pkgaiget') { const k = String(j.k || '').replace(/[^\w.-]/g, ''), g = gh_('get', 'ofpdata/' + k + '.pkgai.json'); if (!g || g.code !== 200 || !g.j) return JSON.stringify({ ok: false });
@@ -1554,6 +1556,10 @@ function autoOfp_() {
   const pr = PropertiesService.getScriptProperties(), now = Date.now();
   if (now - (+pr.getProperty('aofp_t') || 0) < 5 * 60e3 || now - (+pr.getProperty('aofp_busy') || 0) < 6 * 60e3) return;
   pr.setProperty('aofp_t', String(now));
+  if (pr.getProperty('aofp_test') === '1') { pr.setProperty('aofp_test', '0'); pr.setProperty('aofp_busy', String(now));
+    try { const g = gh_('get', 'ofpdata/_aofptest.pdf'); const b = g && g.j && g.j.content ? Utilities.base64Decode(g.j.content.replace(/\s/g, '')) : null; const t0 = Date.now(), rd = b ? aofpRead_(b) : { nt: [], err: 'no file' };
+      pr.setProperty('aofp_last', JSON.stringify({ test: true, t: now, sec: Math.round((Date.now() - t0) / 1000), flight: rd.d && rd.d.flight, n: rd.nt.length, err: rd.err, sample: rd.nt.slice(0, 3).map(function (x) { return x[0] + ' ' + x[1].slice(0, 80); }), dbg: (rd.dbg || []).slice(0, 8).map(function (x) { return String(x).slice(0, 160); }) }).slice(0, 8000)); }
+    finally { pr.setProperty('aofp_busy', '0'); } return; }
   let done = []; try { done = JSON.parse(pr.getProperty('aofp_done') || '[]'); } catch (e) {}
   const cand = [];
   GmailApp.search('has:attachment filename:pdf newer_than:1d', 0, 15).forEach(function (th) { th.getMessages().forEach(function (m) {
