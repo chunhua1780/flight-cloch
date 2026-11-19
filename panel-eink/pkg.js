@@ -30,95 +30,225 @@ function pkgWx(L, icao) {
 function pkgFi(x) {
   return '<div class="fi ' + esc(x.level || '') + '"><b>' + esc(x.name) + '</b> — ' + esc(x.msg || x.msgEn || '') + actList(x) + (x.notes ? '<div class="tm">' + esc(x.notes) + '</div>' : '') + '</div>';
 }
-function pkgHtml(L) {
+function pkgSections(L) {
   var off = offOf(L),
-    eta = off + L.tr * MIN,
     now = Date.now(),
-    FI = L.fi || [];
-  var items = (FIDB && FIDB.items || []).filter(function (x) {
-    return x.kind !== 'wpt' && fiUsable(x, now);
-  });
+    FI = L.fi || [],
+    items = (FIDB && FIDB.items || []).filter(function (x) {
+      return x.kind !== 'wpt' && fiUsable(x, now);
+    });
   var procs = items.filter(function (x) {
     return x.kind === 'proc' && x.trigger !== 'timeline' && typeof x.trigger === 'object' && procMatch(x.trigger, L);
   });
-  var h = '<!doctype html><html><head><meta charset="utf-8"><title>' + esc(L.no + ' ' + L.ai + '-' + L.bi) + ' Brief</title><style>' + 'body{font:12.5px/1.45 "Noto Sans SC","PingFang SC","Microsoft YaHei",Arial,sans-serif;color:#000;margin:18px}h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;border-bottom:2px solid #000;margin:16px 0 6px;padding-bottom:2px}h3{font-size:13.5px;margin:10px 0 4px}' + 'table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:3px 6px;text-align:left;vertical-align:top}th{background:#eee}.tm{color:#555;font-size:11px}.en{color:#333;font-family:Menlo,monospace;font-size:11px}' + 'pre{white-space:pre-wrap;font:11px/1.35 Menlo,monospace;background:#f4f4f4;padding:4px 6px;margin:4px 0}ol.nl{margin:2px 0 6px 18px;padding:0}ol.nl li{margin:2px 0}li.r{color:#c00;font-weight:700}' + '.fi{border-left:4px solid #000;padding:2px 8px;margin:4px 0}.fi.warning{border-color:#c00}.acts{margin:2px 0 2px 18px;padding:0}.chk{display:inline-block;width:12px;height:12px;border:1.5px solid #000;margin-right:6px;vertical-align:-2px}' + '.disc{font-size:10.5px;color:#555;border-top:1px solid #999;margin-top:18px;padding-top:6px}</style></head><body>';
-  h += '<h1>📑 ' + esc(L.no) + ' · ' + esc(L.ai) + ' → ' + esc(L.bi) + ' <span class="tm">' + XS('飞行准备简报包', 'Flight preparation package') + ' · ' + XS('生成 ', 'generated ') + dmZ(now) + '</span></h1>' + '<table><tr><th>' + XS('航班号', 'Flight') + '</th><td>' + esc(L.no) + '</td><th>' + XS('呼号', 'Callsign') + '</th><td>' + esc(csOf(L)) + '</td><th>' + XS('注册号', 'Registration') + '</th><td>' + esc(L.reg || '') + '</td><th>' + XS('机型', 'Type') + '</th><td>' + esc(L.ty || '') + '</td></tr>' + '<tr><th>DEP</th><td>' + esc(L.dep) + ' / ' + esc(L.ai) + '</td><th>ARR</th><td>' + esc(L.arr) + ' / ' + esc(L.bi) + '</td><th>ALTN</th><td colspan="3">' + esc((L.alt || []).join(' · ')) + '</td></tr>' + '<tr><th>STD</th><td>' + dmZ(L.std) + '</td><th>ETD (off)</th><td>' + dmZ(off) + '</td><th>ETA</th><td>' + dmZ(eta) + '</td><th>' + XS('飞行时间', 'Trip') + '</th><td>' + dur(L.tr) + '</td></tr>' + '<tr><th>COMP FREQ</th><td colspan="7">&nbsp;</td></tr></table>';
+  var ntTxt = function ntTxt(loc) {
+    return (L.nt[loc] || []).map(function (n) {
+      return 'NOTAM ' + n[0] + ' (' + (n[2] ? dmZ(n[2]) : '') + '–' + (n[3] ? dmZ(n[3]) : 'PERM') + '): ' + n[1];
+    }).join('\n');
+  };
+  var wxTxt = function wxTxt(icao) {
+    var w = L.wx && L.wx[icao];
+    return w ? (w.m ? 'METAR ' + w.m + '\n' : '') + (w.t ? 'TAF ' + w.t + '\n' : '') : '';
+  };
+  var fiTxt = function fiTxt(x) {
+    return '公司规定 / Rule ' + x.name + ': ' + (x.msg || x.msgEn || '') + ' ' + (x.actions || []).map(function (a) {
+      return a.zh || a.en;
+    }).join('; ') + (x.notes ? ' ' + x.notes : '');
+  };
+  var rk = function rk(list) {
+      return (list || []).map(function (x) {
+        return 'OFP 提醒: ' + (x.en || x.zh);
+      }).join('\n');
+    },
+    S = [];
+  var rp = typeof routePrep === 'function' ? routePrep(L) : [],
+    pd = procs.filter(function (x) {
+      return (x.phases || []).some(function (p) {
+        return p.key === 'dep';
+      });
+    });
+  S.push({
+    id: 'dep',
+    title: '🛫 ' + XS('起飞', 'Departure') + ' · ' + L.dep,
+    when: dmZ(off),
+    text: [rk(L.R && L.R.dep), rp.map(function (x) {
+      return '起飞前准备 ' + x.fir + ' ' + x.name + ': ' + x.preflight.map(function (a) {
+        return a.zh;
+      }).join('; ');
+    }).join('\n'), pd.map(function (x) {
+      return fiTxt(Object.assign({}, x, {
+        actions: x.phases.find(function (p) {
+          return p.key === 'dep';
+        }).steps
+      }));
+    }).join('\n'), wxTxt(L.dep), ntTxt(L.dep)].filter(Boolean).join('\n'),
+    raw: (rp.length ? '<h3>🧭 ' + XS('航路经过的特殊空域：起飞前准备', 'Special airspace: before departure') + '</h3>' + rp.map(function (x) {
+      return '<div class="fi ' + esc(x.level) + '"><b>' + esc(x.fir) + ' · ' + esc(x.name) + '</b>' + actList({
+        actions: x.preflight
+      }) + '</div>';
+    }).join('') : '') + pd.map(function (x) {
+      return pkgFi(Object.assign({}, x, {
+        actions: x.phases.find(function (p) {
+          return p.key === 'dep';
+        }).steps
+      }));
+    }).join('') + ((L.R && L.R.dep || []).length ? '<ul>' + pkgRisk(L.R.dep) + '</ul>' : '') + pkgWx(L, L.dep) + '<h3>NOTAM ' + esc(L.dep) + '</h3>' + pkgNotams(L, L.dep, 60)
+  });
+  FI.forEach(function (f) {
+    var code = FIRALIAS[f[1]] || f[1],
+      fx = items.filter(function (x) {
+        return x.kind === 'area' && (x.fir === f[1] || x.fir === code || (x.firs || []).some(function (c) {
+          return c === f[1] || (FIRALIAS[c] || c) === code;
+        }));
+      });
+    var wc = typeof wacCountry === 'function' ? wacCountry(code) : [],
+      enr = (L.R && L.R.enr || []).filter(function (r) {
+        return r[2].loc === code;
+      }).map(function (r) {
+        return r[2];
+      });
+    S.push({
+      id: 'fir:' + f[1] + ':' + f[2],
+      title: hmZ(off + f[3] * MIN) + 'Z · ' + f[1] + ' ' + f[0],
+      when: hmZ(off + f[3] * MIN) + 'Z（入口 ' + f[2] + '）',
+      text: [fx.map(fiTxt).join('\n'), wc.map(function (c) {
+        return (c.t || []).filter(function (t) {
+          return t.x;
+        }).map(function (t) {
+          return '应急程序 ' + c.n + ' ' + t.h + ': ' + t.x.slice(0, 1500);
+        }).join('\n');
+      }).join('\n'), rk(enr), ntTxt(code)].filter(Boolean).join('\n'),
+      raw: fx.map(pkgFi).join('') + wc.map(function (c) {
+        var tp = (c.t || []).filter(function (t) {
+          return t.x;
+        });
+        return tp.length ? '<div class="fi"><b>🌐 ' + esc(c.n) + ' contingency</b>' + tp.map(function (t) {
+          return '<div><b>' + esc(t.h) + ':</b> <span class="tm">' + esc(t.x.slice(0, 600)) + '</span></div>';
+        }).join('') + '</div>' : '';
+      }).join('') + (enr.length ? '<ul>' + pkgRisk(enr) + '</ul>' : '') + ((L.nt[code] || []).length ? '<h3 class="tm">NOTAM ' + esc(code) + ' · ' + L.nt[code].length + '</h3>' + pkgNotams(L, code, 40) : '')
+    });
+  });
+  var pa = procs.filter(function (x) {
+    return (x.phases || []).some(function (p) {
+      return p.key === 'dest' || p.key === 'arr';
+    });
+  });
+  S.push({
+    id: 'arr',
+    title: '🛬 ' + XS('到达', 'Arrival') + ' · ' + L.arr,
+    when: dmZ(off + L.tr * MIN),
+    text: [rk(L.R && L.R.arr), pa.map(function (x) {
+      return fiTxt(Object.assign({}, x, {
+        actions: x.phases.find(function (p) {
+          return p.key === 'dest' || p.key === 'arr';
+        }).steps
+      }));
+    }).join('\n'), wxTxt(L.arr), ntTxt(L.arr)].filter(Boolean).join('\n'),
+    raw: pa.map(function (x) {
+      return pkgFi(Object.assign({}, x, {
+        actions: x.phases.find(function (p) {
+          return p.key === 'dest' || p.key === 'arr';
+        }).steps
+      }));
+    }).join('') + ((L.R && L.R.arr || []).length ? '<ul>' + pkgRisk(L.R.arr) + '</ul>' : '') + pkgWx(L, L.arr) + '<h3>NOTAM ' + esc(L.arr) + '</h3>' + pkgNotams(L, L.arr, 60)
+  });
+  (L.alt || []).forEach(function (a) {
+    return S.push({
+      id: 'alt:' + a,
+      title: '↪ ' + XS('备降 ', 'Alternate ') + a,
+      when: '',
+      text: [wxTxt(a), ntTxt(a)].filter(Boolean).join('\n'),
+      raw: pkgWx(L, a) + pkgNotams(L, a, 30)
+    });
+  });
+  return S;
+}
+var pkgAiGet = function pkgAiGet(L) {
+  try {
+    return JSON.parse(ls('pkgai.' + String(L.k).replace(/[^\w.-]/g, '')) || 'null');
+  } catch (e) {
+    return null;
+  }
+};
+function pkgAiRun(_x) {
+  return _pkgAiRun.apply(this, arguments);
+}
+function _pkgAiRun() {
+  _pkgAiRun = _asyncToGenerator(_regenerator().m(function _callee3(L) {
+    var S, off, j;
+    return _regenerator().w(function (_context3) {
+      while (1) switch (_context3.n) {
+        case 0:
+          S = pkgSections(L), off = offOf(L);
+          _context3.n = 1;
+          return postK({
+            action: 'pkgai',
+            flight: {
+              no: L.no,
+              dep: L.dep,
+              arr: L.arr,
+              off: dmZ(off),
+              eta: dmZ(off + L.tr * MIN)
+            },
+            secs: S.filter(function (x) {
+              return x.text.trim();
+            }).map(function (x) {
+              return {
+                id: x.id,
+                title: x.title,
+                when: x.when,
+                text: x.text
+              };
+            })
+          });
+        case 1:
+          j = _context3.v;
+          if (!(!j || !j.ok)) {
+            _context3.n = 2;
+            break;
+          }
+          throw new Error(j && j.error || 'AI');
+        case 2:
+          ls('pkgai.' + String(L.k).replace(/[^\w.-]/g, ''), JSON.stringify(j));
+          return _context3.a(2, j);
+      }
+    }, _callee3);
+  }));
+  return _pkgAiRun.apply(this, arguments);
+}
+function pkgHtml(L, simple) {
+  var off = offOf(L),
+    eta = off + L.tr * MIN,
+    now = Date.now(),
+    AI = pkgAiGet(L),
+    S = pkgSections(L);
+  var h = '<!doctype html><html><head><meta charset="utf-8"><title>' + esc(L.no + ' ' + L.ai + '-' + L.bi) + ' Brief</title><style>' + 'body{font:12.5px/1.5 "Noto Sans SC","PingFang SC","Microsoft YaHei",Arial,sans-serif;color:#000;margin:18px}h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;border-bottom:2px solid #000;margin:16px 0 6px;padding-bottom:2px}h3{font-size:13.5px;margin:10px 0 4px}' + 'table{border-collapse:collapse;width:100%}td,th{border:1px solid #999;padding:3px 6px;text-align:left;vertical-align:top}th{background:#eee}.tm{color:#555;font-size:11px}.en{color:#333;font-family:Menlo,monospace;font-size:11px}' + 'pre{white-space:pre-wrap;font:11px/1.35 Menlo,monospace;background:#f4f4f4;padding:4px 6px;margin:4px 0}ol.nl{margin:2px 0 6px 18px;padding:0}ol.nl li{margin:2px 0}li.r{color:#c00;font-weight:700}' + '.fi{border-left:4px solid #000;padding:2px 8px;margin:4px 0}.fi.warning{border-color:#c00}.acts{margin:2px 0 2px 18px;padding:0}.chk{display:inline-block;width:12px;height:12px;border:1.5px solid #000;margin-right:6px;vertical-align:-2px}' + 'ul.ai{list-style:none;margin:4px 0 8px;padding:0}ul.ai li{padding:3px 0 3px 22px;position:relative;font-size:14px;line-height:1.45;border-bottom:1px dotted #ccc}ul.ai li:before{position:absolute;left:2px;top:3px}' + 'ul.ai li.red{color:#b00000;font-weight:800}ul.ai li.red:before{content:"⛔"}ul.ai li.amber{font-weight:700}ul.ai li.amber:before{content:"⚠️"}ul.ai li.info:before{content:"•";font-weight:900}' + '.app{font-size:11px}.app h2{font-size:13px}.app ol.nl li{margin:1px 0}.disc{font-size:10.5px;color:#555;border-top:1px solid #999;margin-top:18px;padding-top:6px}</style></head><body>';
+  h += '<h1>📑 ' + esc(L.no) + ' · ' + esc(L.ai) + ' → ' + esc(L.bi) + ' <span class="tm">' + XS('飞行准备简报（完整版）', 'Flight preparation brief (full)') + ' · ' + XS('生成 ', 'generated ') + dmZ(now) + (AI ? ' · 🤖 ' + XS('AI 整理 ', 'AI ') + dmZ(AI.t) : '') + '</span></h1>' + '<table><tr><th>' + XS('航班号', 'Flight') + '</th><td>' + esc(L.no) + '</td><th>' + XS('呼号', 'Callsign') + '</th><td>' + esc(csOf(L)) + '</td><th>' + XS('注册号', 'Registration') + '</th><td>' + esc(L.reg || '') + '</td><th>' + XS('机型', 'Type') + '</th><td>' + esc(L.ty || '') + '</td></tr>' + '<tr><th>DEP</th><td>' + esc(L.dep) + ' / ' + esc(L.ai) + '</td><th>ARR</th><td>' + esc(L.arr) + ' / ' + esc(L.bi) + '</td><th>ALTN</th><td colspan="3">' + esc((L.alt || []).join(' · ')) + '</td></tr>' + '<tr><th>STD</th><td>' + dmZ(L.std) + '</td><th>ETD (off)</th><td>' + dmZ(off) + '</td><th>ETA</th><td>' + dmZ(eta) + '</td><th>' + XS('飞行时间', 'Trip') + '</th><td>' + dur(L.tr) + '</td></tr>' + '<tr><th>COMP FREQ</th><td colspan="7">&nbsp;</td></tr></table>';
   var TL = typeof tlItems === 'function' ? tlItems(L) : [];
   if (TL.length) h += '<h2>⏱ ' + XS('起飞前时间轴', 'Pre-departure timeline') + '</h2><table><tr><th>UTC</th><th>STD −</th><th>' + XS('事项', 'Item') + '</th></tr>' + TL.map(function (s) {
     return '<tr><td>' + hmZ(s.t) + 'Z</td><td>' + s.min + '</td><td><span class="chk"></span>' + esc(s.zh) + (s.en && s.en !== s.zh ? ' · ' + esc(s.en) : '') + '</td></tr>';
   }).join('') + '</table>';
-  if (L.w) h += '<h2>⚖ ' + XS('重量 / 油量', 'Weights / fuel') + '</h2><table><tr><th>TOW</th><td>' + T(L.w.tow) + ' / ' + T(L.w.towL) + ' t (' + XS('余量 ', 'margin ') + T(L.w.towL - L.w.tow) + ')</td><th>LDW</th><td>' + T(L.w.ldw) + ' / ' + T(L.w.lwL) + ' t (' + XS('余量 ', 'margin ') + T(L.w.lwL - L.w.ldw) + ')</td><th>' + XS('落地油', 'LDG fuel') + '</th><td>' + T(L.w.lf) + ' t</td></tr></table>';
-  h += '<h2>🛫 ' + XS('起飞', 'Departure') + ' · ' + esc(L.dep) + '</h2><p class="tm">Pre-flight（MEL/CDL, Bulletins, Pax/Cabin）· Taxi（closures, speed limits）· Take-off（performance, NADP）· Departure（SID, climb out）</p>';
-  var rp = typeof routePrep === 'function' ? routePrep(L) : [];
-  if (rp.length) h += '<h3>🧭 ' + XS('航路经过的特殊空域：起飞前准备（MEL / 设备）', 'Special airspace on route: before departure') + '</h3>' + rp.map(function (x) {
-    return '<div class="fi ' + esc(x.level) + '"><b>' + esc(x.fir) + ' · ' + esc(x.name) + '</b>' + actList({
-      actions: x.preflight
-    }) + '</div>';
-  }).join('');
-  procs.filter(function (x) {
-    return (x.phases || []).some(function (p) {
-      return p.key === 'dep';
-    });
-  }).forEach(function (x) {
-    var p = x.phases.find(function (q) {
-      return q.key === 'dep';
-    });
-    h += pkgFi(Object.assign({}, x, {
-      actions: p.steps
-    }));
+  if (L.w) {
+    var w = typeof wFix === 'function' && wFix(L) || L.w,
+      z = typeof zfwOf === 'function' && zfwOf(L) || w.z;
+    h += '<h2>⚖ ' + XS('重量 / 油量', 'Weights / fuel') + '</h2><table><tr><th>ZFW</th><td>' + (z ? T(z) + ' t' : '') + '</td><th>TOW</th><td>' + T(z ? z + w.tof : w.tow) + ' / ' + T(w.towL) + ' t</td><th>LDW</th><td>' + T(z ? z + w.lf : w.ldw) + ' / ' + T(w.lwL) + ' t</td><th>' + XS('落地油', 'LDG fuel') + '</th><td>' + T(w.lf) + ' t</td></tr></table>';
+  }
+  h += '<p class="tm">TEM：Pre-flight（MEL/CDL, Bulletins, Pax）· Taxi · Take-off（performance, NADP）· Departure · En route（CRAR, Reporting, ADIZ, CPDLC, HF, IFBP, Oceanic, SLOP, Contingency）· Arrival · Approach · Missed approach · Landing · Taxi/Parking · Alternate</p>';
+  S.forEach(function (x) {
+    var a = AI && AI.secs && AI.secs[x.id];
+    h += '<h2>' + esc(x.title) + '</h2>' + (a ? a.points.length ? '<ul class="ai">' + a.points.map(function (p) {
+      return '<li class="' + esc(p.lv) + '">' + esc(p.t) + '</li>';
+    }).join('') + '</ul>' : '<p class="tm">✓ ' + XS('没有需要特别注意的', 'Nothing significant') + '</p>' : x.raw);
   });
-  if ((L.R && L.R.dep || []).length) h += '<h3>⚠ ' + XS('起飞提醒（OFP）', 'Departure warnings (OFP)') + '</h3><ul>' + pkgRisk(L.R.dep) + '</ul>';
-  h += pkgWx(L, L.dep) + '<h3>NOTAM ' + esc(L.dep) + '</h3>' + pkgNotams(L, L.dep, 40);
-  h += '<h2>✈ ' + XS('航路（按 FIR 顺序）', 'En route (by FIR)') + '</h2><p class="tm">CRAR · Reporting · ADIZ · CPDLC · HF · IFBP · Oceanic · SLOP · Contingency · Emergency</p>';
-  FI.forEach(function (f) {
-    var code = FIRALIAS[f[1]] || f[1];
-    h += '<h3>' + hmZ(off + f[3] * MIN) + 'Z · ' + esc(f[1]) + ' ' + esc(f[0]) + ' <span class="tm">' + XS('入口 ', 'entry ') + esc(f[2]) + '</span></h3>';
-    items.filter(function (x) {
-      return x.kind === 'area' && (x.fir === f[1] || x.fir === code);
-    }).forEach(function (x) {
-      return h += pkgFi(x);
-    });
-    (typeof wacCountry === 'function' ? wacCountry(code) : []).forEach(function (c) {
-      var tp = (c.t || []).filter(function (t) {
-        return t.x;
-      });
-      if (tp.length) h += '<div class="fi"><b>🌐 ' + esc(c.n) + ' contingency</b>' + tp.map(function (t) {
-        return '<div><b>' + esc(t.h) + ':</b> <span class="tm">' + esc(t.x.slice(0, 600)) + '</span></div>';
-      }).join('') + '</div>';
-    });
-    var enr = (L.R && L.R.enr || []).filter(function (r) {
-      return r[2].loc === code;
-    }).map(function (r) {
-      return r[2];
-    });
-    if (enr.length) h += '<ul>' + pkgRisk(enr) + '</ul>';
-    if ((L.nt[code] || []).length) h += '<details open><summary class="tm">NOTAM ' + esc(code) + ' · ' + L.nt[code].length + '</summary>' + pkgNotams(L, code, 25) + '</details>';
-  });
-  h += '<h2>🛬 ' + XS('到达', 'Arrival') + ' · ' + esc(L.arr) + '</h2><p class="tm">Arrival（STAR）· Approach（FAF ALT, RoD）· Missed approach · Landing（LDA, braking & exit）· Taxi / parking · Post-flight</p>';
-  procs.filter(function (x) {
-    return (x.phases || []).some(function (p) {
-      return p.key === 'dest' || p.key === 'arr';
-    });
-  }).forEach(function (x) {
-    var p = x.phases.find(function (q) {
-      return q.key === 'dest' || q.key === 'arr';
-    });
-    h += pkgFi(Object.assign({}, x, {
-      actions: p.steps
-    }));
-  });
-  if ((L.R && L.R.arr || []).length) h += '<ul>' + pkgRisk(L.R.arr) + '</ul>';
-  h += pkgWx(L, L.arr) + '<h3>NOTAM ' + esc(L.arr) + '</h3>' + pkgNotams(L, L.arr, 40);
-  (L.alt || []).forEach(function (a) {
-    h += '<h2>↪ ' + XS('备降 ', 'Alternate ') + esc(a) + '</h2><p class="tm">Diversion（fuel, route, wx）· Approach minima · Landing performance · Ramp</p>' + pkgWx(L, a) + pkgNotams(L, a, 20);
-  });
-  h += '<h2>🧰 ' + XS('航路机场：能不能用（CAN WE）', 'En-route airports: CAN WE') + '</h2><p>' + ['Can we get there (range)', 'Do the approach and landing (wx vs minima)', 'Stop (most limiting LDA vs LDR)', 'Turn-around (ground ops)', 'Go-around (performance)', 'Plan B'].map(function (t) {
+  h += '<h2>🧰 ' + XS('航路机场：CAN WE', 'En-route airports: CAN WE') + '</h2><p>' + ['Can we get there (range)', 'Do the approach and landing (wx vs minima)', 'Stop (most limiting LDA vs LDR)', 'Turn-around (ground ops)', 'Go-around (performance)', 'Plan B'].map(function (t) {
     return '<span class="chk"></span>' + esc(t);
   }).join('<br>') + '</p>';
   h += '<h2>📚 ' + XS('参考工具（逐项打勾）', 'Reference tools') + '</h2><p>' + PKG_TOOLS.map(function (t) {
     return '<span class="chk"></span>' + esc(t);
   }).join('　') + '</p>';
-  h += '<div class="disc">' + XS('仅供辅助了解情况，不能替代官方航行情报、公司运行程序（OM / LIDO）及 ATC 指令。通告要点由 AI 翻译整理，以原文为准。', 'Awareness aid only — official AIS, company procedures and ATC prevail. AI summaries — the original NOTAM text prevails.') + '</div></body></html>';
+  if (AI) h += '<div class="app"><h2>📎 ' + XS('附录：原文（核对用）', 'Appendix: original text') + '</h2>' + S.map(function (x) {
+    return '<h3>' + esc(x.title) + '</h3>' + x.raw;
+  }).join('') + '</div>';
+  h += '<div class="disc">' + XS('仅供辅助了解情况，不能替代官方航行情报、公司运行程序（OM / LIDO）及 ATC 指令。要点由 AI 整理，代号和数字已和原文核对，仍以原文为准。', 'Awareness aid only. AI summaries — the original text prevails.') + '</div></body></html>';
   return h;
 }
 function openPkg() {
@@ -131,76 +261,113 @@ function openPkg() {
   var sh = $('sheet');
   sh.style.display = 'block';
   sh.scrollTop = 0;
-  sh.innerHTML = '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><b style="font-size:16px">📑 ' + XS('简报包', 'Briefing package') + '</b><span style="flex:1"></span><span class="btn" id="pk-pdf">☁️ PDF</span><span class="btn" id="sh-x">✕</span></div><div id="pk-st" class="ok"></div><iframe id="pk-f" style="width:100%;height:calc(100vh - 90px);border:1px solid #999;background:#fff"></iframe>';
+  sh.innerHTML = '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><b style="font-size:16px">📑 ' + XS('简报包', 'Briefing package') + '</b><span style="flex:1"></span><span class="btn" id="pk-ai">🤖 ' + XS('AI 整理', 'AI rewrite') + '</span><span class="btn" id="pk-pdf">☁️ PDF</span><span class="btn" id="sh-x">✕</span></div><div id="pk-st" class="ok"></div><iframe id="pk-f" style="width:100%;height:calc(100vh - 90px);border:1px solid #999;background:#fff"></iframe>';
   $('pk-f').srcdoc = pkgHtml(L);
   $('sh-x').onclick = function () {
     sh.style.display = 'none';
     draw();
   };
-  $('pk-pdf').onclick = _asyncToGenerator(_regenerator().m(function _callee() {
-    var r;
+  $('pk-ai').onclick = _asyncToGenerator(_regenerator().m(function _callee() {
+    var _t;
     return _regenerator().w(function (_context) {
-      while (1) switch (_context.n) {
+      while (1) switch (_context.p = _context.n) {
         case 0:
-          $('pk-st').textContent = '⏳ ' + XS('后台生成 PDF…', 'Making the PDF…');
-          _context.n = 1;
-          return pkgUpload(L, true);
-        case 1:
-          r = _context.v;
-          $('pk-st').textContent = r ? '✅ ' + XS('PDF 已存到云端（iPad：工具 → 📑 简报包）', 'PDF saved to the cloud') : '⚠️ ' + XS('没成功（要联网）', 'Failed (needs network)');
+          $('pk-st').textContent = '⏳ ' + XS('AI 正在逐段整理（30–90 秒）…', 'AI rewriting (30–90 s)…');
+          _context.p = 1;
+          _context.n = 2;
+          return pkgAiRun(L);
         case 2:
+          $('pk-f').srcdoc = pkgHtml(L);
+          $('pk-st').textContent = '✅ ' + XS('AI 整理好了', 'Done');
+          _context.n = 4;
+          break;
+        case 3:
+          _context.p = 3;
+          _t = _context.v;
+          $('pk-st').textContent = '⚠️ ' + _t.message;
+        case 4:
           return _context.a(2);
       }
-    }, _callee);
+    }, _callee, null, [[1, 3]]);
+  }));
+  $('pk-pdf').onclick = _asyncToGenerator(_regenerator().m(function _callee2() {
+    var r;
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.n) {
+        case 0:
+          $('pk-st').textContent = '⏳ ' + XS('后台生成 PDF…', 'Making the PDF…');
+          _context2.n = 1;
+          return pkgUpload(L, true);
+        case 1:
+          r = _context2.v;
+          $('pk-st').textContent = r ? '✅ ' + XS('PDF 已存到云端（iPad：工具 → 📑 简报包）', 'PDF saved to the cloud') : '⚠️ ' + XS('没成功（要联网）', 'Failed (needs network)');
+        case 2:
+          return _context2.a(2);
+      }
+    }, _callee2);
   }));
 }
-function pkgUpload(_x, _x2) {
+function pkgUpload(_x2, _x3) {
   return _pkgUpload.apply(this, arguments);
 }
 function _pkgUpload() {
-  _pkgUpload = _asyncToGenerator(_regenerator().m(function _callee2(L, force) {
-    var k, j, _t;
-    return _regenerator().w(function (_context2) {
-      while (1) switch (_context2.p = _context2.n) {
+  _pkgUpload = _asyncToGenerator(_regenerator().m(function _callee4(L, force) {
+    var k, j, _t2, _t3;
+    return _regenerator().w(function (_context4) {
+      while (1) switch (_context4.p = _context4.n) {
         case 0:
           if (!(!navigator.onLine || !ls('key'))) {
-            _context2.n = 1;
+            _context4.n = 1;
             break;
           }
-          return _context2.a(2, false);
+          return _context4.a(2, false);
         case 1:
           k = String(L.k).replace(/[^\w.-]/g, '');
           if (!(!force && ls('pkg.' + k))) {
-            _context2.n = 2;
+            _context4.n = 2;
             break;
           }
-          return _context2.a(2, true);
+          return _context4.a(2, true);
         case 2:
-          _context2.p = 2;
-          _context2.n = 3;
+          _context4.p = 2;
+          if (pkgAiGet(L)) {
+            _context4.n = 3;
+            break;
+          }
+          _context4.n = 3;
+          return pkgAiRun(L);
+        case 3:
+          _context4.n = 5;
+          break;
+        case 4:
+          _context4.p = 4;
+          _t2 = _context4.v;
+        case 5:
+          _context4.p = 5;
+          _context4.n = 6;
           return postK({
             action: 'pkgpdf',
             k: k,
             html: pkgHtml(L)
           });
-        case 3:
-          j = _context2.v;
+        case 6:
+          j = _context4.v;
           if (!(j && j.ok)) {
-            _context2.n = 4;
+            _context4.n = 7;
             break;
           }
           ls('pkg.' + k, String(Date.now()));
-          return _context2.a(2, true);
-        case 4:
-          _context2.n = 6;
+          return _context4.a(2, true);
+        case 7:
+          _context4.n = 9;
           break;
-        case 5:
-          _context2.p = 5;
-          _t = _context2.v;
-        case 6:
-          return _context2.a(2, false);
+        case 8:
+          _context4.p = 8;
+          _t3 = _context4.v;
+        case 9:
+          return _context4.a(2, false);
       }
-    }, _callee2, null, [[2, 5]]);
+    }, _callee4, null, [[5, 8], [2, 4]]);
   }));
   return _pkgUpload.apply(this, arguments);
 }
