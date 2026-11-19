@@ -174,7 +174,7 @@ function pkgAiRun(_x) {
 }
 function _pkgAiRun() {
   _pkgAiRun = _asyncToGenerator(_regenerator().m(function _callee3(L) {
-    var S, off, j;
+    var S, off, j, old;
     return _regenerator().w(function (_context3) {
       while (1) switch (_context3.n) {
         case 0:
@@ -208,6 +208,10 @@ function _pkgAiRun() {
           }
           throw new Error(j && j.error || 'AI');
         case 2:
+          old = pkgAiGet(L);
+          if (old && old.secs) Object.keys(old.secs).forEach(function (id) {
+            if ((!j.secs[id] || !j.secs[id].points.length) && old.secs[id].points.length) j.secs[id] = old.secs[id];
+          });
           ls('pkgai.' + String(L.k).replace(/[^\w.-]/g, ''), JSON.stringify(j));
           return _context3.a(2, j);
       }
