@@ -248,14 +248,131 @@ function einkPix(cv) {
   g.putImageData(im, 0, 0);
 }
 var API = 'https://script.google.com/macros/s/AKfycbwZjFasB7wsS6EugQrDi-woVnfy-H7lh29Nf5Ia04Ksx5jrzrhLku_6kz6TiWIi5ZQe/exec';
-var ls = function ls(k, v) {
+var _ls = function ls(k, v) {
   try {
     if (v === undefined) return localStorage.getItem('pnl.' + k);
     localStorage.setItem('pnl.' + k, v);
   } catch (e) {
     return null;
   }
+  if (!_ls.quiet && /^(atd|zfw|cs|ato)\./.test(k)) stPush(k, v);
 };
+function stPush(k, v) {
+  var f = k.split('.')[0],
+    lk = k.slice(f.length + 1).replace(/[^\w.-]/g, ''),
+    t = Date.now();
+  var q = {};
+  try {
+    q = JSON.parse(localStorage.getItem('pnl.stq') || '{}');
+  } catch (e) {}
+  q[lk] = q[lk] || {};
+  q[lk][f] = [f === 'ato' ? v ? JSON.parse(v) : null : f === 'cs' ? v : +v || null, t];
+  _ls.quiet = 1;
+  _ls('stu.' + lk + '.' + f, String(t));
+  _ls('stq', JSON.stringify(q));
+  _ls.quiet = 0;
+  stFlush();
+}
+function stFlush() {
+  return _stFlush.apply(this, arguments);
+}
+function _stFlush() {
+  _stFlush = _asyncToGenerator(_regenerator().m(function _callee3() {
+    var q, ks, _loop, _i, _ks;
+    return _regenerator().w(function (_context4) {
+      while (1) switch (_context4.n) {
+        case 0:
+          if (!(!navigator.onLine || !_ls('key') || stFlush.busy)) {
+            _context4.n = 1;
+            break;
+          }
+          return _context4.a(2);
+        case 1:
+          q = {};
+          try {
+            q = JSON.parse(_ls('stq') || '{}');
+          } catch (e) {}
+          ks = Object.keys(q);
+          if (ks.length) {
+            _context4.n = 2;
+            break;
+          }
+          return _context4.a(2);
+        case 2:
+          stFlush.busy = 1;
+          _loop = _regenerator().m(function _loop() {
+            var k, set, t, j, _t5;
+            return _regenerator().w(function (_context3) {
+              while (1) switch (_context3.p = _context3.n) {
+                case 0:
+                  k = _ks[_i];
+                  set = {};
+                  t = 0;
+                  Object.keys(q[k]).forEach(function (f) {
+                    set[f] = q[k][f][0];
+                    t = Math.max(t, q[k][f][1]);
+                  });
+                  _context3.p = 1;
+                  _context3.n = 2;
+                  return postK({
+                    action: 'stput',
+                    k: k,
+                    set: set,
+                    t: t
+                  });
+                case 2:
+                  j = _context3.v;
+                  if (j && j.ok) {
+                    delete q[k];
+                    _ls.quiet = 1;
+                    _ls('stq', JSON.stringify(q));
+                    _ls.quiet = 0;
+                  }
+                  _context3.n = 4;
+                  break;
+                case 3:
+                  _context3.p = 3;
+                  _t5 = _context3.v;
+                case 4:
+                  return _context3.a(2);
+              }
+            }, _loop, null, [[1, 3]]);
+          });
+          _i = 0, _ks = ks;
+        case 3:
+          if (!(_i < _ks.length)) {
+            _context4.n = 5;
+            break;
+          }
+          return _context4.d(_regeneratorValues(_loop()), 4);
+        case 4:
+          _i++;
+          _context4.n = 3;
+          break;
+        case 5:
+          stFlush.busy = 0;
+        case 6:
+          return _context4.a(2);
+      }
+    }, _callee3);
+  }));
+  return _stFlush.apply(this, arguments);
+}
+function stApply(lk, st) {
+  var L = LEGS.find(function (l) {
+    return String(l.k).replace(/[^\w.-]/g, '') === lk;
+  });
+  if (!L || !st || !st.u) return;
+  _ls.quiet = 1;
+  ['atd', 'zfw', 'cs', 'ato'].forEach(function (f) {
+    if ((st.u[f] || 0) > +(_ls('stu.' + lk + '.' + f) || 0)) {
+      var v = st[f];
+      _ls(f + '.' + L.k, v == null || v === '' ? '' : f === 'ato' ? JSON.stringify(v) : String(v));
+      _ls('stu.' + lk + '.' + f, String(st.u[f]));
+    }
+  });
+  _ls.quiet = 0;
+}
 var p2 = function p2(n) {
   return String(n).padStart(2, '0');
 };
@@ -293,7 +410,7 @@ var withTimeout = function withTimeout(p, ms) {
 };
 var LEGS = [];
 try {
-  LEGS = JSON.parse(ls('legs') || '[]');
+  LEGS = JSON.parse(_ls('legs') || '[]');
 } catch (e) {}
 var APT = null;
 function fixLeg(L) {
@@ -319,26 +436,26 @@ fetch('apt.json').then(function (r) {
   LEGS.forEach(function (l) {
     if (fixLeg(l)) ch = true;
   });
-  if (ch) ls('legs', JSON.stringify(LEGS));
+  if (ch) _ls('legs', JSON.stringify(LEGS));
   try {
     draw();
   } catch (e) {}
 }).catch(function () {});
 var ROSTER = [];
 try {
-  ROSTER = JSON.parse(ls('roster') || '[]');
+  ROSTER = JSON.parse(_ls('roster') || '[]');
 } catch (e) {}
 try {
-  if (!ls('key') && window.AndroidPanel && AndroidPanel.presetKey) {
+  if (!_ls('key') && window.AndroidPanel && AndroidPanel.presetKey) {
     var k = AndroidPanel.presetKey();
-    if (k) ls('key', k);
+    if (k) _ls('key', k);
   }
 } catch (e) {}
 try {
-  if (!ls('key') && localStorage.getItem('fa.key')) ls('key', localStorage.getItem('fa.key'));
+  if (!_ls('key') && localStorage.getItem('fa.key')) _ls('key', localStorage.getItem('fa.key'));
 } catch (e) {}
 var MSG = '';
-var LANG = ls('lang') || 'both';
+var LANG = _ls('lang') || 'both';
 var X = function X(z, e) {
   return LANG === 'zh' ? z : LANG === 'en' ? e : z + ' · ' + e;
 };
@@ -352,7 +469,7 @@ function applyLang() {
   });
 }
 var postK = function postK(body) {
-  return fetch(API + '?k=' + encodeURIComponent(ls('key') || ''), {
+  return fetch(API + '?k=' + encodeURIComponent(_ls('key') || ''), {
     method: 'POST',
     body: JSON.stringify(body)
   }).then(function (r) {
@@ -370,72 +487,72 @@ var postK = function postK(body) {
 };
 var GH = function GH() {
   return {
-    tok: ls('ghtok') || '',
-    repo: ls('ghrepo') || 'chunhua1780/flight-box'
+    tok: _ls('ghtok') || '',
+    repo: _ls('ghrepo') || 'chunhua1780/flight-box'
   };
 };
 function listFiles() {
   return _listFiles.apply(this, arguments);
 }
 function _listFiles() {
-  _listFiles = _asyncToGenerator(_regenerator().m(function _callee3() {
-    var j, er, g, r, _t5;
-    return _regenerator().w(function (_context3) {
-      while (1) switch (_context3.p = _context3.n) {
+  _listFiles = _asyncToGenerator(_regenerator().m(function _callee4() {
+    var j, er, g, r, _t6;
+    return _regenerator().w(function (_context5) {
+      while (1) switch (_context5.p = _context5.n) {
         case 0:
-          if (!ls('key')) {
-            _context3.n = 6;
+          if (!_ls('key')) {
+            _context5.n = 6;
             break;
           }
-          _context3.p = 1;
-          _context3.n = 2;
+          _context5.p = 1;
+          _context5.n = 2;
           return withTimeout(postK({
             action: 'ofpmail',
             days: 3
           }), 60000);
         case 2:
-          j = _context3.v;
+          j = _context5.v;
           if (!(j && j.ok)) {
-            _context3.n = 3;
+            _context5.n = 3;
             break;
           }
           if (j.gh && j.gh.tok) {
-            ls('ghtok', j.gh.tok);
-            ls('ghrepo', j.gh.repo || '');
+            _ls('ghtok', j.gh.tok);
+            _ls('ghrepo', j.gh.repo || '');
           }
           if (j.legs && j.legs.length) {
             ROSTER = j.legs;
-            ls('roster', JSON.stringify(ROSTER));
+            _ls('roster', JSON.stringify(ROSTER));
           }
-          return _context3.a(2, j.files || []);
+          return _context5.a(2, j.files || []);
         case 3:
           if (!(j && j.error && /key|口令|密码|denied/i.test(j.error))) {
-            _context3.n = 4;
+            _context5.n = 4;
             break;
           }
           er = new Error(X('口令不对', 'Wrong password'));
           er.pw = 1;
           throw er;
         case 4:
-          _context3.n = 6;
+          _context5.n = 6;
           break;
         case 5:
-          _context3.p = 5;
-          _t5 = _context3.v;
-          if (!_t5.pw) {
-            _context3.n = 6;
+          _context5.p = 5;
+          _t6 = _context5.v;
+          if (!_t6.pw) {
+            _context5.n = 6;
             break;
           }
-          throw _t5;
+          throw _t6;
         case 6:
           g = GH();
           if (g.tok) {
-            _context3.n = 7;
+            _context5.n = 7;
             break;
           }
-          throw new Error(ls('key') ? X('连不上 Google', 'Cannot reach Google') : X('先在 ⚙︎ 里填口令', 'Set the password in ⚙︎'));
+          throw new Error(_ls('key') ? X('连不上 Google', 'Cannot reach Google') : X('先在 ⚙︎ 里填口令', 'Set the password in ⚙︎'));
         case 7:
-          _context3.n = 8;
+          _context5.n = 8;
           return withTimeout(fetch('https://api.github.com/repos/' + g.repo + '/contents/ofp/index.json?_=' + Date.now(), {
             headers: {
               Authorization: 'Bearer ' + g.tok,
@@ -444,17 +561,17 @@ function _listFiles() {
             cache: 'no-store'
           }), 30000);
         case 8:
-          r = _context3.v;
+          r = _context5.v;
           if (r.ok) {
-            _context3.n = 9;
+            _context5.n = 9;
             break;
           }
           throw new Error('GitHub ' + r.status);
         case 9:
-          _context3.n = 10;
+          _context5.n = 10;
           return r.json();
         case 10:
-          return _context3.a(2, _context3.v.map(function (x) {
+          return _context5.a(2, _context5.v.map(function (x) {
             return {
               id: 'gh:' + x.path,
               name: x.name,
@@ -463,7 +580,7 @@ function _listFiles() {
             };
           }));
       }
-    }, _callee3, null, [[1, 5]]);
+    }, _callee4, null, [[1, 5]]);
   }));
   return _listFiles.apply(this, arguments);
 }
@@ -471,17 +588,17 @@ function getFile(_x) {
   return _getFile.apply(this, arguments);
 }
 function _getFile() {
-  _getFile = _asyncToGenerator(_regenerator().m(function _callee4(id) {
-    var g, r, a, b, u, i, _t6, _t7;
-    return _regenerator().w(function (_context4) {
-      while (1) switch (_context4.n) {
+  _getFile = _asyncToGenerator(_regenerator().m(function _callee5(id) {
+    var g, r, a, b, u, i, _t7, _t8;
+    return _regenerator().w(function (_context6) {
+      while (1) switch (_context6.n) {
         case 0:
           if (!/^gh:/.test(id)) {
-            _context4.n = 4;
+            _context6.n = 4;
             break;
           }
           g = GH();
-          _context4.n = 1;
+          _context6.n = 1;
           return fetch('https://api.github.com/repos/' + g.repo + '/contents/' + id.slice(3), {
             headers: {
               Authorization: 'Bearer ' + g.tok,
@@ -489,38 +606,38 @@ function _getFile() {
             }
           });
         case 1:
-          r = _context4.v;
+          r = _context6.v;
           if (r.ok) {
-            _context4.n = 2;
+            _context6.n = 2;
             break;
           }
           throw new Error('GitHub ' + r.status);
         case 2:
-          _t6 = Uint8Array;
-          _context4.n = 3;
+          _t7 = Uint8Array;
+          _context6.n = 3;
           return r.arrayBuffer();
         case 3:
-          _t7 = _context4.v;
-          return _context4.a(2, new _t6(_t7));
+          _t8 = _context6.v;
+          return _context6.a(2, new _t7(_t8));
         case 4:
-          _context4.n = 5;
+          _context6.n = 5;
           return withTimeout(postK({
             action: 'ofpget',
             id: id
           }), 120000);
         case 5:
-          a = _context4.v;
+          a = _context6.v;
           if (!(!a.ok || !a.b64)) {
-            _context4.n = 6;
+            _context6.n = 6;
             break;
           }
           throw new Error(a.error || '下载失败');
         case 6:
           b = atob(a.b64), u = new Uint8Array(b.length);
           for (i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
-          return _context4.a(2, u);
+          return _context6.a(2, u);
       }
-    }, _callee4);
+    }, _callee5);
   }));
   return _getFile.apply(this, arguments);
 }
@@ -528,16 +645,16 @@ function pdfText(_x2, _x3) {
   return _pdfText.apply(this, arguments);
 }
 function _pdfText() {
-  _pdfText = _asyncToGenerator(_regenerator().m(function _callee5(u8, prog) {
-    var doc, pages, _loop, n;
-    return _regenerator().w(function (_context6) {
-      while (1) switch (_context6.n) {
+  _pdfText = _asyncToGenerator(_regenerator().m(function _callee6(u8, prog) {
+    var doc, pages, _loop2, n;
+    return _regenerator().w(function (_context8) {
+      while (1) switch (_context8.n) {
         case 0:
           if (!(window.AndroidPanel && !window.pdfjsWorker)) {
-            _context6.n = 1;
+            _context8.n = 1;
             break;
           }
-          _context6.n = 1;
+          _context8.n = 1;
           return new Promise(function (ok, no) {
             var s = document.createElement('script');
             s.src = 'vendor/pdf.worker.min.js';
@@ -547,27 +664,27 @@ function _pdfText() {
           });
         case 1:
           pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
-          _context6.n = 2;
+          _context8.n = 2;
           return pdfjsLib.getDocument({
             data: u8,
             isEvalSupported: false,
             stopAtErrors: false
           }).promise;
         case 2:
-          doc = _context6.v;
+          doc = _context8.v;
           pages = [];
-          _loop = _regenerator().m(function _loop() {
+          _loop2 = _regenerator().m(function _loop2() {
             var tc, rows, cw, cn, pl, ind;
-            return _regenerator().w(function (_context5) {
-              while (1) switch (_context5.n) {
+            return _regenerator().w(function (_context7) {
+              while (1) switch (_context7.n) {
                 case 0:
-                  _context5.n = 1;
+                  _context7.n = 1;
                   return doc.getPage(n);
                 case 1:
-                  _context5.n = 2;
-                  return _context5.v.getTextContent();
+                  _context7.n = 2;
+                  return _context7.v.getTextContent();
                 case 2:
-                  tc = _context5.v;
+                  tc = _context7.v;
                   rows = {};
                   cw = 0, cn = 0;
                   tc.items.forEach(function (it) {
@@ -604,25 +721,25 @@ function _pdfText() {
                   });
                   if (prog) prog(n, doc.numPages);
                 case 3:
-                  return _context5.a(2);
+                  return _context7.a(2);
               }
-            }, _loop);
+            }, _loop2);
           });
           n = 1;
         case 3:
           if (!(n <= doc.numPages)) {
-            _context6.n = 5;
+            _context8.n = 5;
             break;
           }
-          return _context6.d(_regeneratorValues(_loop()), 4);
+          return _context8.d(_regeneratorValues(_loop2()), 4);
         case 4:
           n++;
-          _context6.n = 3;
+          _context8.n = 3;
           break;
         case 5:
-          return _context6.a(2, pages.join('\n'));
+          return _context8.a(2, pages.join('\n'));
       }
-    }, _callee5);
+    }, _callee6);
   }));
   return _pdfText.apply(this, arguments);
 }
@@ -652,45 +769,45 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611191543';
+var PAGEV = '202611191547';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
 function _update() {
-  _update = _asyncToGenerator(_regenerator().m(function _callee6(quiet) {
-    var files, now, day0, best, got, want, _loop2, _ret, _iterator, _step, _t8, _t9, _t0, _t1, _t10;
-    return _regenerator().w(function (_context8) {
-      while (1) switch (_context8.p = _context8.n) {
+  _update = _asyncToGenerator(_regenerator().m(function _callee7(quiet) {
+    var files, now, day0, best, got, want, _loop3, _ret, _iterator, _step, _t9, _t0, _t1, _t10, _t11, _t12;
+    return _regenerator().w(function (_context0) {
+      while (1) switch (_context0.p = _context0.n) {
         case 0:
           if (!busy) {
-            _context8.n = 1;
+            _context0.n = 1;
             break;
           }
-          return _context8.a(2);
+          return _context0.a(2);
         case 1:
           if (navigator.onLine) {
-            _context8.n = 2;
+            _context0.n = 2;
             break;
           }
           MSG = '📵 ' + X('离线', 'Offline');
           draw();
-          return _context8.a(2);
+          return _context0.a(2);
         case 2:
-          if (!(!ls('key') && !GH().tok)) {
-            _context8.n = 3;
+          if (!(!_ls('key') && !GH().tok)) {
+            _context0.n = 3;
             break;
           }
           openSet();
-          return _context8.a(2);
+          return _context0.a(2);
         case 3:
           busy = true;
           MSG = '⏳ ' + X('查日历和邮箱…', 'Checking calendar & mail…');
           draw();
-          _context8.p = 4;
-          _context8.n = 5;
+          _context0.p = 4;
+          _context0.n = 5;
           return listFiles();
         case 5:
-          files = _context8.v;
+          files = _context0.v;
           now = Date.now();
           day0 = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate());
           best = {};
@@ -705,39 +822,49 @@ function _update() {
             var k = m[1] + m[2] + m[3].toUpperCase() + m[5];
             if (!best[k] || (f.t || 0) > (best[k].t || 0)) best[k] = f;
           });
-          got = 0;
-          _context8.p = 6;
-          _t8 = got;
-          _context8.n = 7;
-          return cloudSync(now);
+          _context0.p = 6;
+          _context0.n = 7;
+          return stFlush();
         case 7:
-          got = _t8 += _context8.v;
-          _context8.n = 9;
+          _context0.n = 9;
           break;
         case 8:
-          _context8.p = 8;
-          _t9 = _context8.v;
+          _context0.p = 8;
+          _t9 = _context0.v;
         case 9:
-          _context8.p = 9;
-          _context8.n = 10;
-          return fiSync();
-        case 10:
-          _context8.n = 12;
-          break;
+          got = 0;
+          _context0.p = 10;
+          _t0 = got;
+          _context0.n = 11;
+          return cloudSync(now);
         case 11:
-          _context8.p = 11;
-          _t0 = _context8.v;
-        case 12:
-          _context8.p = 12;
-          _context8.n = 13;
-          return wacSync();
-        case 13:
-          _context8.n = 15;
+          got = _t0 += _context0.v;
+          _context0.n = 13;
           break;
+        case 12:
+          _context0.p = 12;
+          _t1 = _context0.v;
+        case 13:
+          _context0.p = 13;
+          _context0.n = 14;
+          return fiSync();
         case 14:
-          _context8.p = 14;
-          _t1 = _context8.v;
+          _context0.n = 16;
+          break;
         case 15:
+          _context0.p = 15;
+          _t10 = _context0.v;
+        case 16:
+          _context0.p = 16;
+          _context0.n = 17;
+          return wacSync();
+        case 17:
+          _context0.n = 19;
+          break;
+        case 18:
+          _context0.p = 18;
+          _t11 = _context0.v;
+        case 19:
           want = Object.keys(best).map(function (k) {
             return best[k];
           }).filter(function (f) {
@@ -746,27 +873,27 @@ function _update() {
               return /^cloud:/.test(l.fid || '') && l.sv === SV && last4(l.no) === last4(m[1]) && l.date === m[2] + m[3].toUpperCase();
             }));
           });
-          _loop2 = _regenerator().m(function _loop2() {
+          _loop3 = _regenerator().m(function _loop3() {
             var f, u8, txt, o, leg;
-            return _regenerator().w(function (_context7) {
-              while (1) switch (_context7.n) {
+            return _regenerator().w(function (_context9) {
+              while (1) switch (_context9.n) {
                 case 0:
                   f = _step.value;
                   if (!LEGS.some(function (l) {
                     return l.fid === f.id && l.sv === SV;
                   })) {
-                    _context7.n = 1;
+                    _context9.n = 1;
                     break;
                   }
-                  return _context7.a(2, 0);
+                  return _context9.a(2, 0);
                 case 1:
                   MSG = '⏳ ' + X('下载 ', 'Downloading ') + f.name.replace(/\.pdf$/i, '');
                   draw();
-                  _context7.n = 2;
+                  _context9.n = 2;
                   return getFile(f.id);
                 case 2:
-                  u8 = _context7.v;
-                  _context7.n = 3;
+                  u8 = _context9.v;
+                  _context9.n = 3;
                   return pdfText(u8, function (n, N) {
                     if (n % 5 === 0 || n === N) {
                       MSG = '⏳ ' + X('读取 ', 'Reading ') + n + '/' + N + ' · ' + f.name.slice(0, 16);
@@ -774,14 +901,14 @@ function _update() {
                     }
                   });
                 case 3:
-                  txt = _context7.v;
+                  txt = _context9.v;
                   o = OFP.parse(txt);
                   if (o.ok) {
-                    _context7.n = 4;
+                    _context9.n = 4;
                     break;
                   }
                   BAD.push(f.name + ': ' + (o.warnings || []).join('; '));
-                  return _context7.a(2, 0);
+                  return _context9.a(2, 0);
                 case 4:
                   leg = summarize(o);
                   fixLeg(leg);
@@ -795,37 +922,37 @@ function _update() {
                     return l.k !== leg.k;
                   }).concat([leg]);
                   got++;
-                  ls('legs', JSON.stringify(LEGS));
+                  _ls('legs', JSON.stringify(LEGS));
                 case 5:
-                  return _context7.a(2);
+                  return _context9.a(2);
               }
-            }, _loop2);
+            }, _loop3);
           });
           _iterator = _createForOfIteratorHelperLoose(want);
-        case 16:
+        case 20:
           if ((_step = _iterator()).done) {
-            _context8.n = 19;
+            _context0.n = 23;
             break;
           }
-          return _context8.d(_regeneratorValues(_loop2()), 17);
-        case 17:
-          _ret = _context8.v;
+          return _context0.d(_regeneratorValues(_loop3()), 21);
+        case 21:
+          _ret = _context0.v;
           if (!(_ret === 0)) {
-            _context8.n = 18;
+            _context0.n = 22;
             break;
           }
-          return _context8.a(3, 18);
-        case 18:
-          _context8.n = 16;
+          return _context0.a(3, 22);
+        case 22:
+          _context0.n = 20;
           break;
-        case 19:
+        case 23:
           LEGS = LEGS.filter(function (l) {
-            return l.std > now - 3 * 864e5 && l.std < now + 3 * 864e5 || l.k === ls('pin');
+            return l.std > now - 3 * 864e5 && l.std < now + 3 * 864e5 || l.k === _ls('pin');
           }).sort(function (a, b) {
             return a.std - b.std;
           });
-          ls('legs', JSON.stringify(LEGS));
-          ls('upd', String(now));
+          _ls('legs', JSON.stringify(LEGS));
+          _ls('upd', String(now));
           MSG = got ? '✅ ' + X('收到 ' + got + ' 份 OFP', got + ' OFP(s) received') : '✅ ' + X('已是最新', 'Up to date');
           if (NEWL.length) newBanner();
           if (BAD.length) {
@@ -833,19 +960,19 @@ function _update() {
             console.warn(BAD);
             BAD = [];
           }
-          _context8.n = 21;
+          _context0.n = 25;
           break;
-        case 20:
-          _context8.p = 20;
-          _t10 = _context8.v;
-          MSG = '⚠️ ' + _t10.message;
-        case 21:
+        case 24:
+          _context0.p = 24;
+          _t12 = _context0.v;
+          MSG = '⚠️ ' + _t12.message;
+        case 25:
           busy = false;
           draw();
-        case 22:
-          return _context8.a(2);
+        case 26:
+          return _context0.a(2);
       }
-    }, _callee6, null, [[12, 14], [9, 11], [6, 8], [4, 20]]);
+    }, _callee7, null, [[16, 18], [13, 15], [10, 12], [6, 8], [4, 24]]);
   }));
   return _update.apply(this, arguments);
 }
@@ -861,32 +988,32 @@ function gunzip(_x5) {
   return _gunzip.apply(this, arguments);
 }
 function _gunzip() {
-  _gunzip = _asyncToGenerator(_regenerator().m(function _callee7(u8) {
-    var _t11;
-    return _regenerator().w(function (_context9) {
-      while (1) switch (_context9.n) {
+  _gunzip = _asyncToGenerator(_regenerator().m(function _callee8(u8) {
+    var _t13;
+    return _regenerator().w(function (_context1) {
+      while (1) switch (_context1.n) {
         case 0:
           if (!(typeof DecompressionStream !== 'undefined')) {
-            _context9.n = 2;
+            _context1.n = 2;
             break;
           }
-          _t11 = new TextDecoder();
-          _context9.n = 1;
+          _t13 = new TextDecoder();
+          _context1.n = 1;
           return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
         case 1:
-          return _context9.a(2, _t11.decode.call(_t11, _context9.v));
+          return _context1.a(2, _t13.decode.call(_t13, _context1.v));
         case 2:
           if (!(window.AndroidPanel && AndroidPanel.gunzip)) {
-            _context9.n = 3;
+            _context1.n = 3;
             break;
           }
-          return _context9.a(2, AndroidPanel.gunzip(b64of(u8)));
+          return _context1.a(2, AndroidPanel.gunzip(b64of(u8)));
         case 3:
           throw new Error('no gunzip');
         case 4:
-          return _context9.a(2);
+          return _context1.a(2);
       }
-    }, _callee7);
+    }, _callee8);
   }));
   return _gunzip.apply(this, arguments);
 }
@@ -894,19 +1021,19 @@ function ghRaw(_x6) {
   return _ghRaw.apply(this, arguments);
 }
 function _ghRaw() {
-  _ghRaw = _asyncToGenerator(_regenerator().m(function _callee8(path) {
+  _ghRaw = _asyncToGenerator(_regenerator().m(function _callee9(path) {
     var g, r;
-    return _regenerator().w(function (_context0) {
-      while (1) switch (_context0.n) {
+    return _regenerator().w(function (_context10) {
+      while (1) switch (_context10.n) {
         case 0:
           g = GH();
           if (g.tok) {
-            _context0.n = 1;
+            _context10.n = 1;
             break;
           }
-          return _context0.a(2, null);
+          return _context10.a(2, null);
         case 1:
-          _context0.n = 2;
+          _context10.n = 2;
           return fetch('https://api.github.com/repos/' + g.repo + '/contents/' + path + '?_=' + Date.now(), {
             headers: {
               Authorization: 'Bearer ' + g.tok,
@@ -915,10 +1042,10 @@ function _ghRaw() {
             cache: 'no-store'
           });
         case 2:
-          r = _context0.v;
-          return _context0.a(2, r.ok ? r : null);
+          r = _context10.v;
+          return _context10.a(2, r.ok ? r : null);
       }
-    }, _callee8);
+    }, _callee9);
   }));
   return _ghRaw.apply(this, arguments);
 }
@@ -926,76 +1053,76 @@ function cloudSync(_x7) {
   return _cloudSync.apply(this, arguments);
 }
 function _cloudSync() {
-  _cloudSync = _asyncToGenerator(_regenerator().m(function _callee9(now) {
-    var r, idx, got, _loop3, _ret2, _iterator2, _step2, _loop4, _ret3, _iterator3, _step3, _loop5, _ret4, _iterator4, _step4;
-    return _regenerator().w(function (_context12) {
-      while (1) switch (_context12.n) {
+  _cloudSync = _asyncToGenerator(_regenerator().m(function _callee0(now) {
+    var r, idx, got, _loop4, _ret2, _iterator2, _step2, _loop5, _ret3, _iterator3, _step3, _loop6, _ret4, _iterator4, _step4, _loop7, _ret5, _iterator5, _step5;
+    return _regenerator().w(function (_context15) {
+      while (1) switch (_context15.n) {
         case 0:
-          _context12.n = 1;
+          _context15.n = 1;
           return ghRaw('ofpdata/index.json');
         case 1:
-          r = _context12.v;
+          r = _context15.v;
           if (r) {
-            _context12.n = 2;
+            _context15.n = 2;
             break;
           }
-          return _context12.a(2, 0);
+          return _context15.a(2, 0);
         case 2:
-          _context12.n = 3;
+          _context15.n = 3;
           return r.json();
         case 3:
-          idx = _context12.v;
+          idx = _context15.v;
           got = 0;
-          _loop3 = _regenerator().m(function _loop3() {
-            var x, m, fid, f, txt, o, leg, isNew, _t12, _t13, _t14;
-            return _regenerator().w(function (_context1) {
-              while (1) switch (_context1.n) {
+          _loop4 = _regenerator().m(function _loop4() {
+            var x, m, fid, f, txt, o, leg, isNew, _t14, _t15, _t16;
+            return _regenerator().w(function (_context11) {
+              while (1) switch (_context11.n) {
                 case 0:
                   x = _step2.value;
                   m = x.meta || {};
                   if (!(!m.std || m.std < now - 3 * 864e5 || m.std > now + 48 * HOUR)) {
-                    _context1.n = 1;
+                    _context11.n = 1;
                     break;
                   }
-                  return _context1.a(2, 0);
+                  return _context11.a(2, 0);
                 case 1:
                   fid = 'cloud:' + x.k + ':' + (x.len || 0);
                   if (!LEGS.some(function (l) {
                     return l.fid === fid && l.sv === SV;
                   })) {
-                    _context1.n = 2;
+                    _context11.n = 2;
                     break;
                   }
-                  return _context1.a(2, 0);
+                  return _context11.a(2, 0);
                 case 2:
                   MSG = '☁️ ' + X('云端下载 ', 'Cloud ') + (m.no || x.k);
                   draw();
-                  _context1.n = 3;
+                  _context11.n = 3;
                   return ghRaw('ofpdata/' + x.k + '.txt.gz');
                 case 3:
-                  f = _context1.v;
+                  f = _context11.v;
                   if (f) {
-                    _context1.n = 4;
+                    _context11.n = 4;
                     break;
                   }
-                  return _context1.a(2, 0);
+                  return _context11.a(2, 0);
                 case 4:
-                  _t12 = gunzip;
-                  _t13 = Uint8Array;
-                  _context1.n = 5;
+                  _t14 = gunzip;
+                  _t15 = Uint8Array;
+                  _context11.n = 5;
                   return f.arrayBuffer();
                 case 5:
-                  _t14 = _context1.v;
-                  _context1.n = 6;
-                  return _t12(new _t13(_t14));
+                  _t16 = _context11.v;
+                  _context11.n = 6;
+                  return _t14(new _t15(_t16));
                 case 6:
-                  txt = _context1.v;
+                  txt = _context11.v;
                   o = OFP.parse(txt);
                   if (o.ok) {
-                    _context1.n = 7;
+                    _context11.n = 7;
                     break;
                   }
-                  return _context1.a(2, 0);
+                  return _context11.a(2, 0);
                 case 7:
                   leg = summarize(o);
                   fixLeg(leg);
@@ -1006,173 +1133,238 @@ function _cloudSync() {
                   LEGS = LEGS.filter(function (l) {
                     return l.k !== leg.k;
                   }).concat([leg]);
-                  ls('legs', JSON.stringify(LEGS));
+                  _ls('legs', JSON.stringify(LEGS));
                   got++;
                   if (isNew) NEWL.push(leg);
                 case 8:
-                  return _context1.a(2);
+                  return _context11.a(2);
               }
-            }, _loop3);
+            }, _loop4);
           });
           _iterator2 = _createForOfIteratorHelperLoose(idx);
         case 4:
           if ((_step2 = _iterator2()).done) {
-            _context12.n = 7;
+            _context15.n = 7;
             break;
           }
-          return _context12.d(_regeneratorValues(_loop3()), 5);
+          return _context15.d(_regeneratorValues(_loop4()), 5);
         case 5:
-          _ret2 = _context12.v;
+          _ret2 = _context15.v;
           if (!(_ret2 === 0)) {
-            _context12.n = 6;
+            _context15.n = 6;
             break;
           }
-          return _context12.a(3, 6);
+          return _context15.a(3, 6);
         case 6:
-          _context12.n = 4;
+          _context15.n = 4;
           break;
         case 7:
-          _loop4 = _regenerator().m(function _loop4() {
-            var x, t, _t15, _t16, _t17;
-            return _regenerator().w(function (_context10) {
-              while (1) switch (_context10.p = _context10.n) {
+          _loop5 = _regenerator().m(function _loop5() {
+            var x, t, _t17, _t18, _t19;
+            return _regenerator().w(function (_context12) {
+              while (1) switch (_context12.p = _context12.n) {
                 case 0:
                   x = _step3.value;
-                  if (!(!x.sb || +(ls('sbn.' + x.k) || 0) >= x.sb)) {
-                    _context10.n = 1;
+                  if (!(!x.st || +(_ls('stn.' + x.k) || 0) >= x.st)) {
+                    _context12.n = 1;
                     break;
                   }
-                  return _context10.a(2, 0);
+                  return _context12.a(2, 0);
                 case 1:
                   if (LEGS.some(function (l) {
                     return l.k.replace(/[^\w.-]/g, '') === x.k;
                   })) {
-                    _context10.n = 2;
+                    _context12.n = 2;
                     break;
                   }
-                  return _context10.a(2, 0);
+                  return _context12.a(2, 0);
                 case 2:
-                  _context10.p = 2;
-                  _context10.n = 3;
-                  return ghRaw('ofpdata/' + x.k + '.sb.html');
+                  _context12.p = 2;
+                  _context12.n = 3;
+                  return ghRaw('ofpdata/' + x.k + '.st.json');
                 case 3:
-                  t = _context10.v;
+                  t = _context12.v;
                   if (!t) {
-                    _context10.n = 5;
+                    _context12.n = 5;
                     break;
                   }
-                  _t15 = ls;
-                  _t16 = 'sb.' + x.k;
-                  _context10.n = 4;
-                  return t.text();
+                  _t17 = stApply;
+                  _t18 = x.k;
+                  _context12.n = 4;
+                  return t.json();
                 case 4:
-                  _t15(_t16, _context10.v);
-                  ls('sbn.' + x.k, String(x.sb));
+                  _t17(_t18, _context12.v);
+                  _ls('stn.' + x.k, String(x.st));
                 case 5:
-                  _context10.n = 7;
+                  _context12.n = 7;
                   break;
                 case 6:
-                  _context10.p = 6;
-                  _t17 = _context10.v;
+                  _context12.p = 6;
+                  _t19 = _context12.v;
                 case 7:
-                  return _context10.a(2);
+                  return _context12.a(2);
               }
-            }, _loop4, null, [[2, 6]]);
+            }, _loop5, null, [[2, 6]]);
           });
           _iterator3 = _createForOfIteratorHelperLoose(idx);
         case 8:
           if ((_step3 = _iterator3()).done) {
-            _context12.n = 11;
+            _context15.n = 11;
             break;
           }
-          return _context12.d(_regeneratorValues(_loop4()), 9);
+          return _context15.d(_regeneratorValues(_loop5()), 9);
         case 9:
-          _ret3 = _context12.v;
+          _ret3 = _context15.v;
           if (!(_ret3 === 0)) {
-            _context12.n = 10;
+            _context15.n = 10;
             break;
           }
-          return _context12.a(3, 10);
+          return _context15.a(3, 10);
         case 10:
-          _context12.n = 8;
+          _context15.n = 8;
           break;
         case 11:
-          _loop5 = _regenerator().m(function _loop5() {
-            var x, lg, t, _t18, _t19, _t20, _t21;
-            return _regenerator().w(function (_context11) {
-              while (1) switch (_context11.p = _context11.n) {
+          _loop6 = _regenerator().m(function _loop6() {
+            var x, t, _t20, _t21, _t22;
+            return _regenerator().w(function (_context13) {
+              while (1) switch (_context13.p = _context13.n) {
                 case 0:
                   x = _step4.value;
-                  if (!(!x.tr || +(ls('trn.' + x.k) || 0) >= x.tr)) {
-                    _context11.n = 1;
+                  if (!(!x.sb || +(_ls('sbn.' + x.k) || 0) >= x.sb)) {
+                    _context13.n = 1;
                     break;
                   }
-                  return _context11.a(2, 0);
+                  return _context13.a(2, 0);
+                case 1:
+                  if (LEGS.some(function (l) {
+                    return l.k.replace(/[^\w.-]/g, '') === x.k;
+                  })) {
+                    _context13.n = 2;
+                    break;
+                  }
+                  return _context13.a(2, 0);
+                case 2:
+                  _context13.p = 2;
+                  _context13.n = 3;
+                  return ghRaw('ofpdata/' + x.k + '.sb.html');
+                case 3:
+                  t = _context13.v;
+                  if (!t) {
+                    _context13.n = 5;
+                    break;
+                  }
+                  _t20 = _ls;
+                  _t21 = 'sb.' + x.k;
+                  _context13.n = 4;
+                  return t.text();
+                case 4:
+                  _t20(_t21, _context13.v);
+                  _ls('sbn.' + x.k, String(x.sb));
+                case 5:
+                  _context13.n = 7;
+                  break;
+                case 6:
+                  _context13.p = 6;
+                  _t22 = _context13.v;
+                case 7:
+                  return _context13.a(2);
+              }
+            }, _loop6, null, [[2, 6]]);
+          });
+          _iterator4 = _createForOfIteratorHelperLoose(idx);
+        case 12:
+          if ((_step4 = _iterator4()).done) {
+            _context15.n = 15;
+            break;
+          }
+          return _context15.d(_regeneratorValues(_loop6()), 13);
+        case 13:
+          _ret4 = _context15.v;
+          if (!(_ret4 === 0)) {
+            _context15.n = 14;
+            break;
+          }
+          return _context15.a(3, 14);
+        case 14:
+          _context15.n = 12;
+          break;
+        case 15:
+          _loop7 = _regenerator().m(function _loop7() {
+            var x, lg, t, _t23, _t24, _t25, _t26;
+            return _regenerator().w(function (_context14) {
+              while (1) switch (_context14.p = _context14.n) {
+                case 0:
+                  x = _step5.value;
+                  if (!(!x.tr || +(_ls('trn.' + x.k) || 0) >= x.tr)) {
+                    _context14.n = 1;
+                    break;
+                  }
+                  return _context14.a(2, 0);
                 case 1:
                   lg = LEGS.find(function (l) {
                     return l.k.replace(/[^\w.-]/g, '') === x.k;
                   });
                   if (lg) {
-                    _context11.n = 2;
+                    _context14.n = 2;
                     break;
                   }
-                  return _context11.a(2, 0);
+                  return _context14.a(2, 0);
                 case 2:
-                  _context11.p = 2;
-                  _context11.n = 3;
+                  _context14.p = 2;
+                  _context14.n = 3;
                   return ghRaw('ofpdata/' + x.k + '.tr.json');
                 case 3:
-                  t = _context11.v;
+                  t = _context14.v;
                   if (!t) {
-                    _context11.n = 5;
+                    _context14.n = 5;
                     break;
                   }
-                  _t18 = ls;
-                  _t19 = 'tr.' + x.k;
-                  _t20 = JSON;
-                  _context11.n = 4;
+                  _t23 = _ls;
+                  _t24 = 'tr.' + x.k;
+                  _t25 = JSON;
+                  _context14.n = 4;
                   return t.json();
                 case 4:
-                  _t18(_t19, _t20.stringify.call(_t20, _context11.v));
-                  ls('trn.' + x.k, String(x.tr));
+                  _t23(_t24, _t25.stringify.call(_t25, _context14.v));
+                  _ls('trn.' + x.k, String(x.tr));
                 case 5:
-                  _context11.n = 7;
+                  _context14.n = 7;
                   break;
                 case 6:
-                  _context11.p = 6;
-                  _t21 = _context11.v;
+                  _context14.p = 6;
+                  _t26 = _context14.v;
                 case 7:
-                  return _context11.a(2);
+                  return _context14.a(2);
               }
-            }, _loop5, null, [[2, 6]]);
+            }, _loop7, null, [[2, 6]]);
           });
-          _iterator4 = _createForOfIteratorHelperLoose(idx);
-        case 12:
-          if ((_step4 = _iterator4()).done) {
-            _context12.n = 15;
+          _iterator5 = _createForOfIteratorHelperLoose(idx);
+        case 16:
+          if ((_step5 = _iterator5()).done) {
+            _context15.n = 19;
             break;
           }
-          return _context12.d(_regeneratorValues(_loop5()), 13);
-        case 13:
-          _ret4 = _context12.v;
-          if (!(_ret4 === 0)) {
-            _context12.n = 14;
+          return _context15.d(_regeneratorValues(_loop7()), 17);
+        case 17:
+          _ret5 = _context15.v;
+          if (!(_ret5 === 0)) {
+            _context15.n = 18;
             break;
           }
-          return _context12.a(3, 14);
-        case 14:
-          _context12.n = 12;
+          return _context15.a(3, 18);
+        case 18:
+          _context15.n = 16;
           break;
-        case 15:
-          return _context12.a(2, got);
+        case 19:
+          return _context15.a(2, got);
       }
-    }, _callee9);
+    }, _callee0);
   }));
   return _cloudSync.apply(this, arguments);
 }
 function cloudUp(text, o) {
   try {
-    fetch(API + '?k=' + encodeURIComponent(ls('key') || ''), {
+    fetch(API + '?k=' + encodeURIComponent(_ls('key') || ''), {
       method: 'POST',
       body: JSON.stringify({
         action: 'ofpsave',
@@ -1403,7 +1595,7 @@ function posAt(c, el) {
   }
   return c[c.length - 1];
 }
-var MODE = ls('mode') || 'auto',
+var MODE = _ls('mode') || 'auto',
   lastBL = null;
 var MODES = {
   auto: ['背光：自动', 'Light: auto', '💡 '],
@@ -1412,7 +1604,7 @@ var MODES = {
 };
 var BLMAX = 0.3,
   blPct = function blPct() {
-    return Math.max(5, Math.min(30, +(ls('blp') || 20))) / 100;
+    return Math.max(5, Math.min(30, +(_ls('blp') || 20))) / 100;
   };
 var blCur = 0,
   blIv = null;
@@ -1451,7 +1643,7 @@ function isDark(now, P, alt) {
   return sunEl(now, P[1], P[2]) < -(dip + 2);
 }
 var atdOf = function atdOf(l) {
-  return +(ls('atd.' + l.k) || 0);
+  return +(_ls('atd.' + l.k) || 0);
 };
 function flights(now) {
   var out = [];
@@ -1484,7 +1676,7 @@ function flights(now) {
 }
 var atoOf = function atoOf(l) {
   try {
-    return JSON.parse(ls('ato.' + l.k) || 'null');
+    return JSON.parse(_ls('ato.' + l.k) || 'null');
   } catch (e) {
     return null;
   }
@@ -1498,11 +1690,11 @@ var offOf = function offOf(l) {
   return atdOf(l) || l.std + (l.tx || 0) * MIN;
 };
 var csOf = function csOf(l) {
-  return ls('cs.' + l.k) || l.cs || l.no;
+  return _ls('cs.' + l.k) || l.cs || l.no;
 };
 function pick(now, F) {
   F = F || flights(now);
-  var pin = ls('pin'),
+  var pin = _ls('pin'),
     p = pin && F.find(function (l) {
       return l.k === pin;
     });
@@ -1544,7 +1736,7 @@ var dlon = function dlon(b, a) {
 };
 var trName = function trName(L, id) {
   try {
-    var m = JSON.parse(ls('tr.' + L.k.replace(/[^\w.-]/g, '')) || '{}');
+    var m = JSON.parse(_ls('tr.' + L.k.replace(/[^\w.-]/g, '')) || '{}');
     return m[id];
   } catch (e) {
     return null;
@@ -1572,7 +1764,7 @@ function bbox(a) {
   }
   return [x0, y0, x1, y1];
 }
-var ZOOM = +(ls('zoom') || 700);
+var ZOOM = +(_ls('zoom') || 700);
 var AREAS = {};
 var FOCUS = null;
 function focusArea(A) {
@@ -1844,7 +2036,7 @@ var tile = function tile(l, v, s, id) {
   return '<div class="c"' + (id ? ' id="' + id + '"' : '') + '><div class="l">' + l + '</div><div class="v">' + v + (s ? ' <span class="s">' + s + '</span>' : '') + '</div></div>';
 };
 var zfwOf = function zfwOf(L) {
-  return +(ls('zfw.' + L.k) || 0);
+  return +(_ls('zfw.' + L.k) || 0);
 };
 function wFix(L) {
   var w = L && L.w;
@@ -1857,7 +2049,7 @@ function wFix(L) {
 }
 function setZfw(L, v) {
   var n = parseFloat(String(v).replace(/,/g, ''));
-  ls('zfw.' + L.k, isFinite(n) && n > 0 ? String(Math.round(n < 1000 ? n * 1000 : n)) : '');
+  _ls('zfw.' + L.k, isFinite(n) && n > 0 ? String(Math.round(n < 1000 ? n * 1000 : n)) : '');
   draw();
 }
 function zfwBox(L) {
@@ -1902,14 +2094,14 @@ function useOfpText(_x8, _x9, _x0) {
   return _useOfpText.apply(this, arguments);
 }
 function _useOfpText() {
-  _useOfpText = _asyncToGenerator(_regenerator().m(function _callee0(txt, src, id) {
+  _useOfpText = _asyncToGenerator(_regenerator().m(function _callee1(txt, src, id) {
     var o, leg;
-    return _regenerator().w(function (_context13) {
-      while (1) switch (_context13.n) {
+    return _regenerator().w(function (_context16) {
+      while (1) switch (_context16.n) {
         case 0:
           o = OFP.parse(txt);
           if (o.ok) {
-            _context13.n = 1;
+            _context16.n = 1;
             break;
           }
           throw new Error(X('这个文件里没认出 OFP（', 'No OFP found in this file (') + (o.warnings || []).join('; ') + ')');
@@ -1922,12 +2114,12 @@ function _useOfpText() {
           }).concat([leg]).sort(function (a, b) {
             return a.std - b.std;
           });
-          ls('legs', JSON.stringify(LEGS));
-          ls('pin', leg.k);
+          _ls('legs', JSON.stringify(LEGS));
+          _ls('pin', leg.k);
           if (src !== 'cloud') cloudUp(txt, o);
-          return _context13.a(2, leg);
+          return _context16.a(2, leg);
       }
-    }, _callee0);
+    }, _callee1);
   }));
   return _useOfpText.apply(this, arguments);
 }
@@ -1935,10 +2127,10 @@ function pickOfp(_x1) {
   return _pickOfp.apply(this, arguments);
 }
 function _pickOfp() {
-  _pickOfp = _asyncToGenerator(_regenerator().m(function _callee10(days) {
-    var sh, log, rows, errs, j, r, _t26, _t27;
-    return _regenerator().w(function (_context15) {
-      while (1) switch (_context15.p = _context15.n) {
+  _pickOfp = _asyncToGenerator(_regenerator().m(function _callee11(days) {
+    var sh, log, rows, errs, j, r, _t31, _t32;
+    return _regenerator().w(function (_context18) {
+      while (1) switch (_context18.p = _context18.n) {
         case 0:
           days = days || 7;
           sh = $('sheet');
@@ -1961,18 +2153,18 @@ function _pickOfp() {
           rows = [];
           log('⏳ ' + X('正在看云端和邮箱…', 'Checking cloud and mail…'));
           errs = [];
-          _context15.p = 1;
-          _context15.n = 2;
+          _context18.p = 1;
+          _context18.n = 2;
           return withTimeout(postK({
             action: 'ofpmail',
             days: days
           }), 90000);
         case 2:
-          j = _context15.v;
+          j = _context18.v;
           if (j && j.ok) {
             if (j.gh && j.gh.tok) {
-              ls('ghtok', j.gh.tok);
-              ls('ghrepo', j.gh.repo || '');
+              _ls('ghtok', j.gh.tok);
+              _ls('ghrepo', j.gh.repo || '');
             }
             (j.files || []).filter(function (f) {
               return LIDO.test(f.name || '') || /OFP|LIDO|FLIGHT\s?PLAN|FLT\s?PLAN|BRIEF|EK\s?-?\d{3,4}|UAE\s?\d/i.test((f.name || '') + ' ' + (f.subject || '')) || days >= 30;
@@ -1985,26 +2177,26 @@ function _pickOfp() {
               });
             });
           } else errs.push(X('邮箱：', 'Mail: ') + (j && j.error || '?'));
-          _context15.n = 4;
+          _context18.n = 4;
           break;
         case 3:
-          _context15.p = 3;
-          _t26 = _context15.v;
-          errs.push(X('邮箱：', 'Mail: ') + _t26.message);
+          _context18.p = 3;
+          _t31 = _context18.v;
+          errs.push(X('邮箱：', 'Mail: ') + _t31.message);
         case 4:
-          _context15.p = 4;
-          _context15.n = 5;
+          _context18.p = 4;
+          _context18.n = 5;
           return ghRaw('ofpdata/index.json');
         case 5:
-          r = _context15.v;
+          r = _context18.v;
           if (!r) {
-            _context15.n = 7;
+            _context18.n = 7;
             break;
           }
-          _context15.n = 6;
+          _context18.n = 6;
           return r.json();
         case 6:
-          _context15.v.filter(function (x) {
+          _context18.v.filter(function (x) {
             return x.meta && x.meta.std > Date.now() - days * 864e5;
           }).forEach(function (x) {
             return rows.push({
@@ -2014,17 +2206,17 @@ function _pickOfp() {
               name: (x.meta.no || x.k) + ' ' + (x.meta.depI || x.meta.dep || '') + '→' + (x.meta.arrI || x.meta.arr || '') + ' ' + dmZ(x.meta.std)
             });
           });
-          _context15.n = 8;
+          _context18.n = 8;
           break;
         case 7:
           errs.push(X('云端：', 'Cloud: ') + (GH().tok ? X('读不到（GitHub）', 'not reachable') : X('还没有同步码（先在有网时点一次 🔄 更新）', 'no sync key yet')));
         case 8:
-          _context15.n = 10;
+          _context18.n = 10;
           break;
         case 9:
-          _context15.p = 9;
-          _t27 = _context15.v;
-          errs.push(X('云端：', 'Cloud: ') + _t27.message);
+          _context18.p = 9;
+          _t32 = _context18.v;
+          errs.push(X('云端：', 'Cloud: ') + _t32.message);
         case 10:
           rows.sort(function (a, b) {
             return b.t - a.t;
@@ -2036,68 +2228,68 @@ function _pickOfp() {
           }).join('') || '<div class="ok">' + X('云端和邮箱里都没找到 OFP', 'No OFP in cloud or mail') + '</div>';
           log(errs.length ? '⚠️ ' + errs.map(esc).join('<br>⚠️ ') : X('点一个来下载、读取（会存在手机里，离线可用）', 'Tap one to download and read it (stored on the phone)'));
           $('pk-list').onclick = function () {
-            var _ref3 = _asyncToGenerator(_regenerator().m(function _callee1(e) {
-              var d, r, f, txt, leg, u8, _txt, _leg, _t22, _t23, _t24, _t25;
-              return _regenerator().w(function (_context14) {
-                while (1) switch (_context14.p = _context14.n) {
+            var _ref3 = _asyncToGenerator(_regenerator().m(function _callee10(e) {
+              var d, r, f, txt, leg, u8, _txt, _leg, _t27, _t28, _t29, _t30;
+              return _regenerator().w(function (_context17) {
+                while (1) switch (_context17.p = _context17.n) {
                   case 0:
                     d = e.target.closest('[data-i]');
                     if (d) {
-                      _context14.n = 1;
+                      _context17.n = 1;
                       break;
                     }
-                    return _context14.a(2);
+                    return _context17.a(2);
                   case 1:
                     r = rows[+d.dataset.i];
-                    _context14.p = 2;
+                    _context17.p = 2;
                     if (!(r.src === 'cloud')) {
-                      _context14.n = 8;
+                      _context17.n = 8;
                       break;
                     }
                     log('⏳ ' + X('云端下载…', 'Downloading…'));
-                    _context14.n = 3;
+                    _context17.n = 3;
                     return ghRaw('ofpdata/' + r.id + '.txt.gz');
                   case 3:
-                    f = _context14.v;
+                    f = _context17.v;
                     if (f) {
-                      _context14.n = 4;
+                      _context17.n = 4;
                       break;
                     }
                     throw new Error('GitHub');
                   case 4:
-                    _t22 = gunzip;
-                    _t23 = Uint8Array;
-                    _context14.n = 5;
+                    _t27 = gunzip;
+                    _t28 = Uint8Array;
+                    _context17.n = 5;
                     return f.arrayBuffer();
                   case 5:
-                    _t24 = _context14.v;
-                    _context14.n = 6;
-                    return _t22(new _t23(_t24));
+                    _t29 = _context17.v;
+                    _context17.n = 6;
+                    return _t27(new _t28(_t29));
                   case 6:
-                    txt = _context14.v;
-                    _context14.n = 7;
+                    txt = _context17.v;
+                    _context17.n = 7;
                     return useOfpText(txt, 'cloud', 'cloud:' + r.id + ':' + txt.length);
                   case 7:
-                    leg = _context14.v;
+                    leg = _context17.v;
                     log('✅ ' + esc(leg.no) + ' ' + X('已读入', 'loaded'));
-                    _context14.n = 12;
+                    _context17.n = 12;
                     break;
                   case 8:
                     log('⏳ ' + X('从邮箱下载…（大文件要 10–60 秒）', 'Downloading from mail… (10–60 s)'));
-                    _context14.n = 9;
+                    _context17.n = 9;
                     return getFile(r.id);
                   case 9:
-                    u8 = _context14.v;
-                    _context14.n = 10;
+                    u8 = _context17.v;
+                    _context17.n = 10;
                     return pdfText(u8, function (n, N) {
                       return log('⏳ ' + X('读取 PDF ', 'Reading PDF ') + n + '/' + N);
                     });
                   case 10:
-                    _txt = _context14.v;
-                    _context14.n = 11;
+                    _txt = _context17.v;
+                    _context17.n = 11;
                     return useOfpText(_txt, 'mail', r.id);
                   case 11:
-                    _leg = _context14.v;
+                    _leg = _context17.v;
                     log('✅ ' + esc(_leg.no) + ' ' + X('已读入，并传到云端', 'loaded and uploaded to the cloud'));
                   case 12:
                     setTimeout(function () {
@@ -2105,25 +2297,25 @@ function _pickOfp() {
                       draw();
                       maybeDemo();
                     }, 900);
-                    _context14.n = 14;
+                    _context17.n = 14;
                     break;
                   case 13:
-                    _context14.p = 13;
-                    _t25 = _context14.v;
-                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t25.message || String(_t25)));
+                    _context17.p = 13;
+                    _t30 = _context17.v;
+                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t30.message || String(_t30)));
                   case 14:
-                    return _context14.a(2);
+                    return _context17.a(2);
                 }
-              }, _callee1, null, [[2, 13]]);
+              }, _callee10, null, [[2, 13]]);
             }));
             return function (_x10) {
               return _ref3.apply(this, arguments);
             };
           }();
         case 11:
-          return _context15.a(2);
+          return _context18.a(2);
       }
-    }, _callee10, null, [[4, 9], [1, 3]]);
+    }, _callee11, null, [[4, 9], [1, 3]]);
   }));
   return _pickOfp.apply(this, arguments);
 }
@@ -2236,7 +2428,7 @@ function demo() {
       alert(X('手机里还没有任何 OFP。有网时点 ☰ → 🔄 更新', 'No OFP on the phone yet — tap ☰ → Update when online'));
       return;
     }
-    ls('pin', L.k);
+    _ls('pin', L.k);
   }
   var off = offOf(L),
     t0 = off - 25 * MIN,
@@ -2332,20 +2524,20 @@ function draw() {
     en: 'English',
     both: '中 + EN'
   }[LANG];
-  var u = +(ls('upd') || 0);
+  var u = +(_ls('upd') || 0);
   $('st').textContent = MSG || (u ? X('更新于 ', 'Updated ') + dmZ(u) + ' · ' : '') + hmZ(now) + 'Z · ' + VER();
   var L = pick(now, F);
   CUR = L;
   var lg = F.map(function (l) {
-    return '<div class="lg' + (L && l.k === L.k ? ' on' : '') + '" data-k="' + esc(l.k) + '">' + esc(csOf(l)) + ' · ' + esc(l.ai) + '→' + esc(l.bi) + (l.noOfp ? '' : ' 📄') + ' <small>' + esc(l.no) + ' · ' + dmZ(l.std) + (ls('pin') === l.k ? ' · 📌' : '') + '</small></div>';
-  }).join('') + '<div class="lg" data-k="">🔁 ' + X('自动（按时间选当前航段）', 'Auto (current leg by time)') + (ls('pin') ? '' : ' ✓') + '</div>' + (L ? '<div class="lg" data-k="#cs">✎ ' + X('改呼号', 'Change callsign') + '</div>' : '');
+    return '<div class="lg' + (L && l.k === L.k ? ' on' : '') + '" data-k="' + esc(l.k) + '">' + esc(csOf(l)) + ' · ' + esc(l.ai) + '→' + esc(l.bi) + (l.noOfp ? '' : ' 📄') + ' <small>' + esc(l.no) + ' · ' + dmZ(l.std) + (_ls('pin') === l.k ? ' · 📌' : '') + '</small></div>';
+  }).join('') + '<div class="lg" data-k="">🔁 ' + X('自动（按时间选当前航段）', 'Auto (current leg by time)') + (_ls('pin') ? '' : ' ✓') + '</div>' + (L ? '<div class="lg" data-k="#cs">✎ ' + X('改呼号', 'Change callsign') + '</div>' : '');
   if ($('legs').innerHTML !== lg) $('legs').innerHTML = lg;
   if (!L) {
     ['main', 'row', 'top'].forEach(function (i) {
       return $(i).style.display = 'none';
     });
     $('empty').style.display = 'flex';
-    var eh = !ls('key') && !GH().tok ? '<div>' + X('填口令（和飞行助手里的一样）', 'Password (same as Flight Assist)') + '</div><input id="e-key" type="password" autocomplete="off" style="font-size:18px;padding:8px;width:80%;border:2px solid var(--line);border-radius:8px"><span class="btn" id="e-ok">✓ ' + X('保存并读取', 'Save') + '</span>' : X('还没有航班。', 'No flights yet.') + '<br><span class="btn" id="e-pick">📂 ' + X('选择飞行计划（云端 / 邮箱 / 手机文件）', 'Choose OFP') + '</span><span class="btn" id="e-up">🔄 ' + X('更新', 'Update') + '</span><span class="btn" id="e-set">⚙︎ ' + X('设置', 'Settings') + '</span><div class="ok" id="e-msg"></div>';
+    var eh = !_ls('key') && !GH().tok ? '<div>' + X('填口令（和飞行助手里的一样）', 'Password (same as Flight Assist)') + '</div><input id="e-key" type="password" autocomplete="off" style="font-size:18px;padding:8px;width:80%;border:2px solid var(--line);border-radius:8px"><span class="btn" id="e-ok">✓ ' + X('保存并读取', 'Save') + '</span>' : X('还没有航班。', 'No flights yet.') + '<br><span class="btn" id="e-pick">📂 ' + X('选择飞行计划（云端 / 邮箱 / 手机文件）', 'Choose OFP') + '</span><span class="btn" id="e-up">🔄 ' + X('更新', 'Update') + '</span><span class="btn" id="e-set">⚙︎ ' + X('设置', 'Settings') + '</span><div class="ok" id="e-msg"></div>';
     if ($('empty').dataset.h !== eh) {
       $('empty').dataset.h = eh;
       $('empty').innerHTML = eh;
@@ -2364,7 +2556,7 @@ function draw() {
     if (ek) ek.onclick = function () {
       var v = $('e-key').value.trim();
       if (!v) return;
-      ls('key', v);
+      _ls('key', v);
       MSG = '';
       draw();
       update(false);
@@ -2394,7 +2586,7 @@ function draw() {
     $('fl').innerHTML = fl;
   }
   fitFl();
-  $('rt').innerHTML = '<b class="rr">' + esc(L.ai) + ' → ' + esc(L.bi) + '</b><span class="rc">' + esc(cs) + (ls('cs.' + L.k) ? '✎' : '') + (L.reg ? ' · ' + esc(L.reg) : '') + '</span><b id="phx"></b>';
+  $('rt').innerHTML = '<b class="rr">' + esc(L.ai) + ' → ' + esc(L.bi) + '</b><span class="rc">' + esc(cs) + (_ls('cs.' + L.k) ? '✎' : '') + (L.reg ? ' · ' + esc(L.reg) : '') + '</span><b id="phx"></b>';
   $('ph').style.display = 'none';
   $('phx').textContent = ph === 0 ? off - now > 12 * HOUR ? X('计划 ', 'Planned ') + dmZ(off) : X('起飞前 ', 'T/O in ') + dur((off - now) / MIN) : ph === 1 ? '✈ ' + dur(el) + ' / ' + X('剩 ', 'to go ') + dur(L.tr - el) : X('已落地', 'Landed');
   var P = LS.P ? {
@@ -2533,7 +2725,7 @@ function draw() {
     fresh.forEach(function (a) {
       return FLASHED[ackKey(L, a)] = 1;
     });
-    ls('alclosed', '');
+    _ls('alclosed', '');
     $('alc').classList.add('flash');
     clearTimeout(draw.ft);
     draw.ft = setTimeout(function () {
@@ -2541,7 +2733,7 @@ function draw() {
     }, 15000);
   }
   ALSIG = sig;
-  var closed = ls('alclosed') === sig;
+  var closed = _ls('alclosed') === sig;
   $('alc').style.display = n && !closed ? 'block' : 'none';
   $('warn').style.display = n && closed ? 'block' : 'none';
   $('warn').textContent = '⚠ ' + n;
@@ -2625,9 +2817,9 @@ $('legs').onclick = function (e) {
   $('legs').classList.remove('open');
   if (t.dataset.k === '#cs') {
     var L = CUR;
-    var v = prompt(X('ATC 呼号（例如 UAE2AK；留空 = 用 OFP 上的 ', 'ATC callsign (e.g. UAE2AK; empty = OFP ') + (L.cs || L.no) + '）', ls('cs.' + L.k) || '');
-    if (v !== null) ls('cs.' + L.k, v.trim().toUpperCase().replace(/\s+/g, ''));
-  } else ls('pin', t.dataset.k);
+    var v = prompt(X('ATC 呼号（例如 UAE2AK；留空 = 用 OFP 上的 ', 'ATC callsign (e.g. UAE2AK; empty = OFP ') + (L.cs || L.no) + '）', _ls('cs.' + L.k) || '');
+    if (v !== null) _ls('cs.' + L.k, v.trim().toUpperCase().replace(/\s+/g, ''));
+  } else _ls('pin', t.dataset.k);
   draw();
 };
 $('b-demo').onclick = function () {
@@ -2645,7 +2837,7 @@ $('b-sb').onclick = function () {
 function openShort() {
   var L = CUR;
   if (!L || L.noOfp) return;
-  var h = ls('sb.' + String(L.k).replace(/[^\w.-]/g, '')),
+  var h = _ls('sb.' + String(L.k).replace(/[^\w.-]/g, '')),
     sh = $('sheet');
   sh.innerHTML = '<div style="display:flex;align-items:center;gap:6px"><b style="font-size:16px">📋 ' + XS('简报（简洁版）', 'Short brief') + '</b><span style="flex:1"></span><span class="btn" id="sb-z">🔍</span><span class="btn" id="sb-c">👥 ' + XS('机组简报', 'Crew brief') + '</span><span class="btn" id="sh-x">✕</span></div>' + (h ? '<iframe id="sb-f" style="width:100%;height:calc(100vh - 60px);border:1px solid #999;background:#fff"></iframe>' : '<div class="ok">' + XS('还没有：在 iPad 上打开这一班的 OFP（或 Today Brief），会自动传一份过来；有网时手机自动下载。', 'Not yet — open this OFP / Today Brief on the iPad; it uploads a copy automatically.') + '</div>');
   sh.style.display = 'block';
@@ -2683,7 +2875,7 @@ function crewInfo(L) {
       return 'FL' + x;
     }).join(' / ');
   var cabin = '';
-  var sb = ls('sb.' + String(L.k).replace(/[^\w.-]/g, ''));
+  var sb = _ls('sb.' + String(L.k).replace(/[^\w.-]/g, ''));
   if (sb) {
     var m = /(?:客舱简报|Cabin brief)<\/th>\s*<td>([\s\S]*?)<\/td>/.exec(sb);
     if (m) cabin = m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
@@ -2773,7 +2965,7 @@ $('b-fi').onclick = _asyncToGenerator(_regenerator().m(function _callee2() {
   return _regenerator().w(function (_context2) {
     while (1) switch (_context2.n) {
       case 0:
-        ls('fit', '0');
+        _ls('fit', '0');
         MSG = '⏳ ' + X('下载区域提醒数据库…', 'Downloading Flight Intelligence…');
         draw();
         _context2.n = 1;
@@ -2790,8 +2982,8 @@ $('b-fi').onclick = _asyncToGenerator(_regenerator().m(function _callee2() {
   }, _callee2);
 }));
 $('b-snd').onclick = function () {
-  ls('snd', ls('snd') === 'off' ? 'on' : 'off');
-  if (ls('snd') !== 'off') beep(1, false);
+  _ls('snd', _ls('snd') === 'off' ? 'on' : 'off');
+  if (_ls('snd') !== 'off') beep(1, false);
   draw();
 };
 $('b-gps').onclick = function () {
@@ -2817,7 +3009,7 @@ $('b-upd').onclick = function () {
 $('newb').onclick = function (e) {
   var b = e.target.closest('[data-k]');
   if (b) {
-    ls('pin', b.dataset.k);
+    _ls('pin', b.dataset.k);
     draw();
   }
   $('newb').style.display = 'none';
@@ -2849,7 +3041,7 @@ $('board').onclick = function (e) {
   if (t) openNotams(t.dataset.loc, t.dataset.id);
 };
 $('warn').onclick = function () {
-  ls('alclosed', '');
+  _ls('alclosed', '');
   draw();
 };
 $('wpop').onclick = function (e) {
@@ -2858,7 +3050,7 @@ $('wpop').onclick = function (e) {
 };
 $('wpl').onclick = function (e) {
   if (e.target.closest('[data-more]')) {
-    ls('wpall', ls('wpall') === '1' ? '0' : '1');
+    _ls('wpall', _ls('wpall') === '1' ? '0' : '1');
     draw();
     return;
   }
@@ -2872,7 +3064,7 @@ $('wpl').onclick = function (e) {
   var v = prompt(X('过 ', 'Time over ') + w.dataset.w + X(' 的实际时间（UTC，4 位，例如 0815；留空 = 取消过点修正）', ' (UTC, e.g. 0815; empty = clear)'), hmZ(Date.now()));
   if (v === null) return;
   if (!/^\d{4}$/.test(v.trim())) {
-    ls('ato.' + CUR.k, '');
+    _ls('ato.' + CUR.k, '');
     draw();
     return;
   }
@@ -2881,7 +3073,7 @@ $('wpl').onclick = function (e) {
     }),
     plan = offOf(CUR) + wp[1] * MIN,
     d0 = Date.UTC(new Date(plan).getUTCFullYear(), new Date(plan).getUTCMonth(), new Date(plan).getUTCDate()) + (+v.slice(0, 2) * 60 + +v.slice(2)) * MIN;
-  ls('ato.' + CUR.k, JSON.stringify({
+  _ls('ato.' + CUR.k, JSON.stringify({
     w: wp[0],
     t: [d0 - 864e5, d0, d0 + 864e5].sort(function (a, b) {
       return Math.abs(a - plan) - Math.abs(b - plan);
@@ -2895,7 +3087,7 @@ $('sinfo').onclick = function (e) {
   if (t.dataset.fir) openNotams(t.dataset.fir);else if (t.dataset.nid) openNotams(t.dataset.loc, t.dataset.nid);else if (t.dataset.id) fiDetail(t.dataset.id);
 };
 $('alc-x').onclick = function () {
-  ls('alclosed', ALSIG);
+  _ls('alclosed', ALSIG);
   draw();
 };
 $('alx').onclick = function (e) {
@@ -2907,7 +3099,7 @@ $('alx').onclick = function (e) {
   var a = e.target.closest('.al');
   if (!a) return;
   if (e.target.closest('.ack-b')) {
-    ls(a.dataset.ak, String(Date.now()));
+    _ls(a.dataset.ak, String(Date.now()));
     draw();
     return;
   }
@@ -2931,17 +3123,17 @@ $('zcb').onclick = function () {
 };
 $('zfoc').onclick = function () {
   FOCUS = null;
-  ZOOM = +(ls('zoom') || 700);
+  ZOOM = +(_ls('zoom') || 700);
   draw();
 };
 $('zin').onclick = function () {
   ZOOM = Math.max(150, ZOOM / 1.6);
-  ls('zoom', String(Math.round(ZOOM)));
+  _ls('zoom', String(Math.round(ZOOM)));
   draw();
 };
 $('zout').onclick = function () {
   ZOOM = Math.min(4000, ZOOM * 1.6);
-  ls('zoom', String(Math.round(ZOOM)));
+  _ls('zoom', String(Math.round(ZOOM)));
   draw();
 };
 $('row').addEventListener('click', function (e) {
@@ -2970,7 +3162,7 @@ $('row').addEventListener('click', function (e) {
     if (v === null) return;
     var mm = /^\s*([A-Z0-9]{2,8})\s+(\d{4})\s*$/i.exec(v);
     if (!mm) {
-      ls('ato.' + L.k, '');
+      _ls('ato.' + L.k, '');
       draw();
       return;
     }
@@ -2983,7 +3175,7 @@ $('row').addEventListener('click', function (e) {
     }
     var plan = offOf(L) + w[1] * MIN,
       d0 = Date.UTC(new Date(plan).getUTCFullYear(), new Date(plan).getUTCMonth(), new Date(plan).getUTCDate()) + (+mm[2].slice(0, 2) * 60 + +mm[2].slice(2)) * MIN;
-    ls('ato.' + L.k, JSON.stringify({
+    _ls('ato.' + L.k, JSON.stringify({
       w: w[0],
       t: [d0 - 864e5, d0, d0 + 864e5].sort(function (a, b) {
         return Math.abs(a - plan) - Math.abs(b - plan);
@@ -2995,11 +3187,11 @@ $('row').addEventListener('click', function (e) {
   if (e.target.closest('#c-atd')) {
     var _v = prompt(L.no + X(' 实际起飞 ATD（UTC，4 位，例如 0815；留空 = 按计划）', ' actual T/O time (UTC, e.g. 0815; empty = plan)'), atdOf(L) ? hmZ(atdOf(L)) : '');
     if (_v === null) return;
-    ls('ato.' + L.k, '');
-    if (!/^\d{4}$/.test(_v.trim())) ls('atd.' + L.k, '');else {
+    _ls('ato.' + L.k, '');
+    if (!/^\d{4}$/.test(_v.trim())) _ls('atd.' + L.k, '');else {
       var s = L.std,
         _d = Date.UTC(new Date(s).getUTCFullYear(), new Date(s).getUTCMonth(), new Date(s).getUTCDate()) + (+_v.slice(0, 2) * 60 + +_v.slice(2)) * MIN;
-      ls('atd.' + L.k, String([_d - 864e5, _d, _d + 864e5].sort(function (a, b) {
+      _ls('atd.' + L.k, String([_d - 864e5, _d, _d + 864e5].sort(function (a, b) {
         return Math.abs(a - s) - Math.abs(b - s);
       })[0]));
     }
@@ -3016,7 +3208,7 @@ $('menu').addEventListener('click', function (e) {
 });
 $('b-lang').onclick = function () {
   LANG = LANG === 'both' ? 'zh' : LANG === 'zh' ? 'en' : 'both';
-  ls('lang', LANG);
+  _ls('lang', LANG);
   MSG = '';
   applyLang();
   $('rk').innerHTML = '';
@@ -3040,16 +3232,16 @@ $('b-perm').onclick = function () {
 function permBtn() {
   $('b-perm').style.display = permOk() ? 'none' : '';
   $('b-gps').style.display = gpsPerm() ? 'none' : '';
-  $('b-snd').textContent = (ls('snd') === 'off' ? '🔕 ' : '🔔 ') + XS(ls('snd') === 'off' ? '声音：关' : '声音：开', ls('snd') === 'off' ? 'Sound: off' : 'Sound: on');
+  $('b-snd').textContent = (_ls('snd') === 'off' ? '🔕 ' : '🔔 ') + XS(_ls('snd') === 'off' ? '声音：关' : '声音：开', _ls('snd') === 'off' ? 'Sound: off' : 'Sound: on');
 }
 $('b-mode').onclick = function () {
   MODE = MODE === 'auto' ? 'day' : MODE === 'day' ? 'night' : 'auto';
-  ls('mode', MODE);
+  _ls('mode', MODE);
   draw();
 };
 function openSet() {
-  $('s-key').value = ls('key') || '';
-  $('s-bl').value = ls('blp') || 20;
+  $('s-key').value = _ls('key') || '';
+  $('s-bl').value = _ls('blp') || 20;
   $('s-info').textContent = VER();
   $('set').style.display = 'block';
 }
@@ -3058,8 +3250,8 @@ $('s-x').onclick = function () {
   $('set').style.display = 'none';
 };
 $('s-ok').onclick = function () {
-  ls('key', $('s-key').value.trim());
-  ls('blp', String(Math.max(5, Math.min(30, +$('s-bl').value || 20))));
+  _ls('key', $('s-key').value.trim());
+  _ls('blp', String(Math.max(5, Math.min(30, +$('s-bl').value || 20))));
   lastBL = null;
   $('set').style.display = 'none';
   draw();
@@ -3074,33 +3266,33 @@ function wake() {
   return _wake.apply(this, arguments);
 }
 function _wake() {
-  _wake = _asyncToGenerator(_regenerator().m(function _callee11() {
-    var _t28;
-    return _regenerator().w(function (_context16) {
-      while (1) switch (_context16.p = _context16.n) {
+  _wake = _asyncToGenerator(_regenerator().m(function _callee12() {
+    var _t33;
+    return _regenerator().w(function (_context19) {
+      while (1) switch (_context19.p = _context19.n) {
         case 0:
-          _context16.p = 0;
+          _context19.p = 0;
           if (!('wakeLock' in navigator && document.visibilityState === 'visible' && !wl)) {
-            _context16.n = 2;
+            _context19.n = 2;
             break;
           }
-          _context16.n = 1;
+          _context19.n = 1;
           return navigator.wakeLock.request('screen');
         case 1:
-          wl = _context16.v;
+          wl = _context19.v;
           wl.addEventListener('release', function () {
             wl = null;
           });
         case 2:
-          _context16.n = 4;
+          _context19.n = 4;
           break;
         case 3:
-          _context16.p = 3;
-          _t28 = _context16.v;
+          _context19.p = 3;
+          _t33 = _context19.v;
         case 4:
-          return _context16.a(2);
+          return _context19.a(2);
       }
-    }, _callee11, null, [[0, 3]]);
+    }, _callee12, null, [[0, 3]]);
   }));
   return _wake.apply(this, arguments);
 }
@@ -3128,13 +3320,16 @@ setInterval(function () {
   } catch (e) {}
 }, 60000);
 setTimeout(function () {
-  if (Date.now() - +(ls('upd') || 0) > 10 * MIN || LEGS.some(function (l) {
+  if (Date.now() - +(_ls('upd') || 0) > 10 * MIN || LEGS.some(function (l) {
     return l.sv !== SV;
   })) update(true);
 }, 1500);
 setInterval(function () {
-  if (navigator.onLine && Date.now() - +(ls('upd') || 0) > 5 * MIN) update(true);
+  if (navigator.onLine && Date.now() - +(_ls('upd') || 0) > 2 * MIN) update(true);
 }, 60 * 1000);
+document.addEventListener('visibilitychange', function () {
+  if (document.visibilityState === 'visible' && navigator.onLine && Date.now() - +(_ls('upd') || 0) > 30e3) update(true);
+});
 setTimeout(function () {
   fiSync().then(function () {
     return draw();

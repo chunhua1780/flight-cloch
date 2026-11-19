@@ -193,14 +193,42 @@ function pkgAiRun(_x) {
 }
 function _pkgAiRun() {
   _pkgAiRun = _asyncToGenerator(_regenerator().m(function _callee3(L) {
-    var S, off, j, old;
+    var S, off, k, c, j, old, _t2;
     return _regenerator().w(function (_context3) {
-      while (1) switch (_context3.n) {
+      while (1) switch (_context3.p = _context3.n) {
         case 0:
-          S = pkgSections(L), off = offOf(L);
-          _context3.n = 1;
+          S = pkgSections(L), off = offOf(L), k = String(L.k).replace(/[^\w.-]/g, '');
+          if (pkgAiRun.force) {
+            _context3.n = 5;
+            break;
+          }
+          _context3.p = 1;
+          _context3.n = 2;
+          return postK({
+            action: 'pkgaiget',
+            k: k
+          });
+        case 2:
+          c = _context3.v;
+          if (!(c && c.ok && c.d && c.d.secs && Object.keys(c.d.secs).filter(function (id) {
+            return c.d.secs[id].points.length;
+          }).length >= S.length / 2)) {
+            _context3.n = 3;
+            break;
+          }
+          ls('pkgai.' + k, JSON.stringify(c.d));
+          return _context3.a(2, c.d);
+        case 3:
+          _context3.n = 5;
+          break;
+        case 4:
+          _context3.p = 4;
+          _t2 = _context3.v;
+        case 5:
+          _context3.n = 6;
           return postK({
             action: 'pkgai',
+            k: k,
             flight: {
               no: L.no,
               dep: L.dep,
@@ -219,14 +247,14 @@ function _pkgAiRun() {
               };
             })
           });
-        case 1:
+        case 6:
           j = _context3.v;
           if (!(!j || !j.ok)) {
-            _context3.n = 2;
+            _context3.n = 7;
             break;
           }
           throw new Error(j && j.error || 'AI');
-        case 2:
+        case 7:
           old = pkgAiGet(L);
           if (old && old.secs) Object.keys(old.secs).forEach(function (id) {
             if ((!j.secs[id] || !j.secs[id].points.length) && old.secs[id].points.length) j.secs[id] = old.secs[id];
@@ -234,7 +262,7 @@ function _pkgAiRun() {
           ls('pkgai.' + String(L.k).replace(/[^\w.-]/g, ''), JSON.stringify(j));
           return _context3.a(2, j);
       }
-    }, _callee3);
+    }, _callee3, null, [[1, 4]]);
   }));
   return _pkgAiRun.apply(this, arguments);
 }
@@ -295,6 +323,7 @@ function openPkg() {
     return _regenerator().w(function (_context) {
       while (1) switch (_context.p = _context.n) {
         case 0:
+          pkgAiRun.force = !!pkgAiGet(L);
           $('pk-st').textContent = '⏳ ' + XS('AI 正在逐段整理（30–90 秒）…', 'AI rewriting (30–90 s)…');
           _context.p = 1;
           _context.n = 2;
@@ -335,7 +364,7 @@ function pkgUpload(_x2, _x3) {
 }
 function _pkgUpload() {
   _pkgUpload = _asyncToGenerator(_regenerator().m(function _callee4(L, force) {
-    var k, j, _t2, _t3;
+    var k, j, _t3, _t4;
     return _regenerator().w(function (_context4) {
       while (1) switch (_context4.p = _context4.n) {
         case 0:
@@ -364,7 +393,7 @@ function _pkgUpload() {
           break;
         case 4:
           _context4.p = 4;
-          _t2 = _context4.v;
+          _t3 = _context4.v;
         case 5:
           _context4.p = 5;
           _context4.n = 6;
@@ -386,7 +415,7 @@ function _pkgUpload() {
           break;
         case 8:
           _context4.p = 8;
-          _t3 = _context4.v;
+          _t4 = _context4.v;
         case 9:
           return _context4.a(2, false);
       }
