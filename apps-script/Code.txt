@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20d';
+const BACKEND_VER = '2026-11-20e';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -122,6 +122,12 @@ function postJson_(text) {
   if (j.action === 'pkgget') return JSON.stringify(pkgGet_(j));
   // 简报包「说人话」：每一部分交给 AI 整理成一句一句的中文要点（代号、数字都要和原文对得上）
   if (j.action === 'pkgai') return JSON.stringify(pkgAi_(j));
+  // 诊断：每个 AI 模型回答一句话要多久
+  if (j.action === 'gemtest') { const props = PropertiesService.getScriptProperties(), key = props.getProperty('GEMINI_KEY') || GEMINI_KEY_INLINE, out = [];
+    [props.getProperty('GEMINI_MODEL') || 'gemini-3.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-2.5-flash', 'gemini-2.5-flash-lite'].forEach(function (m) { const t0 = Date.now();
+      try { const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent', { method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': key }, muteHttpExceptions: true, payload: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'Reply OK' }] }] }) });
+        out.push({ m: m, code: r.getResponseCode(), ms: Date.now() - t0, msg: r.getResponseCode() === 200 ? '' : r.getContentText().slice(0, 160) }); } catch (e) { out.push({ m: m, err: String(e).slice(0, 120), ms: Date.now() - t0 }); } });
+    return JSON.stringify({ ok: true, models: out }); }
   if (!j.digits || !j.date || !j.depIata || !j.arrIata) return '❌ 缺少航班信息';
   const props = PropertiesService.getScriptProperties();
   const key = 'plan_' + String(j.digits).replace(/^0+/, '') + j.depIata + j.arrIata + j.date;
