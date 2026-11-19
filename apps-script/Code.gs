@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20s';
+const BACKEND_VER = '2026-11-20t';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -122,6 +122,8 @@ function postJson_(text) {
   if (j.action === 'pkgget') return JSON.stringify(pkgGet_(j));
   // 这一班的共享状态（ATD、实际 ZFW、呼号、过点时间）：手机、iPad、家里的时钟共用；每个字段按「最新的赢」合并
   if (j.action === 'stput') return JSON.stringify(stPut_(j));
+  // 测试：用一份 PDF 试「AI 从 PDF 读出全部通告」（不存任何东西）
+  if (j.action === 'aofptest') { const d = aofpRead_(Utilities.base64Decode(j.b64)); return JSON.stringify({ ok: !!d.d, err: d.err, n: d.nt.length, flight: d.d && d.d.flight, date: d.d && d.d.date, std: d.d && d.d.std_utc, sample: d.nt.slice(0, 5) }); }
   // 简报包 AI 要点：存云端，其它设备直接用，不再花 AI
   if (j.action === 'pkgaiget') { const k = String(j.k || '').replace(/[^\w.-]/g, ''), g = gh_('get', 'ofpdata/' + k + '.pkgai.json'); if (!g || g.code !== 200 || !g.j) return JSON.stringify({ ok: false });
     try { return JSON.stringify({ ok: true, d: JSON.parse(Utilities.newBlob(Utilities.base64Decode(g.j.content)).getDataAsString('UTF-8')) }); } catch (e) { return JSON.stringify({ ok: false }); } }
@@ -1566,13 +1568,10 @@ function autoOfp_() {
   try {
     let have = x.k ? cloudIdx_().idx.find(function (e) { return e.k === x.k; }) : null;
     if (!(have && have.tr)) {   // 云端还没有这一班的译文：AI 读 PDF
-      const prompt = 'This PDF is an Emirates LIDO operational flight plan (OFP) briefing package. Extract EVERY NOTAM in it (departure, destination, alternates, en-route airports and FIRs). '
-        + 'If this PDF is NOT an operational flight plan, return {"not_ofp":true}. Copy each NOTAM text exactly as printed (do not translate, shorten or correct it). Return JSON {"flight":"e.g. EK0368","date":"DDMMM e.g. 20NOV","dep":"IATA","arr":"IATA","std_utc":"YYYY-MM-DDTHH:MMZ or empty","notams":[{"id":"NOTAM number exactly as printed, e.g. A1234/26","loc":"4-letter ICAO the NOTAM belongs to","text":"full NOTAM text"}]}.';
-      const body = { contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: 'application/pdf', data: Utilities.base64Encode(x.a.getBytes()) } }] }], generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 65000 } };
-      const g = gemCall_(body, ['gemini-flash-lite-latest']); let d = null; try { d = JSON.parse(g.out); } catch (e) {}
+      const rd = aofpRead_(x.a.getBytes()), g = { ok: !rd.err, error: rd.err }; let d = rd.d;
       if (d && !x.k && d.flight && d.date) { x.no = String(d.flight).toUpperCase().replace(/\s/g, ''); x.date = String(d.date).toUpperCase(); x.dep = d.dep || ''; x.arr = d.arr || ''; x.k = (x.no + x.date).replace(/[^\w.-]/g, ''); }
       if (!x.k) d = null;
-      const nt = d && Array.isArray(d.notams) ? d.notams.filter(function (n) { return n && n.id && n.text && String(n.text).length > 10; }).map(function (n) { return [String(n.id).trim(), String(n.text)]; }) : [];
+      const nt = d ? rd.nt : [];
       if (nt.length && !have) have = cloudIdx_().idx.find(function (e) { return e.k === x.k; });
       if (nt.length) { trQueue_(x.k, nt);
         const std = d.std_utc ? Date.parse(d.std_utc) : 0;
@@ -1582,4 +1581,13 @@ function autoOfp_() {
     }
     done.push(x.id); pr.setProperty('aofp_done', JSON.stringify(done.slice(-60)));
   } finally { pr.setProperty('aofp_busy', '0'); }
+}
+
+function aofpRead_(bytes) {
+      const prompt = 'This PDF is an Emirates LIDO operational flight plan (OFP) briefing package. Extract EVERY NOTAM in it (departure, destination, alternates, en-route airports and FIRs). '
+        + 'If this PDF is NOT an operational flight plan, return {"not_ofp":true}. Copy each NOTAM text exactly as printed (do not translate, shorten or correct it). Return JSON {"flight":"e.g. EK0368","date":"DDMMM e.g. 20NOV","dep":"IATA","arr":"IATA","std_utc":"YYYY-MM-DDTHH:MMZ or empty","notams":[{"id":"NOTAM number exactly as printed, e.g. A1234/26","loc":"4-letter ICAO the NOTAM belongs to","text":"full NOTAM text"}]}.';
+      const body = { contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: 'application/pdf', data: Utilities.base64Encode(bytes) } }] }], generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 65000 } };
+      const g = gemCall_(body, ['gemini-flash-lite-latest']); let d = null; try { d = JSON.parse(g.out); } catch (e) {}
+  const nt = d && Array.isArray(d.notams) ? d.notams.filter(function (n) { return n && n.id && n.text && String(n.text).length > 10; }).map(function (n) { return [String(n.id).trim(), String(n.text)]; }) : [];
+  return { d: d && !d.not_ofp ? d : null, nt: nt, err: g.ok ? '' : g.error };
 }
