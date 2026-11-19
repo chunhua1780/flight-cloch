@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20v';
+const BACKEND_VER = '2026-11-20w';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -123,7 +123,7 @@ function postJson_(text) {
   // 这一班的共享状态（ATD、实际 ZFW、呼号、过点时间）：手机、iPad、家里的时钟共用；每个字段按「最新的赢」合并
   if (j.action === 'stput') return JSON.stringify(stPut_(j));
   // 测试：用一份 PDF 试「AI 从 PDF 读出全部通告」（不存任何东西）
-  if (j.action === 'aofptest') { const d = aofpRead_(Utilities.base64Decode(j.b64)); return JSON.stringify({ ok: !!d.d, err: d.err, groups: d.groups, locs: d.d && d.d.locs, n: d.nt.length, flight: d.d && d.d.flight, date: d.d && d.d.date, std: d.d && d.d.std_utc, sample: d.nt.slice(0, 5) }); }
+  if (j.action === 'aofptest') { const d = aofpRead_(Utilities.base64Decode(j.b64)); return JSON.stringify({ ok: !!d.d, err: d.err, dbg: d.dbg, groups: d.groups, locs: d.d && d.d.locs, n: d.nt.length, flight: d.d && d.d.flight, date: d.d && d.d.date, std: d.d && d.d.std_utc, sample: d.nt.slice(0, 5) }); }
   // 简报包 AI 要点：存云端，其它设备直接用，不再花 AI
   if (j.action === 'pkgaiget') { const k = String(j.k || '').replace(/[^\w.-]/g, ''), g = gh_('get', 'ofpdata/' + k + '.pkgai.json'); if (!g || g.code !== 200 || !g.j) return JSON.stringify({ ok: false });
     try { return JSON.stringify({ ok: true, d: JSON.parse(Utilities.newBlob(Utilities.base64Decode(g.j.content)).getDataAsString('UTF-8')) }); } catch (e) { return JSON.stringify({ ok: false }); } }
@@ -1595,9 +1595,9 @@ function aofpRead_(bytes) {
   const keys = gemKeys_(), reqs = groups.map(function (g, i) { const body = { contents: [{ role: 'user', parts: [{ text: 'From this OFP PDF, extract ONLY the NOTAMs that belong to these locations: ' + g.join(', ') + '. Copy each NOTAM text exactly as printed (do not translate, shorten or correct). Return JSON {"notams":[{"id":"NOTAM number exactly as printed","loc":"ICAO","text":"full NOTAM text"}]}.' }, pdf] }], generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 30000 } };
     return { body: body, req: gemReq_(M[0], keys[i % keys.length], body) }; });
   let rs = []; try { rs = UrlFetchApp.fetchAll(reqs.map(function (r) { return r.req; })); } catch (e) { rs = []; }
-  const nt = [], seen = {};
-  reqs.forEach(function (r, i) { let out = rs[i] && rs[i].getResponseCode() === 200 ? gemText_(rs[i]) : ''; if (!out) { const g = gemCall_(r.body, M); out = g.ok ? g.out : ''; }
+  const nt = [], seen = {}, dbg = [];
+  reqs.forEach(function (r, i) { let out = rs[i] && rs[i].getResponseCode() === 200 ? gemText_(rs[i]) : ''; dbg.push((rs[i] ? rs[i].getResponseCode() : 'x') + ' ' + (out ? out.slice(0, 160) : (rs[i] ? rs[i].getContentText().slice(0, 200) : ''))); if (!out) { const g = gemCall_(r.body, M); out = g.ok ? g.out : ''; dbg.push('retry ' + (g.ok ? g.out.slice(0, 120) : g.error)); }
     let x = null; try { x = JSON.parse(out); } catch (e) {}
     ((x && x.notams) || []).forEach(function (q) { if (!q || !q.id || !q.text || String(q.text).length < 10) return; const id = String(q.id).trim(); if (seen[id]) return; seen[id] = 1; nt.push([id, String(q.text)]); }); });
-  return { d: d, nt: nt, err: nt.length ? '' : 'no NOTAMs extracted', groups: groups.length };
+  return { d: d, nt: nt, err: nt.length ? '' : 'no NOTAMs extracted', groups: groups.length, dbg: dbg };
 }
