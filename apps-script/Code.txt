@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20t';
+const BACKEND_VER = '2026-11-20u';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1587,7 +1587,7 @@ function aofpRead_(bytes) {
       const prompt = 'This PDF is an Emirates LIDO operational flight plan (OFP) briefing package. Extract EVERY NOTAM in it (departure, destination, alternates, en-route airports and FIRs). '
         + 'If this PDF is NOT an operational flight plan, return {"not_ofp":true}. Copy each NOTAM text exactly as printed (do not translate, shorten or correct it). Return JSON {"flight":"e.g. EK0368","date":"DDMMM e.g. 20NOV","dep":"IATA","arr":"IATA","std_utc":"YYYY-MM-DDTHH:MMZ or empty","notams":[{"id":"NOTAM number exactly as printed, e.g. A1234/26","loc":"4-letter ICAO the NOTAM belongs to","text":"full NOTAM text"}]}.';
       const body = { contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: 'application/pdf', data: Utilities.base64Encode(bytes) } }] }], generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 65000 } };
-      const g = gemCall_(body, ['gemini-flash-lite-latest']); let d = null; try { d = JSON.parse(g.out); } catch (e) {}
+      const g = gemCall_(body, ['gemini-flash-lite-latest', gemModels_()[0]]);   /* 快的模型忙：换主力模型 */ let d = null; try { d = JSON.parse(g.out); } catch (e) {}
   const nt = d && Array.isArray(d.notams) ? d.notams.filter(function (n) { return n && n.id && n.text && String(n.text).length > 10; }).map(function (n) { return [String(n.id).trim(), String(n.text)]; }) : [];
   return { d: d && !d.not_ofp ? d : null, nt: nt, err: g.ok ? '' : g.error };
 }
