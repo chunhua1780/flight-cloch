@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20n';
+const BACKEND_VER = '2026-11-20o';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1118,9 +1118,9 @@ const gemOut_ = function (m, k) { return CacheService.getScriptCache().get('gq_'
 const gemMark_ = function (m, k, sec) { CacheService.getScriptCache().put('gq_' + m + '_' + hash_(k), '1', sec || 3600); };
 function gemReq_(m, k, body) { return { url: 'https://generativelanguage.googleapis.com/v1beta/models/' + m + ':generateContent', method: 'post', contentType: 'application/json', headers: { 'x-goog-api-key': k }, muteHttpExceptions: true, payload: JSON.stringify(body) }; }
 function gemText_(r) { try { const d = JSON.parse(r.getContentText()), c = d.candidates && d.candidates[0]; return c && c.content && c.content.parts ? c.content.parts.map(function (p) { return p.text || ''; }).join('').trim() : ''; } catch (e) { return ''; } }
-function gemCall_(body) {
+function gemCall_(body, only) {
   const keys = gemKeys_(); if (!keys.length) return { ok: false, error: 'no GEMINI_KEY' }; let last = '';
-  const models = gemModels_();
+  const models = only || gemModels_();
   for (let mi = 0; mi < models.length; mi++) for (let ki = 0; ki < keys.length; ki++) {
     const m = models[mi], k = keys[ki]; if (gemOut_(m, k)) { last = m + ' quota'; continue; }
     let r; try { r = UrlFetchApp.fetch(gemReq_(m, k, body).url, gemReq_(m, k, body)); } catch (e) { last = m + ' ' + e; continue; }
@@ -1137,16 +1137,18 @@ function gemini_(prompt, json, temp) {
 }
 function geminiParts_(parts, json) { const body = { contents: [{ role: 'user', parts: parts }], generationConfig: { temperature: 0 } }; if (json) body.generationConfig.responseMimeType = 'application/json'; return gemCall_(body); }
 // 一次发很多：分给几个 Key 同时跑（每个 Key 都没额度时用 flash-lite）
-function geminiAll_(prompts, json) {
+function geminiAll_(prompts, json, only) {
   const keys = gemKeys_(); if (!keys.length || !prompts.length) return prompts.map(function () { return { ok: false }; });
-  const M = gemModels_(), ok = []; M.forEach(function (m) { keys.forEach(function (k) { if (!gemOut_(m, k)) ok.push([m, k]); }); });
-  const slots = ok.filter(function (x) { return x[0] === (ok[0] || [])[0]; }); if (!slots.length) return prompts.map(function (p) { return gemini_(p, json, 0); });
+  const M = only || gemModels_(), ok = []; M.forEach(function (m) { keys.forEach(function (k) { if (!gemOut_(m, k)) ok.push([m, k]); }); });
+  const slots = ok.filter(function (x) { return x[0] === (ok[0] || [])[0]; });
+  const one = function (p) { const body = { contents: [{ role: 'user', parts: [{ text: p }] }], generationConfig: { temperature: 0 } }; if (json) body.generationConfig.responseMimeType = 'application/json'; return gemCall_(body, only); };
+  if (!slots.length) return prompts.map(one);
   const reqs = prompts.map(function (p, i) { const body = { contents: [{ role: 'user', parts: [{ text: p }] }], generationConfig: { temperature: 0 } }; if (json) body.generationConfig.responseMimeType = 'application/json'; const sl = slots[i % slots.length]; return gemReq_(sl[0], sl[1], body); });
   let rs = []; try { rs = UrlFetchApp.fetchAll(reqs); } catch (e) { rs = []; }
   return prompts.map(function (p, i) { const r = rs[i], sl = slots[i % slots.length];
     if (r && r.getResponseCode() === 200) { const out = gemText_(r); if (out) return { ok: true, out: out, model: sl[0] }; }
     if (r && r.getResponseCode() === 429) gemMark_(sl[0], sl[1], /PerDay|per day/i.test(r.getContentText()) ? 3 * 3600 : 70); if (r && (r.getResponseCode() === 503 || r.getResponseCode() === 500)) gemMark_(sl[0], sl[1], 600);
-    return gemini_(p, json, 0); });
+    return one(p); });
 }
 // 原文里的代号（跑道、滑行道、频率、时间…）翻译后必须都还在；滑行道不能变成跑道
 function trOk_(src, zh) {
@@ -1487,7 +1489,8 @@ function pkgAi_(j) {
       + '\n输出 JSON：{"secs":{"部分的id":{"points":[{"t":"…","lv":"red|amber|info"}]}}}，每个 id 都要有，没有值得说的就给空数组。\n'
       + g.map(function (x) { return '\n===== id=' + x.id + ' · ' + x.title + (x.when ? '（本航班约 ' + x.when + '）' : '') + ' =====\n' + x.text; }).join('');
   });
-  const outs = geminiAll_(prompts, true), res = {};
+  const LITE = ['gemini-flash-lite-latest'];   // 简报整理用快的模型（几秒一段）
+  const outs = geminiAll_(prompts, true, LITE), res = {};
   groups.forEach(function (g, gi) {
     let M = {}; try { M = JSON.parse(outs[gi] && outs[gi].ok ? outs[gi].out : '{}').secs || {}; } catch (e) {}
     g.forEach(function (x) { const P = (M[x.id] && M[x.id].points) || [], src = secs.find(function (s0) { return s0.id === x.id; }).text;
@@ -1496,7 +1499,7 @@ function pkgAi_(j) {
   });
   // 第二遍：空着回来、但资料里明明有跑道 / 导航 / GPS / 空域内容的部分，每部分单独再问一次
   const again = secs.filter(function (x) { const r = res[x.id]; return r && !r.points.length && (!r.ok || 1) && /RWY|TWY|VOR|ILS|DME|GNSS|GPS|CLSD|U\/S|DANGER|RESTRICTED|PROHIBITED|规定|Rule|OFP 提醒/i.test(x.text); }).slice(0, 14);
-  if (again.length) { const o2 = geminiAll_(again.map(function (x) { const gi = groups.findIndex(function (g) { return g.some(function (y) { return y.id === x.id; }); }); return prompts[gi].split('\n===== id=')[0] + '\n===== id=' + x.id + ' · ' + x.title + (x.when ? '（本航班约 ' + x.when + '）' : '') + ' =====\n' + String(x.text).slice(0, 14000); }), true);
+  if (again.length) { const o2 = geminiAll_(again.map(function (x) { const gi = groups.findIndex(function (g) { return g.some(function (y) { return y.id === x.id; }); }); return prompts[gi].split('\n===== id=')[0] + '\n===== id=' + x.id + ' · ' + x.title + (x.when ? '（本航班约 ' + x.when + '）' : '') + ' =====\n' + String(x.text).slice(0, 14000); }), true, LITE);
     again.forEach(function (x, i) { let M = {}; try { M = JSON.parse(o2[i] && o2[i].ok ? o2[i].out : '{}').secs || {}; } catch (e) {} const P = (M[x.id] && M[x.id].points) || [];
       const kept = P.filter(function (p) { return p && pkgPointOk_(x.text, String(p.t || '')); }).slice(0, 10).map(function (p) { return { t: String(p.t), lv: /^(red|amber|info)$/.test(p.lv) ? p.lv : 'info' }; });
       if (kept.length) res[x.id] = { points: kept, dropped: P.length - kept.length, ok: true, retry: 1 }; }); }
