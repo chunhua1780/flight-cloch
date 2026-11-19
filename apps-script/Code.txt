@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20c';
+const BACKEND_VER = '2026-11-20d';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1471,18 +1471,24 @@ function pkgPointOk_(src, t) {
 function pkgAi_(j) {
   const secs = (j.secs || []).filter(function (x) { return x && x.id && x.text; }).slice(0, 40), F = j.flight || {};
   const ctx = '本航班：' + (F.no || '') + ' ' + (F.dep || '') + '→' + (F.arr || '') + '，起飞 ' + (F.off || '') + '，到达 ' + (F.eta || '') + '（UTC）。';
-  const prompts = secs.map(function (x) {
-    return '你是阿联酋航空 B777 的资深机长，给同组机组做航前简报。' + ctx + '\n下面是「' + x.title + '」这一部分的原始资料（OFP 提醒、航行通告、天气、公司规定）' + (x.when ? '，本航班大约 ' + x.when + ' 经过这里' : '') + '。\n'
-      + '请用简单、口语化但专业的中文整理成要点，让人一眼看懂：\n- 每条一句话，不超过 40 个字：什么、在哪、什么时候、对我们有什么影响、要做什么。\n'
+  // 几个部分合成一批（每批约 35000 字，最多 4 批），减少同时请求，避免免费额度的每分钟上限
+  const groups = []; let cur = [], n = 0;
+  secs.forEach(function (x) { const t = String(x.text).slice(0, 14000); if (cur.length && n + t.length > 35000) { groups.push(cur); cur = []; n = 0; } cur.push({ id: x.id, title: x.title, when: x.when || '', text: t }); n += t.length; });
+  if (cur.length) groups.push(cur);
+  const prompts = groups.map(function (g) {
+    return '你是阿联酋航空 B777 的资深机长，给同组机组做航前简报。' + ctx + '\n下面有几个部分（起飞、途经的各个情报区、到达、备降），每部分是原始资料（OFP 提醒、航行通告、天气、公司规定）。\n'
+      + '请把每一部分分别用简单、口语化但专业的中文整理成要点，让人一眼看懂：\n- 每条一句话，不超过 40 个字：什么、在哪、什么时候、对我们有什么影响、要做什么。\n'
       + '- 只留和本航班有关、有影响的；时间和本航班不重叠的、停机位 / 机坪小事、对 B777 没影响的不要写。跑道 / 滑行道关闭、导航设施坏了、空域限制、天气、规定要做的动作都要写。\n'
-      + '- 代号、跑道号、频率、高度、时间必须和原文完全一样，绝对不能编；滑行道不能说成跑道。\n- 按重要性排序。lv：red = 会影响运行、必须注意；amber = 注意；info = 知道就行。最多 12 条。' + AVZ_
-      + '\n输出 JSON：{"points":[{"t":"…","lv":"red|amber|info"}]}；没有值得说的就输出 {"points":[]}。\n原始资料：\n' + String(x.text).slice(0, 60000);
+      + '- 代号、跑道号、频率、高度、时间必须和原文完全一样，绝对不能编；滑行道不能说成跑道。\n- 每部分按重要性排序，最多 10 条。lv：red = 会影响运行、必须注意；amber = 注意；info = 知道就行。' + AVZ_
+      + '\n输出 JSON：{"secs":{"部分的id":{"points":[{"t":"…","lv":"red|amber|info"}]}}}，每个 id 都要有，没有值得说的就给空数组。\n'
+      + g.map(function (x) { return '\n===== id=' + x.id + ' · ' + x.title + (x.when ? '（本航班约 ' + x.when + '）' : '') + ' =====\n' + x.text; }).join('');
   });
   const outs = geminiAll_(prompts, true), res = {};
-  secs.forEach(function (x, i) {
-    let P = []; try { P = JSON.parse(outs[i] && outs[i].ok ? outs[i].out : '{}').points || []; } catch (e) {}
-    const kept = P.filter(function (p) { return p && pkgPointOk_(x.text, String(p.t || '')); }).slice(0, 12).map(function (p) { return { t: String(p.t), lv: /^(red|amber|info)$/.test(p.lv) ? p.lv : 'info' }; });
-    res[x.id] = { points: kept, dropped: P.length - kept.length, ok: !!(outs[i] && outs[i].ok) };
+  groups.forEach(function (g, gi) {
+    let M = {}; try { M = JSON.parse(outs[gi] && outs[gi].ok ? outs[gi].out : '{}').secs || {}; } catch (e) {}
+    g.forEach(function (x) { const P = (M[x.id] && M[x.id].points) || [], src = secs.find(function (s0) { return s0.id === x.id; }).text;
+      const kept = P.filter(function (p) { return p && pkgPointOk_(src, String(p.t || '')); }).slice(0, 10).map(function (p) { return { t: String(p.t), lv: /^(red|amber|info)$/.test(p.lv) ? p.lv : 'info' }; });
+      res[x.id] = { points: kept, dropped: P.length - kept.length, ok: !!M[x.id] }; });
   });
   return { ok: true, secs: res, t: Date.now() };
 }
