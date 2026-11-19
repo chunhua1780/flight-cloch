@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20x';
+const BACKEND_VER = '2026-11-20z';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1214,6 +1214,7 @@ function translate_(j) {
 // 收到新 OFP 的通告清单：排队，由每分钟的定时任务在后台翻译（不用等 iPad 打开）
 function trQueue_(k, nt) {
   if (!k || !Array.isArray(nt) || !nt.length) return;
+  try { const g0 = gh_('get', 'ofpdata/' + k + '.nq.json'); if (g0 && g0.code === 200 && g0.j) { const old = JSON.parse(Utilities.newBlob(Utilities.base64Decode(g0.j.content)).getDataAsString('UTF-8')), ids = {}; nt.forEach(function (n) { ids[n[0]] = 1; }); old.forEach(function (n) { if (!ids[n[0]]) nt.push(n); }); } } catch (e) {}   // 和已经排队的合起来
   ghPut_('ofpdata/' + k + '.nq.json', Utilities.base64Encode(JSON.stringify(nt.slice(0, 600).map(function (n) { return [String(n[0]), String(n[1]).slice(0, 4500)]; })), Utilities.Charset.UTF_8), 'nq ' + k);
   const pr = PropertiesService.getScriptProperties(); let q = []; try { q = JSON.parse(pr.getProperty('trq') || '[]'); } catch (e) {}
   if (q.indexOf(k) < 0) q.push(k); pr.setProperty('trq', JSON.stringify(q.slice(-10)));
@@ -1570,11 +1571,13 @@ function autoOfp_() {
       else if (/OFP|LIDO|FLIGHT\s?PLAN|FLT\s?PLAN|BRIEF|EK\s?-?\d{3,4}|UAE\s?\d/i.test(name + ' ' + (m.getSubject() || ''))) cand.push({ id: id, a: a, k: '' });   /* 文件名不是 Lido 格式：航班号、日期让 AI 从 PDF 里读 */
     }); }); });
   if (!cand.length) return;
-  const x = cand[0]; pr.setProperty('aofp_busy', String(now));
+  const x = cand[0]; pr.setProperty('aofp_busy', String(now)); let rdWant = 0, nRead = 0;
   try {
     let have = x.k ? cloudIdx_().idx.find(function (e) { return e.k === x.k; }) : null;
-    if (!(have && have.tr)) {   // 云端还没有这一班的译文：AI 读 PDF
+    let tries = {}; try { tries = JSON.parse(pr.getProperty('aofp_try') || '{}'); } catch (e) {}
+    if (!(have && have.tr) || tries[x.id]) {   // 云端还没有这一班的译文（或者上次读得不全）：AI 读 PDF
       const rd = aofpRead_(x.a.getBytes()), g = { ok: !rd.err, error: rd.err }; let d = rd.d;
+      rdWant = rd.d && rd.d.locs ? rd.d.locs.reduce(function (a, l) { return a + (+l.n || 0); }, 0) : 0; nRead = rd.nt.length;
       if (d && !x.k && d.flight && d.date) { x.no = String(d.flight).toUpperCase().replace(/\s/g, ''); x.date = String(d.date).toUpperCase(); x.dep = d.dep || ''; x.arr = d.arr || ''; x.k = (x.no + x.date).replace(/[^\w.-]/g, ''); }
       if (!x.k) d = null;
       const nt = d ? rd.nt : [];
@@ -1585,7 +1588,10 @@ function autoOfp_() {
         else cloudIdxSave_(cloudIdx_(), { k: x.k, mailAi: nt.length }); }
       pr.setProperty('aofp_last', JSON.stringify({ t: now, k: x.k, notams: nt.length, err: g.ok ? '' : g.error }).slice(0, 500));
     }
-    done.push(x.id); pr.setProperty('aofp_done', JSON.stringify(done.slice(-60)));
+    // 读到的太少（AI 忙）：5 分钟后再试，最多 4 次；已经读到的会合并
+    const want = rdWant;
+    if (want && nRead < want * 0.7 && (tries[x.id] || 0) < 3) { tries[x.id] = (tries[x.id] || 0) + 1; pr.setProperty('aofp_try', JSON.stringify(tries)); }
+    else { done.push(x.id); pr.setProperty('aofp_done', JSON.stringify(done.slice(-60))); }
   } finally { pr.setProperty('aofp_busy', '0'); }
 }
 
