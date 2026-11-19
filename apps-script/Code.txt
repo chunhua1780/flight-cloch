@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20u';
+const BACKEND_VER = '2026-11-20v';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -123,7 +123,7 @@ function postJson_(text) {
   // 这一班的共享状态（ATD、实际 ZFW、呼号、过点时间）：手机、iPad、家里的时钟共用；每个字段按「最新的赢」合并
   if (j.action === 'stput') return JSON.stringify(stPut_(j));
   // 测试：用一份 PDF 试「AI 从 PDF 读出全部通告」（不存任何东西）
-  if (j.action === 'aofptest') { const d = aofpRead_(Utilities.base64Decode(j.b64)); return JSON.stringify({ ok: !!d.d, err: d.err, n: d.nt.length, flight: d.d && d.d.flight, date: d.d && d.d.date, std: d.d && d.d.std_utc, sample: d.nt.slice(0, 5) }); }
+  if (j.action === 'aofptest') { const d = aofpRead_(Utilities.base64Decode(j.b64)); return JSON.stringify({ ok: !!d.d, err: d.err, groups: d.groups, locs: d.d && d.d.locs, n: d.nt.length, flight: d.d && d.d.flight, date: d.d && d.d.date, std: d.d && d.d.std_utc, sample: d.nt.slice(0, 5) }); }
   // 简报包 AI 要点：存云端，其它设备直接用，不再花 AI
   if (j.action === 'pkgaiget') { const k = String(j.k || '').replace(/[^\w.-]/g, ''), g = gh_('get', 'ofpdata/' + k + '.pkgai.json'); if (!g || g.code !== 200 || !g.j) return JSON.stringify({ ok: false });
     try { return JSON.stringify({ ok: true, d: JSON.parse(Utilities.newBlob(Utilities.base64Decode(g.j.content)).getDataAsString('UTF-8')) }); } catch (e) { return JSON.stringify({ ok: false }); } }
@@ -1584,10 +1584,20 @@ function autoOfp_() {
 }
 
 function aofpRead_(bytes) {
-      const prompt = 'This PDF is an Emirates LIDO operational flight plan (OFP) briefing package. Extract EVERY NOTAM in it (departure, destination, alternates, en-route airports and FIRs). '
-        + 'If this PDF is NOT an operational flight plan, return {"not_ofp":true}. Copy each NOTAM text exactly as printed (do not translate, shorten or correct it). Return JSON {"flight":"e.g. EK0368","date":"DDMMM e.g. 20NOV","dep":"IATA","arr":"IATA","std_utc":"YYYY-MM-DDTHH:MMZ or empty","notams":[{"id":"NOTAM number exactly as printed, e.g. A1234/26","loc":"4-letter ICAO the NOTAM belongs to","text":"full NOTAM text"}]}.';
-      const body = { contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: 'application/pdf', data: Utilities.base64Encode(bytes) } }] }], generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 65000 } };
-      const g = gemCall_(body, ['gemini-flash-lite-latest', gemModels_()[0]]);   /* 快的模型忙：换主力模型 */ let d = null; try { d = JSON.parse(g.out); } catch (e) {}
-  const nt = d && Array.isArray(d.notams) ? d.notams.filter(function (n) { return n && n.id && n.text && String(n.text).length > 10; }).map(function (n) { return [String(n.id).trim(), String(n.text)]; }) : [];
-  return { d: d && !d.not_ofp ? d : null, nt: nt, err: g.ok ? '' : g.error };
+  const pdf = { inline_data: { mime_type: 'application/pdf', data: Utilities.base64Encode(bytes) } }, M = ['gemini-flash-lite-latest', gemModels_()[0]];
+  // 第一步：航班信息 + 哪些地点有通告、各几条（回答很短）
+  const p1 = 'This PDF should be an Emirates LIDO operational flight plan (OFP) briefing package. If it is NOT, return {"not_ofp":true}. Otherwise return JSON {"flight":"e.g. EK0368","date":"DDMMM e.g. 20NOV","dep":"IATA","arr":"IATA","std_utc":"YYYY-MM-DDTHH:MMZ or empty","locs":[{"loc":"4-letter ICAO of an airport or FIR that has NOTAMs in the PDF","n":number of NOTAMs for it}]}. List every location that has NOTAMs.';
+  const g1 = gemCall_({ contents: [{ role: 'user', parts: [{ text: p1 }, pdf] }], generationConfig: { temperature: 0, responseMimeType: 'application/json' } }, M);
+  let d = null; try { d = JSON.parse(g1.out); } catch (e) {}
+  if (!d || d.not_ofp || !Array.isArray(d.locs) || !d.locs.length) return { d: d && !d.not_ofp ? d : null, nt: [], err: g1.ok ? (d && d.not_ofp ? 'not OFP' : 'no NOTAM list') : g1.error };
+  // 第二步：按地点分组（每组约 35 条），几组同时请 AI 原文照抄
+  const groups = []; let cur = [], n = 0; d.locs.forEach(function (l) { if (cur.length && n + (+l.n || 5) > 35) { groups.push(cur); cur = []; n = 0; } cur.push(String(l.loc).toUpperCase()); n += +l.n || 5; }); if (cur.length) groups.push(cur);
+  const keys = gemKeys_(), reqs = groups.map(function (g, i) { const body = { contents: [{ role: 'user', parts: [{ text: 'From this OFP PDF, extract ONLY the NOTAMs that belong to these locations: ' + g.join(', ') + '. Copy each NOTAM text exactly as printed (do not translate, shorten or correct). Return JSON {"notams":[{"id":"NOTAM number exactly as printed","loc":"ICAO","text":"full NOTAM text"}]}.' }, pdf] }], generationConfig: { temperature: 0, responseMimeType: 'application/json', maxOutputTokens: 30000 } };
+    return { body: body, req: gemReq_(M[0], keys[i % keys.length], body) }; });
+  let rs = []; try { rs = UrlFetchApp.fetchAll(reqs.map(function (r) { return r.req; })); } catch (e) { rs = []; }
+  const nt = [], seen = {};
+  reqs.forEach(function (r, i) { let out = rs[i] && rs[i].getResponseCode() === 200 ? gemText_(rs[i]) : ''; if (!out) { const g = gemCall_(r.body, M); out = g.ok ? g.out : ''; }
+    let x = null; try { x = JSON.parse(out); } catch (e) {}
+    ((x && x.notams) || []).forEach(function (q) { if (!q || !q.id || !q.text || String(q.text).length < 10) return; const id = String(q.id).trim(); if (seen[id]) return; seen[id] = 1; nt.push([id, String(q.text)]); }); });
+  return { d: d, nt: nt, err: nt.length ? '' : 'no NOTAMs extracted', groups: groups.length };
 }
