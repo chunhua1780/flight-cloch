@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20b';
+const BACKEND_VER = '2026-11-20c';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -120,6 +120,8 @@ function postJson_(text) {
   // 简报包：设备把整理好的网页交来，这里转成 PDF 存到私有云端（iPad / 电脑下载）
   if (j.action === 'pkgpdf') return JSON.stringify(pkgPdf_(j));
   if (j.action === 'pkgget') return JSON.stringify(pkgGet_(j));
+  // 简报包「说人话」：每一部分交给 AI 整理成一句一句的中文要点（代号、数字都要和原文对得上）
+  if (j.action === 'pkgai') return JSON.stringify(pkgAi_(j));
   if (!j.digits || !j.date || !j.depIata || !j.arrIata) return '❌ 缺少航班信息';
   const props = PropertiesService.getScriptProperties();
   const key = 'plan_' + String(j.digits).replace(/^0+/, '') + j.depIata + j.arrIata + j.date;
@@ -1454,4 +1456,33 @@ function pkgGet_(j) {
   const k = String(j.k || '').replace(/[^\w.-]/g, ''), g = gh_('get', 'ofpdata/' + k + '.pkg.pdf');
   if (!g || g.code !== 200 || !g.j) return { ok: false, error: 'not found' };
   return { ok: true, b64: g.j.content && g.j.encoding === 'base64' ? String(g.j.content).replace(/\s/g, '') : Utilities.base64Encode(Utilities.newBlob(ghRawText_('ofpdata/' + k + '.pkg.pdf')).getBytes()) };
+}
+
+// 要点里的代号 / 数字必须在原文里出现过（常见缩写除外）；原文没有跑道不能说跑道
+const PKG_OK_WORDS_ = /^(ATC|ACC|APP|TWR|FIR|UIR|ILS|VOR|DME|NDB|GNSS|GPS|RNP|RNAV|SID|STAR|RWY|TWY|NOTAM|UTC|CPDLC|ADS|HF|VHF|SATCOM|ACARS|MEL|TCAS|SLOP|OCL|RCL|NAT|HLA|ETOPS|EICAS|QRH|FCOM|OPT|LDA|PAPI|ALS|RVR|CAVOK|TAF|METAR|ETA|ETD|STD|ATD|TOD|TOC|MSL|AGL|AMSL|SFC|UNL|PERM|EST|WIP|PSR|AFI|IFBP|PIC|ASAP|LIDO|CRAR|EGPWS|GPWS|MMR|ADIRU|FMC|FMS|POS|REF|NAV|INIT|TOGA|ECON|DCT|AWY|WPT|CTOT|MDI|APU|GPU|ACU|PRM|PA|NOAA|SAT|OM|EK|UAE|DXB|DWC|DATA)$/;
+function pkgPointOk_(src, t) {
+  if (!t || t.length > 120) return false; const S = String(src).toUpperCase();
+  const toks = (t.toUpperCase().match(/[A-Z][A-Z0-9]{2,}|\b\d{3,}\b/g) || []);
+  if (toks.some(function (x) { return !PKG_OK_WORDS_.test(x) && S.indexOf(x) < 0; })) return false;
+  if (/跑道/.test(t) && !/\bRWY|RUNWAY/.test(S)) return false;
+  if (/跑道/.test(t) && (t.match(/\b\d{2}[LRC]?\b/g) || []).some(function (x) { return S.indexOf(x) < 0; })) return false;
+  return true;
+}
+function pkgAi_(j) {
+  const secs = (j.secs || []).filter(function (x) { return x && x.id && x.text; }).slice(0, 40), F = j.flight || {};
+  const ctx = '本航班：' + (F.no || '') + ' ' + (F.dep || '') + '→' + (F.arr || '') + '，起飞 ' + (F.off || '') + '，到达 ' + (F.eta || '') + '（UTC）。';
+  const prompts = secs.map(function (x) {
+    return '你是阿联酋航空 B777 的资深机长，给同组机组做航前简报。' + ctx + '\n下面是「' + x.title + '」这一部分的原始资料（OFP 提醒、航行通告、天气、公司规定）' + (x.when ? '，本航班大约 ' + x.when + ' 经过这里' : '') + '。\n'
+      + '请用简单、口语化但专业的中文整理成要点，让人一眼看懂：\n- 每条一句话，不超过 40 个字：什么、在哪、什么时候、对我们有什么影响、要做什么。\n'
+      + '- 只留和本航班有关、有影响的；时间和本航班不重叠的、停机位 / 机坪小事、对 B777 没影响的不要写。跑道 / 滑行道关闭、导航设施坏了、空域限制、天气、规定要做的动作都要写。\n'
+      + '- 代号、跑道号、频率、高度、时间必须和原文完全一样，绝对不能编；滑行道不能说成跑道。\n- 按重要性排序。lv：red = 会影响运行、必须注意；amber = 注意；info = 知道就行。最多 12 条。' + AVZ_
+      + '\n输出 JSON：{"points":[{"t":"…","lv":"red|amber|info"}]}；没有值得说的就输出 {"points":[]}。\n原始资料：\n' + String(x.text).slice(0, 60000);
+  });
+  const outs = geminiAll_(prompts, true), res = {};
+  secs.forEach(function (x, i) {
+    let P = []; try { P = JSON.parse(outs[i] && outs[i].ok ? outs[i].out : '{}').points || []; } catch (e) {}
+    const kept = P.filter(function (p) { return p && pkgPointOk_(x.text, String(p.t || '')); }).slice(0, 12).map(function (p) { return { t: String(p.t), lv: /^(red|amber|info)$/.test(p.lv) ? p.lv : 'info' }; });
+    res[x.id] = { points: kept, dropped: P.length - kept.length, ok: !!(outs[i] && outs[i].ok) };
+  });
+  return { ok: true, secs: res, t: Date.now() };
 }
