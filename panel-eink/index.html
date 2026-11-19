@@ -639,7 +639,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611190816';
+var PAGEV = '202611190841';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -1111,7 +1111,16 @@ function cloudUp(text, o) {
           trip: o.times.trip,
           cs: o.flight.cs || '',
           reg: o.flight.reg || ''
-        }
+        },
+        nt: [].concat.apply([], Object.keys(o.notams || {}).map(function (c) {
+          return o.notams[c].map(function (n) {
+            return [n.id, n.text];
+          });
+        })).filter(function (n, i, A) {
+          return A.findIndex(function (m) {
+            return m[0] === n[0];
+          }) === i;
+        })
       })
     }).catch(function () {});
   } catch (e) {}
@@ -2423,8 +2432,9 @@ function openNotams(loc, onlyId) {
   });
   var card = function card(n) {
     var zh = trName(L, n[0]),
+      sm = trName(L, 's:' + n[0]),
       A = WX.area(n[1]);
-    return '<div class="nt"><span class="id">' + esc(n[0]) + '</span> <span class="tm">' + (n[2] ? dmZ(n[2]) : '') + ' – ' + (n[3] ? dmZ(n[3]) : 'UFN') + '</span>' + (LANG !== 'en' ? '<div class="zh">' + (zh ? esc(zh) : '<span style="color:var(--dim);font-weight:500">' + X('（还没翻译：有网时在 iPad 上打开这份 OFP，AI 翻好会存到云端）', '(not translated yet)') + '</span>') + '</div>' : '') + '<div class="en">' + esc(n[1]) + '</div>' + (A ? '<span class="mb' + (AREAS[n[0]] ? ' on' : '') + '" data-a="' + esc(n[0]) + '">🗺 ' + (AREAS[n[0]] ? X('从地图上去掉', 'Hide on map') : X('在地图上显示区域', 'Show area on map')) + '</span>' : '') + '</div>';
+    return '<div class="nt"><span class="id">' + esc(n[0]) + '</span> <span class="tm">' + (n[2] ? dmZ(n[2]) : '') + ' – ' + (n[3] ? dmZ(n[3]) : 'UFN') + '</span>' + (sm && LANG !== 'en' ? '<div class="zh" style="font-size:16px;font-weight:900">💡 ' + esc(sm) + '</div>' : '') + (LANG !== 'en' ? '<div class="zh" style="font-weight:600">' + (zh ? esc(zh) : '<span style="color:var(--dim);font-weight:500">' + X('（还没翻译：有网时在 iPad 上打开这份 OFP，AI 翻好会存到云端）', '(not translated yet)') + '</span>') + '</div>' : '') + '<div class="en">' + esc(n[1]) + '</div>' + (A ? '<span class="mb' + (AREAS[n[0]] ? ' on' : '') + '" data-a="' + esc(n[0]) + '">🗺 ' + (AREAS[n[0]] ? X('从地图上去掉', 'Hide on map') : X('在地图上显示区域', 'Show area on map')) + '</span>' : '') + '</div>';
   };
   $('sheet').innerHTML = '<div style="display:flex;align-items:center;gap:8px"><b style="font-size:17px">📄 ' + esc(loc) + ' · ' + list.length + ' ' + X('条通告', 'NOTAMs') + '</b><span style="flex:1"></span><span class="btn" id="sh-x">✕</span></div>' + (list.map(card).join('') || '<div class="ok">' + X('没有通告', 'No NOTAMs') + '</div>');
   $('sheet').style.display = 'block';
