@@ -294,7 +294,10 @@ function fiGeom(x) {
       p = [];
     for (var a = 0; a < 360; a += 10) p.push([c.lon + c.nm / 60 * Math.sin(a * NMr) / Math.cos(c.lat * NMr), c.lat + c.nm / 60 * Math.cos(a * NMr)]);
     R = [p];
-  } else if (x.firOnly) R = firRings(x.fir);
+  } else if (x.firOnly) R = x.firs && x.firs.length ? [].concat.apply([], x.firs.map(function (c) {
+    return firRings(c) || [];
+  })) : firRings(x.fir);
+  if (R && !R.length) R = null;
   if (R) {
     var bb = [180, 90, -180, -90];
     R.forEach(function (r) {
@@ -556,7 +559,7 @@ function fiDrawMap(g, xy, hot, W, H) {
   FIDB.items.forEach(function (x) {
     if (!fiUsable(x, t)) return;
     var G = fiGeom(x);
-    if (!G || (x.firOnly || BOUNDARY.test(x.type)) && !hot[x.id]) return;
+    if (!G || (x.firOnly || BOUNDARY.test(x.type)) && !hot[x.id] || G.bb[2] - G.bb[0] > 300) return;
     var h = hot[x.id],
       big = x.firOnly || BOUNDARY.test(x.type);
     g.strokeStyle = h ? '#d00000' : '#7a3db8';
@@ -609,11 +612,27 @@ function gnssAt(L, icao, t) {
     return GNSS_RE.test(n[1]) && GNSS_BAD.test(n[1]) && !(n[3] && n[3] < t - 60 * MIN) && !(n[2] && n[2] > t + 60 * MIN);
   });
 }
+var icaoIn = function icaoIn(c, list) {
+  return !!c && (list || []).some(function (p) {
+    return c.indexOf(p) === 0;
+  });
+};
+function procMatch(T, L) {
+  if (!T || typeof T !== 'object') return false;
+  if (T.dep && !icaoIn(L.dep, T.dep)) return false;
+  if (T.arr && !icaoIn(L.arr, T.arr)) return false;
+  if (T.arrExclude && icaoIn(L.arr, T.arrExclude)) return false;
+  if (T.depExclude && icaoIn(L.dep, T.depExclude)) return false;
+  if (T.route && !(L.fi || []).some(function (f) {
+    return icaoIn(f[1], T.route) || icaoIn(FIRALIAS[f[1]] || '', T.route);
+  })) return false;
+  return !!(T.dep || T.arr || T.route);
+}
 function procAlerts(L, S, off, now) {
   var out = [];
   if (!FIDB || !FIDB.items) return out;
   FIDB.items.forEach(function (x) {
-    if (x.kind !== 'proc' || !fiUsable(x, now) || !fiActiveAt(x, now)) return;
+    if (x.kind !== 'proc' || x.trigger === 'timeline' || !fiUsable(x, now) || !fiActiveAt(x, now)) return;
     var key = null,
       lab = '';
     if (x.trigger === 'gnss') {
@@ -629,12 +648,28 @@ function procAlerts(L, S, off, now) {
         key = 'dest';
         lab = XS('目的地 GPS 干扰 · TOD 前', 'DEST GPS SI · before TOD');
       }
-    } else if (x.trigger && x.trigger.dep && x.trigger.dep.indexOf(L.dep) >= 0 && S.ph === 0) {
-      key = 'dep';
-      lab = XS('起飞前', 'Before departure');
-    } else if (x.trigger && x.trigger.arr && x.trigger.arr.indexOf(L.arr) >= 0 && S.ph === 1 && S.el >= L.tr - 100) {
-      key = 'dest';
-      lab = XS('到达前', 'Before arrival');
+    } else if (procMatch(x.trigger, L)) {
+      var P = x.phases || [],
+        toStd = (L.std - now) / MIN;
+      var d = P.find(function (q) {
+          return q.key === 'dep';
+        }),
+        t = P.find(function (q) {
+          return q.key === 'toc';
+        }),
+        a = P.find(function (q) {
+          return q.key === 'dest' || q.key === 'arr';
+        });
+      if (d && S.ph === 0 && toStd <= (d.before || 9999)) {
+        key = 'dep';
+        lab = XS('起飞前', 'Before departure');
+      } else if (t && S.ph === 1 && S.el < 60) {
+        key = 'toc';
+        lab = XS('起飞后', 'After take-off');
+      } else if (a && S.ph === 1 && L.tr - S.el <= (a.before || 100)) {
+        key = a.key;
+        lab = XS('落地前 ', 'Before landing ') + dur(L.tr - S.el);
+      }
     }
     if (!key) return;
     PH_NOW[x.id] = key;
@@ -645,7 +680,8 @@ function procAlerts(L, S, off, now) {
       x: Object.assign({}, x, {
         id: x.id,
         msg: (p ? p.zh + '：' : '') + x.msg,
-        msgEn: (p ? p.en + ': ' : '') + x.msgEn
+        msgEn: (p ? p.en + ': ' : '') + x.msgEn,
+        actions: p ? p.steps : x.actions
       }),
       state: 'proc',
       label: lab,
@@ -654,6 +690,74 @@ function procAlerts(L, S, off, now) {
     });
   });
   return out;
+}
+function tlItems(L) {
+  var T = FIDB && FIDB.items && FIDB.items.find(function (x) {
+    return x.kind === 'proc' && x.trigger === 'timeline' && x.status === 'approved';
+  });
+  if (!T) return [];
+  var base = /^OM(DB|DW)$/.test(L.dep),
+    ulr = (L.tr || 0) >= 14 * 60;
+  return (T.steps || []).filter(function (s) {
+    return !s.base || (s.base === 'base' ? base : s.base === 'ulr' ? !base && ulr : !base && !ulr);
+  }).map(function (s) {
+    return {
+      t: L.std - s.min * MIN,
+      min: s.min,
+      zh: s.zh,
+      en: s.en,
+      alert: s.alert !== false,
+      id: T.id + '.' + s.min + '.' + (s.en || s.zh).slice(0, 12)
+    };
+  }).sort(function (a, b) {
+    return a.t - b.t;
+  });
+}
+function tlAlerts(L, S, now) {
+  if (S.ph !== 0) return [];
+  return tlItems(L).filter(function (s) {
+    return s.alert && now >= s.t && now < s.t + 6 * MIN;
+  }).map(function (s) {
+    var x = {
+      id: 'tl:' + s.id,
+      kind: 'tl',
+      name: '⏱ STD−' + s.min + ' · ' + (LANG === 'en' ? s.en : s.zh),
+      level: 'caution',
+      msg: s.zh,
+      msgEn: s.en,
+      actions: [{
+        zh: s.zh,
+        en: s.en
+      }],
+      ver: 1
+    };
+    PSEUDO[x.id] = x;
+    return {
+      x: x,
+      state: 'proc',
+      label: hmZ(s.t) + 'Z',
+      min: 0,
+      nm: 0
+    };
+  });
+}
+function tlHtml(L, now) {
+  var I = tlItems(L);
+  if (!I.length) return '';
+  var nx = I.find(function (s) {
+    return s.t > now;
+  });
+  return '<h3>⏱ ' + X('起飞前时间轴', 'Pre-departure timeline') + ' · STD ' + hmZ(L.std) + 'Z</h3><div class="tl">' + I.map(function (s) {
+    return '<div class="tli' + (s.t <= now ? ' done' : '') + (s === nx ? ' nx' : '') + '"><b>' + hmZ(s.t) + 'Z</b><i>−' + s.min + '</i><span>' + esc(LANG === 'en' ? s.en : s.zh) + (LANG === 'both' && s.en && s.zh ? ' · ' + esc(s.en) : '') + (s.alert ? '' : ' <small>(' + XS('不弹提醒', 'no alert') + ')</small>') + '</span></div>';
+  }).join('') + '</div>';
+}
+function routePrep(L) {
+  if (!FIDB || !FIDB.items) return [];
+  return FIDB.items.filter(function (x) {
+    return (x.preflight || []).length && fiUsable(x, Date.now()) && (L.fi || []).some(function (f) {
+      return f[1] === x.fir || (FIRALIAS[f[1]] || '') === x.fir;
+    });
+  });
 }
 var PSEUDO = {};
 var WACD = null;
