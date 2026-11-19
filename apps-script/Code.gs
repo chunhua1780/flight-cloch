@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20k';
+const BACKEND_VER = '2026-11-20l';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1476,7 +1476,7 @@ function pkgAi_(j) {
   const ctx = '本航班：' + (F.no || '') + ' ' + (F.dep || '') + '→' + (F.arr || '') + '，起飞 ' + (F.off || '') + '，到达 ' + (F.eta || '') + '（UTC）。';
   // 几个部分合成一批（每批最多 3 部分、约 12000 字），分给几个 Key 同时跑
   const groups = []; let cur = [], n = 0;
-  secs.forEach(function (x) { const t = String(x.text).slice(0, 14000); if (cur.length && (n + t.length > 12000 || cur.length >= 3)) { groups.push(cur); cur = []; n = 0; } cur.push({ id: x.id, title: x.title, when: x.when || '', text: t }); n += t.length; });
+  secs.forEach(function (x) { const t = String(x.text).slice(0, 14000); if (cur.length) { groups.push(cur); cur = []; n = 0; } cur.push({ id: x.id, title: x.title, when: x.when || '', text: t }); n += t.length; });
   if (cur.length) groups.push(cur);
   const prompts = groups.map(function (g) {
     return '你是阿联酋航空 B777 的资深机长，给同组机组做航前简报。' + ctx + '\n下面有几个部分（起飞、途经的各个情报区、到达、备降），每部分是原始资料（OFP 提醒、航行通告、天气、公司规定）。\n'
