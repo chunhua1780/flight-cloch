@@ -167,18 +167,20 @@ html.eink .tli.nx{background:#000;color:#fff}html.eink .tli.nx i{color:#fff}
 #top{position:relative}#ovw{display:none;position:absolute;left:8px;bottom:2px;z-index:3;color:var(--red);font-weight:900;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
 @media (orientation:landscape) and (min-width:700px){#ovw{font-size:32px}}
 .zfwb{border:2.5px solid #000;border-radius:12px;padding:6px 9px;margin:4px 0 8px}.zfwb b{font-size:16px}.zfwb input{width:110px;font-size:22px;font-weight:900;padding:3px 6px;border:2px solid #000;border-radius:8px;font-variant-numeric:tabular-nums}.zfwb .btn{padding:3px 12px;font-size:18px}.zfwb .bw{margin:3px 0;font-size:16px;font-weight:800}
+.zb{z-index:5}
+.crew p{font-size:18px;font-weight:800;line-height:1.45;margin:10px 0;border-bottom:1px solid #ccc;padding-bottom:8px}
 </style>
 </head>
 <body>
 <div id="app">
   <div id="top"><div id="sel"><span class="fl" id="fl"></span></div><div id="ovw"></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
   <div id="legs"></div>
-  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span>
+  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span>
     <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div></div></div>
   <div id="alc"><div class="ah"><b id="alt"></b><span class="ax" id="alc-x">✕</span></div><div id="alx"></div></div><span id="warn"></span>
   <div id="rk" style="display:none"></div>
   <div id="empty"></div>
-  <div id="menu"><span class="btn" id="b-up">🔄 <span data-i="更新|Update"></span></span><span class="btn" id="b-mode"></span><span class="btn" id="b-lang"></span><span class="btn" id="b-perm" style="display:none;color:var(--red)">🔆 <span data-i="允许控制背光|Backlight access"></span></span><span class="btn" id="b-pick">📂 <span data-i="选择飞行计划|Choose OFP"></span></span><input type="file" id="f-ofp" accept=".pdf,.txt,application/pdf,text/plain" style="display:none"><span class="btn" id="b-zfw">⚖ <span data-i="无油重量 ZFW|Zero fuel weight"></span></span><span class="btn" id="b-pkg">📑 <span data-i="简报包|Brief pack"></span></span><span class="btn" id="b-log">📒 <span data-i="飞行记录本|Logbook"></span></span><span class="btn" id="b-fi">🛰 <span data-i="区域数据库|Intel DB"></span></span><span class="btn" id="b-snd"></span><span class="btn" id="b-gps" style="display:none;color:var(--red)">📍 <span data-i="允许 GPS|Allow GPS"></span></span><span class="btn" id="b-demo">▶ <span data-i="演示|Demo"></span></span><span class="btn" id="b-eink">◐ <span data-i="墨水屏 黑白|E-ink B/W"></span></span><span class="btn" id="b-upd">⬇︎ <span data-i="检查更新|Update app"></span></span><span class="btn" id="b-set">⚙︎ <span data-i="设置|Settings"></span></span></div>
+  <div id="menu"><span class="btn" id="b-up">🔄 <span data-i="更新|Update"></span></span><span class="btn" id="b-mode"></span><span class="btn" id="b-lang"></span><span class="btn" id="b-perm" style="display:none;color:var(--red)">🔆 <span data-i="允许控制背光|Backlight access"></span></span><span class="btn" id="b-pick">📂 <span data-i="选择飞行计划|Choose OFP"></span></span><input type="file" id="f-ofp" accept=".pdf,.txt,application/pdf,text/plain" style="display:none"><span class="btn" id="b-zfw">⚖ <span data-i="无油重量 ZFW|Zero fuel weight"></span></span><span class="btn" id="b-sb">📋 <span data-i="简报（简洁版）|Short brief"></span></span><span class="btn" id="b-pkg">📑 <span data-i="简报包|Brief pack"></span></span><span class="btn" id="b-log">📒 <span data-i="飞行记录本|Logbook"></span></span><span class="btn" id="b-fi">🛰 <span data-i="区域数据库|Intel DB"></span></span><span class="btn" id="b-snd"></span><span class="btn" id="b-gps" style="display:none;color:var(--red)">📍 <span data-i="允许 GPS|Allow GPS"></span></span><span class="btn" id="b-demo">▶ <span data-i="演示|Demo"></span></span><span class="btn" id="b-eink">◐ <span data-i="墨水屏 黑白|E-ink B/W"></span></span><span class="btn" id="b-upd">⬇︎ <span data-i="检查更新|Update app"></span></span><span class="btn" id="b-set">⚙︎ <span data-i="设置|Settings"></span></span></div>
 </div>
 <div id="sheet"></div>
 <div id="set">
@@ -650,7 +652,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611191459';
+var PAGEV = '202611191543';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -925,24 +927,24 @@ function cloudSync(_x7) {
 }
 function _cloudSync() {
   _cloudSync = _asyncToGenerator(_regenerator().m(function _callee9(now) {
-    var r, idx, got, _loop3, _ret2, _iterator2, _step2, _loop4, _ret3, _iterator3, _step3;
-    return _regenerator().w(function (_context11) {
-      while (1) switch (_context11.n) {
+    var r, idx, got, _loop3, _ret2, _iterator2, _step2, _loop4, _ret3, _iterator3, _step3, _loop5, _ret4, _iterator4, _step4;
+    return _regenerator().w(function (_context12) {
+      while (1) switch (_context12.n) {
         case 0:
-          _context11.n = 1;
+          _context12.n = 1;
           return ghRaw('ofpdata/index.json');
         case 1:
-          r = _context11.v;
+          r = _context12.v;
           if (r) {
-            _context11.n = 2;
+            _context12.n = 2;
             break;
           }
-          return _context11.a(2, 0);
+          return _context12.a(2, 0);
         case 2:
-          _context11.n = 3;
+          _context12.n = 3;
           return r.json();
         case 3:
-          idx = _context11.v;
+          idx = _context12.v;
           got = 0;
           _loop3 = _regenerator().m(function _loop3() {
             var x, m, fid, f, txt, o, leg, isNew, _t12, _t13, _t14;
@@ -1015,37 +1017,36 @@ function _cloudSync() {
           _iterator2 = _createForOfIteratorHelperLoose(idx);
         case 4:
           if ((_step2 = _iterator2()).done) {
-            _context11.n = 7;
+            _context12.n = 7;
             break;
           }
-          return _context11.d(_regeneratorValues(_loop3()), 5);
+          return _context12.d(_regeneratorValues(_loop3()), 5);
         case 5:
-          _ret2 = _context11.v;
+          _ret2 = _context12.v;
           if (!(_ret2 === 0)) {
-            _context11.n = 6;
+            _context12.n = 6;
             break;
           }
-          return _context11.a(3, 6);
+          return _context12.a(3, 6);
         case 6:
-          _context11.n = 4;
+          _context12.n = 4;
           break;
         case 7:
           _loop4 = _regenerator().m(function _loop4() {
-            var x, lg, t, _t15, _t16, _t17, _t18;
+            var x, t, _t15, _t16, _t17;
             return _regenerator().w(function (_context10) {
               while (1) switch (_context10.p = _context10.n) {
                 case 0:
                   x = _step3.value;
-                  if (!(!x.tr || +(ls('trn.' + x.k) || 0) >= x.tr)) {
+                  if (!(!x.sb || +(ls('sbn.' + x.k) || 0) >= x.sb)) {
                     _context10.n = 1;
                     break;
                   }
                   return _context10.a(2, 0);
                 case 1:
-                  lg = LEGS.find(function (l) {
+                  if (LEGS.some(function (l) {
                     return l.k.replace(/[^\w.-]/g, '') === x.k;
-                  });
-                  if (lg) {
+                  })) {
                     _context10.n = 2;
                     break;
                   }
@@ -1053,7 +1054,7 @@ function _cloudSync() {
                 case 2:
                   _context10.p = 2;
                   _context10.n = 3;
-                  return ghRaw('ofpdata/' + x.k + '.tr.json');
+                  return ghRaw('ofpdata/' + x.k + '.sb.html');
                 case 3:
                   t = _context10.v;
                   if (!t) {
@@ -1061,19 +1062,18 @@ function _cloudSync() {
                     break;
                   }
                   _t15 = ls;
-                  _t16 = 'tr.' + x.k;
-                  _t17 = JSON;
+                  _t16 = 'sb.' + x.k;
                   _context10.n = 4;
-                  return t.json();
+                  return t.text();
                 case 4:
-                  _t15(_t16, _t17.stringify.call(_t17, _context10.v));
-                  ls('trn.' + x.k, String(x.tr));
+                  _t15(_t16, _context10.v);
+                  ls('sbn.' + x.k, String(x.sb));
                 case 5:
                   _context10.n = 7;
                   break;
                 case 6:
                   _context10.p = 6;
-                  _t18 = _context10.v;
+                  _t17 = _context10.v;
                 case 7:
                   return _context10.a(2);
               }
@@ -1082,22 +1082,89 @@ function _cloudSync() {
           _iterator3 = _createForOfIteratorHelperLoose(idx);
         case 8:
           if ((_step3 = _iterator3()).done) {
-            _context11.n = 11;
+            _context12.n = 11;
             break;
           }
-          return _context11.d(_regeneratorValues(_loop4()), 9);
+          return _context12.d(_regeneratorValues(_loop4()), 9);
         case 9:
-          _ret3 = _context11.v;
+          _ret3 = _context12.v;
           if (!(_ret3 === 0)) {
-            _context11.n = 10;
+            _context12.n = 10;
             break;
           }
-          return _context11.a(3, 10);
+          return _context12.a(3, 10);
         case 10:
-          _context11.n = 8;
+          _context12.n = 8;
           break;
         case 11:
-          return _context11.a(2, got);
+          _loop5 = _regenerator().m(function _loop5() {
+            var x, lg, t, _t18, _t19, _t20, _t21;
+            return _regenerator().w(function (_context11) {
+              while (1) switch (_context11.p = _context11.n) {
+                case 0:
+                  x = _step4.value;
+                  if (!(!x.tr || +(ls('trn.' + x.k) || 0) >= x.tr)) {
+                    _context11.n = 1;
+                    break;
+                  }
+                  return _context11.a(2, 0);
+                case 1:
+                  lg = LEGS.find(function (l) {
+                    return l.k.replace(/[^\w.-]/g, '') === x.k;
+                  });
+                  if (lg) {
+                    _context11.n = 2;
+                    break;
+                  }
+                  return _context11.a(2, 0);
+                case 2:
+                  _context11.p = 2;
+                  _context11.n = 3;
+                  return ghRaw('ofpdata/' + x.k + '.tr.json');
+                case 3:
+                  t = _context11.v;
+                  if (!t) {
+                    _context11.n = 5;
+                    break;
+                  }
+                  _t18 = ls;
+                  _t19 = 'tr.' + x.k;
+                  _t20 = JSON;
+                  _context11.n = 4;
+                  return t.json();
+                case 4:
+                  _t18(_t19, _t20.stringify.call(_t20, _context11.v));
+                  ls('trn.' + x.k, String(x.tr));
+                case 5:
+                  _context11.n = 7;
+                  break;
+                case 6:
+                  _context11.p = 6;
+                  _t21 = _context11.v;
+                case 7:
+                  return _context11.a(2);
+              }
+            }, _loop5, null, [[2, 6]]);
+          });
+          _iterator4 = _createForOfIteratorHelperLoose(idx);
+        case 12:
+          if ((_step4 = _iterator4()).done) {
+            _context12.n = 15;
+            break;
+          }
+          return _context12.d(_regeneratorValues(_loop5()), 13);
+        case 13:
+          _ret4 = _context12.v;
+          if (!(_ret4 === 0)) {
+            _context12.n = 14;
+            break;
+          }
+          return _context12.a(3, 14);
+        case 14:
+          _context12.n = 12;
+          break;
+        case 15:
+          return _context12.a(2, got);
       }
     }, _callee9);
   }));
@@ -1235,6 +1302,9 @@ function summarize(o) {
   leg.alt = (o.alternates || []).map(function (a) {
     return a.icao;
   });
+  leg.fls = String(t.plndFl || '').split(/\s+/).map(function (x) {
+    return (/(\d{3})$/.exec(x) || [])[1];
+  }).filter(Boolean);
   leg.fuel = {
     tof: F.tof && F.tof.fuel || 0,
     trip: F.trip && F.trip.fuel || 0
@@ -1834,12 +1904,12 @@ function useOfpText(_x8, _x9, _x0) {
 function _useOfpText() {
   _useOfpText = _asyncToGenerator(_regenerator().m(function _callee0(txt, src, id) {
     var o, leg;
-    return _regenerator().w(function (_context12) {
-      while (1) switch (_context12.n) {
+    return _regenerator().w(function (_context13) {
+      while (1) switch (_context13.n) {
         case 0:
           o = OFP.parse(txt);
           if (o.ok) {
-            _context12.n = 1;
+            _context13.n = 1;
             break;
           }
           throw new Error(X('这个文件里没认出 OFP（', 'No OFP found in this file (') + (o.warnings || []).join('; ') + ')');
@@ -1855,7 +1925,7 @@ function _useOfpText() {
           ls('legs', JSON.stringify(LEGS));
           ls('pin', leg.k);
           if (src !== 'cloud') cloudUp(txt, o);
-          return _context12.a(2, leg);
+          return _context13.a(2, leg);
       }
     }, _callee0);
   }));
@@ -1866,9 +1936,9 @@ function pickOfp(_x1) {
 }
 function _pickOfp() {
   _pickOfp = _asyncToGenerator(_regenerator().m(function _callee10(days) {
-    var sh, log, rows, errs, j, r, _t23, _t24;
-    return _regenerator().w(function (_context14) {
-      while (1) switch (_context14.p = _context14.n) {
+    var sh, log, rows, errs, j, r, _t26, _t27;
+    return _regenerator().w(function (_context15) {
+      while (1) switch (_context15.p = _context15.n) {
         case 0:
           days = days || 7;
           sh = $('sheet');
@@ -1891,14 +1961,14 @@ function _pickOfp() {
           rows = [];
           log('⏳ ' + X('正在看云端和邮箱…', 'Checking cloud and mail…'));
           errs = [];
-          _context14.p = 1;
-          _context14.n = 2;
+          _context15.p = 1;
+          _context15.n = 2;
           return withTimeout(postK({
             action: 'ofpmail',
             days: days
           }), 90000);
         case 2:
-          j = _context14.v;
+          j = _context15.v;
           if (j && j.ok) {
             if (j.gh && j.gh.tok) {
               ls('ghtok', j.gh.tok);
@@ -1915,26 +1985,26 @@ function _pickOfp() {
               });
             });
           } else errs.push(X('邮箱：', 'Mail: ') + (j && j.error || '?'));
-          _context14.n = 4;
+          _context15.n = 4;
           break;
         case 3:
-          _context14.p = 3;
-          _t23 = _context14.v;
-          errs.push(X('邮箱：', 'Mail: ') + _t23.message);
+          _context15.p = 3;
+          _t26 = _context15.v;
+          errs.push(X('邮箱：', 'Mail: ') + _t26.message);
         case 4:
-          _context14.p = 4;
-          _context14.n = 5;
+          _context15.p = 4;
+          _context15.n = 5;
           return ghRaw('ofpdata/index.json');
         case 5:
-          r = _context14.v;
+          r = _context15.v;
           if (!r) {
-            _context14.n = 7;
+            _context15.n = 7;
             break;
           }
-          _context14.n = 6;
+          _context15.n = 6;
           return r.json();
         case 6:
-          _context14.v.filter(function (x) {
+          _context15.v.filter(function (x) {
             return x.meta && x.meta.std > Date.now() - days * 864e5;
           }).forEach(function (x) {
             return rows.push({
@@ -1944,17 +2014,17 @@ function _pickOfp() {
               name: (x.meta.no || x.k) + ' ' + (x.meta.depI || x.meta.dep || '') + '→' + (x.meta.arrI || x.meta.arr || '') + ' ' + dmZ(x.meta.std)
             });
           });
-          _context14.n = 8;
+          _context15.n = 8;
           break;
         case 7:
           errs.push(X('云端：', 'Cloud: ') + (GH().tok ? X('读不到（GitHub）', 'not reachable') : X('还没有同步码（先在有网时点一次 🔄 更新）', 'no sync key yet')));
         case 8:
-          _context14.n = 10;
+          _context15.n = 10;
           break;
         case 9:
-          _context14.p = 9;
-          _t24 = _context14.v;
-          errs.push(X('云端：', 'Cloud: ') + _t24.message);
+          _context15.p = 9;
+          _t27 = _context15.v;
+          errs.push(X('云端：', 'Cloud: ') + _t27.message);
         case 10:
           rows.sort(function (a, b) {
             return b.t - a.t;
@@ -1967,67 +2037,67 @@ function _pickOfp() {
           log(errs.length ? '⚠️ ' + errs.map(esc).join('<br>⚠️ ') : X('点一个来下载、读取（会存在手机里，离线可用）', 'Tap one to download and read it (stored on the phone)'));
           $('pk-list').onclick = function () {
             var _ref3 = _asyncToGenerator(_regenerator().m(function _callee1(e) {
-              var d, r, f, txt, leg, u8, _txt, _leg, _t19, _t20, _t21, _t22;
-              return _regenerator().w(function (_context13) {
-                while (1) switch (_context13.p = _context13.n) {
+              var d, r, f, txt, leg, u8, _txt, _leg, _t22, _t23, _t24, _t25;
+              return _regenerator().w(function (_context14) {
+                while (1) switch (_context14.p = _context14.n) {
                   case 0:
                     d = e.target.closest('[data-i]');
                     if (d) {
-                      _context13.n = 1;
+                      _context14.n = 1;
                       break;
                     }
-                    return _context13.a(2);
+                    return _context14.a(2);
                   case 1:
                     r = rows[+d.dataset.i];
-                    _context13.p = 2;
+                    _context14.p = 2;
                     if (!(r.src === 'cloud')) {
-                      _context13.n = 8;
+                      _context14.n = 8;
                       break;
                     }
                     log('⏳ ' + X('云端下载…', 'Downloading…'));
-                    _context13.n = 3;
+                    _context14.n = 3;
                     return ghRaw('ofpdata/' + r.id + '.txt.gz');
                   case 3:
-                    f = _context13.v;
+                    f = _context14.v;
                     if (f) {
-                      _context13.n = 4;
+                      _context14.n = 4;
                       break;
                     }
                     throw new Error('GitHub');
                   case 4:
-                    _t19 = gunzip;
-                    _t20 = Uint8Array;
-                    _context13.n = 5;
+                    _t22 = gunzip;
+                    _t23 = Uint8Array;
+                    _context14.n = 5;
                     return f.arrayBuffer();
                   case 5:
-                    _t21 = _context13.v;
-                    _context13.n = 6;
-                    return _t19(new _t20(_t21));
+                    _t24 = _context14.v;
+                    _context14.n = 6;
+                    return _t22(new _t23(_t24));
                   case 6:
-                    txt = _context13.v;
-                    _context13.n = 7;
+                    txt = _context14.v;
+                    _context14.n = 7;
                     return useOfpText(txt, 'cloud', 'cloud:' + r.id + ':' + txt.length);
                   case 7:
-                    leg = _context13.v;
+                    leg = _context14.v;
                     log('✅ ' + esc(leg.no) + ' ' + X('已读入', 'loaded'));
-                    _context13.n = 12;
+                    _context14.n = 12;
                     break;
                   case 8:
                     log('⏳ ' + X('从邮箱下载…（大文件要 10–60 秒）', 'Downloading from mail… (10–60 s)'));
-                    _context13.n = 9;
+                    _context14.n = 9;
                     return getFile(r.id);
                   case 9:
-                    u8 = _context13.v;
-                    _context13.n = 10;
+                    u8 = _context14.v;
+                    _context14.n = 10;
                     return pdfText(u8, function (n, N) {
                       return log('⏳ ' + X('读取 PDF ', 'Reading PDF ') + n + '/' + N);
                     });
                   case 10:
-                    _txt = _context13.v;
-                    _context13.n = 11;
+                    _txt = _context14.v;
+                    _context14.n = 11;
                     return useOfpText(_txt, 'mail', r.id);
                   case 11:
-                    _leg = _context13.v;
+                    _leg = _context14.v;
                     log('✅ ' + esc(_leg.no) + ' ' + X('已读入，并传到云端', 'loaded and uploaded to the cloud'));
                   case 12:
                     setTimeout(function () {
@@ -2035,14 +2105,14 @@ function _pickOfp() {
                       draw();
                       maybeDemo();
                     }, 900);
-                    _context13.n = 14;
+                    _context14.n = 14;
                     break;
                   case 13:
-                    _context13.p = 13;
-                    _t22 = _context13.v;
-                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t22.message || String(_t22)));
+                    _context14.p = 13;
+                    _t25 = _context14.v;
+                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t25.message || String(_t25)));
                   case 14:
-                    return _context13.a(2);
+                    return _context14.a(2);
                 }
               }, _callee1, null, [[2, 13]]);
             }));
@@ -2051,7 +2121,7 @@ function _pickOfp() {
             };
           }();
         case 11:
-          return _context14.a(2);
+          return _context15.a(2);
       }
     }, _callee10, null, [[4, 9], [1, 3]]);
   }));
@@ -2353,7 +2423,7 @@ function draw() {
   $('board').style.display = pre ? 'block' : 'none';
   $('board').style.paddingTop = DEMO ? '44px' : '';
   if (pre) board(L, now, off, on);
-  var FA = L.noOfp ? [] : fiAlerts(L, LS, off, now).concat(tlAlerts(L, LS, now), ruleAlerts(L, LS, off, now), procAlerts(L, LS, off, now), wacAlerts(L, LS, off)),
+  var FA = L.noOfp ? [] : fiAlerts(L, LS, off, now).concat(crewAlerts(L, LS, now), tlAlerts(L, LS, now), ruleAlerts(L, LS, off, now), procAlerts(L, LS, off, now), wacAlerts(L, LS, off)),
     HOT = {};
   FA.forEach(function (a) {
     return HOT[a.x.id] = 1;
@@ -2569,6 +2639,119 @@ $('b-log').onclick = function () {
 $('b-pkg').onclick = function () {
   return openPkg();
 };
+$('b-sb').onclick = function () {
+  return openShort();
+};
+function openShort() {
+  var L = CUR;
+  if (!L || L.noOfp) return;
+  var h = ls('sb.' + String(L.k).replace(/[^\w.-]/g, '')),
+    sh = $('sheet');
+  sh.innerHTML = '<div style="display:flex;align-items:center;gap:6px"><b style="font-size:16px">📋 ' + XS('简报（简洁版）', 'Short brief') + '</b><span style="flex:1"></span><span class="btn" id="sb-z">🔍</span><span class="btn" id="sb-c">👥 ' + XS('机组简报', 'Crew brief') + '</span><span class="btn" id="sh-x">✕</span></div>' + (h ? '<iframe id="sb-f" style="width:100%;height:calc(100vh - 60px);border:1px solid #999;background:#fff"></iframe>' : '<div class="ok">' + XS('还没有：在 iPad 上打开这一班的 OFP（或 Today Brief），会自动传一份过来；有网时手机自动下载。', 'Not yet — open this OFP / Today Brief on the iPad; it uploads a copy automatically.') + '</div>');
+  sh.style.display = 'block';
+  sh.scrollTop = 0;
+  if (h) {
+    $('sb-f').onload = function () {
+      try {
+        var d = $('sb-f').contentDocument,
+          w = d.documentElement.scrollWidth,
+          W = $('sb-f').clientWidth;
+        if (w > W + 4) d.body.style.zoom = (W / w).toFixed(3);
+        openShort.fit = (W / w).toFixed(3);
+      } catch (e) {}
+    };
+    $('sb-z').onclick = function () {
+      try {
+        var b = $('sb-f').contentDocument.body;
+        b.style.zoom = b.style.zoom === '1' ? openShort.fit : '1';
+      } catch (e) {}
+    };
+    $('sb-f').srcdoc = h;
+  }
+  $('sh-x').onclick = function () {
+    sh.style.display = 'none';
+    draw();
+  };
+  $('sb-c').onclick = function () {
+    return openCrew();
+  };
+}
+function crewInfo(L) {
+  var off = offOf(L),
+    on = off + L.tr * MIN,
+    fl = (L.fls && L.fls.length ? L.fls : [String(Math.round((L.fl || 0) / 100))]).map(function (x) {
+      return 'FL' + x;
+    }).join(' / ');
+  var cabin = '';
+  var sb = ls('sb.' + String(L.k).replace(/[^\w.-]/g, ''));
+  if (sb) {
+    var m = /(?:客舱简报|Cabin brief)<\/th>\s*<td>([\s\S]*?)<\/td>/.exec(sb);
+    if (m) cabin = m[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  }
+  var F = flights(NOW()),
+    back = F.find(function (x) {
+      return x !== L && x.std > L.std && x.std < L.std + 36 * HOUR && (x.ai === L.bi || x.dep === L.arr) && (x.bi === L.ai || x.arr === L.dep);
+    });
+  var lines = [{
+    zh: '✈ ' + L.no + ' ' + L.ai + '→' + L.bi + '：飞行 ' + dur(L.tr) + ' · ' + fl + ' · 落地约 ' + hmZ(on) + 'Z',
+    en: 'Flight ' + dur(L.tr) + ' · ' + fl + ' · ETA ' + hmZ(on) + 'Z'
+  }];
+  if (cabin) lines.push({
+    zh: '⚠ ' + cabin,
+    en: ''
+  });else lines.push({
+    zh: XS('（颠簸 / 天气：iPad 上生成 Today Brief 后这里会显示）', '(Turbulence: appears after the iPad Today Brief)'),
+    en: ''
+  });
+  if (back) {
+    var bfl = back.fls && back.fls.length ? back.fls.map(function (x) {
+      return 'FL' + x;
+    }).join(' / ') : back.fl ? 'FL' + Math.round(back.fl / 100) : '';
+    lines.push({
+      zh: '↩ 回程 ' + (back.no || '') + ' ' + back.ai + '→' + back.bi + '：STD ' + hmZ(back.std) + 'Z · 飞行 ' + dur(back.tr) + (bfl ? ' · ' + bfl : '') + (back.noOfp ? '（按排班，还没有 OFP）' : ''),
+      en: 'Return ' + back.ai + '→' + back.bi + ': STD ' + hmZ(back.std) + 'Z · ' + dur(back.tr) + (bfl ? ' · ' + bfl : '')
+    });
+  }
+  return lines;
+}
+function crewAlerts(L, S, now) {
+  if (L.noOfp || S.ph !== 0 || now < L.std - 85 * MIN || now >= L.std - 80 * MIN) return [];
+  var x = {
+    id: 'crew:' + L.k,
+    kind: 'crew',
+    name: '👥 ' + XS('机组简报', 'Crew brief') + ' · STD−83',
+    level: 'info',
+    msg: XS('乘务组简报：飞行时间、高度、颠簸、回程', 'Crew brief: time, levels, turbulence, return'),
+    msgEn: '',
+    actions: crewInfo(L),
+    ver: 1
+  };
+  PSEUDO[x.id] = x;
+  return [{
+    x: x,
+    state: 'proc',
+    label: hmZ(L.std - 83 * MIN) + 'Z',
+    min: 0,
+    nm: 0
+  }];
+}
+function openCrew() {
+  var L = CUR;
+  if (!L || L.noOfp) return;
+  var sh = $('sheet');
+  sh.innerHTML = '<div style="display:flex;align-items:center;gap:6px"><b style="font-size:17px">👥 ' + XS('机组简报', 'Crew brief') + ' · ' + esc(L.no) + '</b><span style="flex:1"></span><span class="btn" id="cb-s">📋 ' + XS('简洁版', 'Short brief') + '</span><span class="btn" id="sh-x">✕</span></div>' + '<div class="crew">' + crewInfo(L).map(function (l) {
+    return '<p>' + esc(LANG === 'en' && l.en ? l.en : l.zh) + '</p>';
+  }).join('') + '</div>';
+  sh.style.display = 'block';
+  sh.scrollTop = 0;
+  $('sh-x').onclick = function () {
+    sh.style.display = 'none';
+    draw();
+  };
+  $('cb-s').onclick = function () {
+    return openShort();
+  };
+}
 $('b-zfw').onclick = function () {
   var L = CUR;
   if (!L || !wFix(L)) {
@@ -2743,6 +2926,9 @@ $('wpl').addEventListener('scroll', function () {
 }, {
   passive: true
 });
+$('zcb').onclick = function () {
+  return openCrew();
+};
 $('zfoc').onclick = function () {
   FOCUS = null;
   ZOOM = +(ls('zoom') || 700);
@@ -2889,30 +3075,30 @@ function wake() {
 }
 function _wake() {
   _wake = _asyncToGenerator(_regenerator().m(function _callee11() {
-    var _t25;
-    return _regenerator().w(function (_context15) {
-      while (1) switch (_context15.p = _context15.n) {
+    var _t28;
+    return _regenerator().w(function (_context16) {
+      while (1) switch (_context16.p = _context16.n) {
         case 0:
-          _context15.p = 0;
+          _context16.p = 0;
           if (!('wakeLock' in navigator && document.visibilityState === 'visible' && !wl)) {
-            _context15.n = 2;
+            _context16.n = 2;
             break;
           }
-          _context15.n = 1;
+          _context16.n = 1;
           return navigator.wakeLock.request('screen');
         case 1:
-          wl = _context15.v;
+          wl = _context16.v;
           wl.addEventListener('release', function () {
             wl = null;
           });
         case 2:
-          _context15.n = 4;
+          _context16.n = 4;
           break;
         case 3:
-          _context15.p = 3;
-          _t25 = _context15.v;
+          _context16.p = 3;
+          _t28 = _context16.v;
         case 4:
-          return _context15.a(2);
+          return _context16.a(2);
       }
     }, _callee11, null, [[0, 3]]);
   }));
