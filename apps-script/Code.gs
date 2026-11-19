@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-20q';
+const BACKEND_VER = '2026-11-20r';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1534,7 +1534,7 @@ function stPut_(j) {
   try {
     const path = 'ofpdata/' + k + '.st.json', g = gh_('get', path); let st = { u: {} };
     if (g && g.code === 200 && g.j) { try { st = JSON.parse(Utilities.newBlob(Utilities.base64Decode(g.j.content)).getDataAsString('UTF-8')); } catch (e) {} } if (!st.u) st.u = {};
-    const t = +j.t || Date.now(); let ch = false;
+    const t = j.t != null && isFinite(+j.t) ? +j.t : Date.now(); let ch = false;
     Object.keys(j.set).forEach(function (f) { if (!/^(atd|zfw|cs|ato)$/.test(f)) return; if ((st.u[f] || 0) <= t) { st[f] = j.set[f]; st.u[f] = t; ch = true; } });
     if (ch) { ghPut_(path, Utilities.base64Encode(JSON.stringify(st), Utilities.Charset.UTF_8), 'st ' + k); cloudIdxSave_(cloudIdx_(), { k: k, st: Date.now() });
       // 家里的时钟：把 ATD 写进它用的飞行计划
