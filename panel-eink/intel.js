@@ -805,6 +805,99 @@ function _wacSync() {
   }));
   return _wacSync.apply(this, arguments);
 }
+var WACZ = {};
+try {
+  WACZ = JSON.parse(ls('waczh') || '{}');
+} catch (e) {}
+function waczhSync() {
+  return _waczhSync.apply(this, arguments);
+}
+function _waczhSync() {
+  _waczhSync = _asyncToGenerator(_regenerator().m(function _callee3() {
+    var now, n, names, i, j, _t3;
+    return _regenerator().w(function (_context3) {
+      while (1) switch (_context3.p = _context3.n) {
+        case 0:
+          if (!(!navigator.onLine || !ls('key') || !WACD)) {
+            _context3.n = 1;
+            break;
+          }
+          return _context3.a(2);
+        case 1:
+          now = Date.now(), n = new Set();
+          LEGS.filter(function (l) {
+            return l.std > now - 12 * HOUR && l.std < now + 48 * HOUR;
+          }).forEach(function (l) {
+            return (l.fi || []).forEach(function (f) {
+              return wacCountry(FIRALIAS[f[1]] || f[1]).forEach(function (c) {
+                return n.add(c.n);
+              });
+            });
+          });
+          names = [].concat(n).filter(function (x) {
+            return (WACD.c.find(function (c) {
+              return c.n === x;
+            }) || {
+              t: []
+            }).t.some(function (t) {
+              return t.x && !WACZ[x + '|' + t.h];
+            });
+          });
+          if (names.length) {
+            _context3.n = 2;
+            break;
+          }
+          return _context3.a(2);
+        case 2:
+          i = 0;
+        case 3:
+          if (!(i < 4)) {
+            _context3.n = 10;
+            break;
+          }
+          _context3.p = 4;
+          _context3.n = 5;
+          return postK({
+            action: 'waczh',
+            names: names
+          });
+        case 5:
+          j = _context3.v;
+          if (!(!j || !j.ok)) {
+            _context3.n = 6;
+            break;
+          }
+          return _context3.a(2);
+        case 6:
+          Object.assign(WACZ, j.zh || {});
+          ls('waczh', JSON.stringify(WACZ));
+          if (j.left) {
+            _context3.n = 7;
+            break;
+          }
+          return _context3.a(2);
+        case 7:
+          _context3.n = 9;
+          break;
+        case 8:
+          _context3.p = 8;
+          _t3 = _context3.v;
+          return _context3.a(2);
+        case 9:
+          i++;
+          _context3.n = 3;
+          break;
+        case 10:
+          return _context3.a(2);
+      }
+    }, _callee3, null, [[4, 8]]);
+  }));
+  return _waczhSync.apply(this, arguments);
+}
+var wacH = function wacH(c, t) {
+  var z = WACZ[c.n + '|' + t.h];
+  return LANG === 'en' || !z || !z.h ? t.h : LANG === 'zh' ? z.h : z.h + ' · ' + t.h;
+};
 var WPX = null;
 function wacExpand(list) {
   var out = [];
@@ -874,7 +967,7 @@ function wacAlerts(L, S, off) {
         level: 'info',
         fir: code,
         msg: tops.length ? tops.map(function (t) {
-          return t.h;
+          return wacH(c, t);
         }).join(' · ') : 'CRAR ' + (c.crar || ''),
         msgEn: tops.length ? tops.map(function (t) {
           return t.h;
@@ -896,7 +989,10 @@ function wacAlerts(L, S, off) {
 function wacDetail(x) {
   var c = x.wac;
   $('sheet').innerHTML = '<div style="display:flex;align-items:center;gap:8px"><b style="font-size:17px">' + esc(x.name) + '</b><span style="flex:1"></span><span class="btn" id="sh-x">✕</span></div>' + (c.t || []).map(function (t) {
-    return '<div class="nt"><b>' + esc(t.h) + '</b>' + (t.x ? '<div class="en" style="white-space:pre-wrap;font-family:inherit;font-size:13.5px;color:#000">' + esc(t.x) + '</div>' : '<div class="tm">' + XS('（没有内容，查 CRAR ', '(no text, see CRAR ') + esc(c.crar || '') + '）</div>') + '</div>';
+    var z = WACZ[c.n + '|' + t.h],
+      zx = z && LANG !== 'en' ? '<div style="white-space:pre-line;font-size:16px;font-weight:700;line-height:1.5;margin-top:4px">' + esc(z.x) + '</div>' : LANG !== 'en' && t.x ? '<div class="tm">' + XS('（中文还在翻译，有网时点 🔄 更新）', '') + '</div>' : '',
+      ex = LANG === 'zh' && z ? '' : '<div class="en" style="white-space:pre-wrap;font-family:inherit;font-size:' + (LANG === 'en' || !z ? '13.5px;color:#000' : '12px;color:#555') + '">' + esc(t.x) + '</div>';
+    return '<div class="nt"><b>' + esc(wacH(c, t)) + '</b>' + (t.x ? zx + ex : '<div class="tm">' + XS('（没有内容，查 CRAR ', '(no text, see CRAR ') + esc(c.crar || '') + '）</div>') + '</div>';
   }).join('') + '<div class="ok" style="font-size:12px">Worldwide Airspace Contingency Flashcards · CRAR ' + esc(c.crar || '') + ' · ' + X('仅供辅助，以公司资料为准', 'awareness only') + '</div>';
   $('sheet').style.display = 'block';
   $('sheet').scrollTop = 0;

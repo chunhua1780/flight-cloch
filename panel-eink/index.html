@@ -178,6 +178,7 @@ html.cbold #tlc{border-color:#0f2c56}
 html.cbold #chk{border-color:#0f2c56}html.cbold #chk .ci.on i{background:#00a04a;border-color:#00a04a}
 #gpsc{display:none;position:absolute;left:8px;top:58px;z-index:6;background:#fff;border:3px solid #e07000;border-radius:12px;padding:5px 10px 6px;max-width:calc(100% - 64px);box-shadow:0 4px 14px rgba(0,0,0,.25)}#gpsc .gh{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:900;color:#a34a00}#gpsc .gh span{flex:1}#gpsc .gh b{font-size:20px;padding:0 4px;cursor:pointer;color:#000}#gpsc .gs{font-size:17px;font-weight:900;line-height:1.4;white-space:nowrap;font-variant-numeric:tabular-nums}
 html.eink #gpsc{border-color:#000}html.eink #gpsc .gh{color:#000}
+#zbd.on{background:#000;color:#fff}html.cbold #zbd.on{background:#0f2c56}
 #zly{font-size:12px!important;font-weight:900;letter-spacing:-.02em}
 #lyp{display:none;position:absolute;right:52px;top:150px;z-index:8;background:#fff;border:2.5px solid #000;border-radius:12px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.25);width:190px}#lyp .btn{display:block;margin:3px 0;text-align:left;font-size:14px;padding:6px 8px}#lyp .btn.on{background:#000;color:#fff}
 html.cbold #lyp{border-color:#0f2c56}html.cbold #lyp .btn.on{background:#0f2c56;border-color:#0f2c56}
@@ -249,7 +250,7 @@ html.eink .rf .ch.r,html.eink .rf .ch.b{background:#000;border-color:#000}html.e
 <div id="app">
   <div id="top"><div id="sel"><span class="fl" id="fl"></span></div><div id="tbar"><div id="ovw"></div><span id="cbt"></span><span id="tlc"></span></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
   <div id="legs"></div>
-  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><div id="gpsc"></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><div id="lyp"></div>
+  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><div id="gpsc"></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><span class="zb" id="zbd" style="top:218px;font-size:18px;display:none" title="Before departure">🛫</span><div id="lyp"></div>
     <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div><div id="altl"></div></div></div>
   <div id="alc"><div class="ah"><b id="alt"></b><span class="ax" id="alc-x">✕</span></div><div id="alx"></div></div><span id="warn"></span>
   <div id="rk" style="display:none"></div><div id="chk"></div>
@@ -852,13 +853,13 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611202230';
+var PAGEV = '202611202248';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
 function _update() {
   _update = _asyncToGenerator(_regenerator().m(function _callee7(quiet) {
-    var files, now, day0, best, got, r, t, j, _iterator2, _step2, l, c, want, _loop4, _ret2, _iterator3, _step3, _t9, _t0, _t1, _t10, _t11, _t12, _t13, _t14;
+    var files, now, day0, best, got, r, t, j, _iterator2, _step2, l, c, want, _loop4, _ret2, _iterator3, _step3, _t9, _t0, _t1, _t10, _t11, _t12, _t13, _t14, _t15;
     return _regenerator().w(function (_context0) {
       while (1) switch (_context0.p = _context0.n) {
         case 0:
@@ -1007,6 +1008,16 @@ function _update() {
           _context0.p = 30;
           _t13 = _context0.v;
         case 31:
+          _context0.p = 31;
+          _context0.n = 32;
+          return waczhSync();
+        case 32:
+          _context0.n = 34;
+          break;
+        case 33:
+          _context0.p = 33;
+          _t14 = _context0.v;
+        case 34:
           want = Object.keys(best).map(function (k) {
             return best[k];
           }).filter(function (f) {
@@ -1080,23 +1091,23 @@ function _update() {
             }, _loop4);
           });
           _iterator3 = _createForOfIteratorHelperLoose(want);
-        case 32:
+        case 35:
           if ((_step3 = _iterator3()).done) {
-            _context0.n = 35;
+            _context0.n = 38;
             break;
           }
-          return _context0.d(_regeneratorValues(_loop4()), 33);
-        case 33:
+          return _context0.d(_regeneratorValues(_loop4()), 36);
+        case 36:
           _ret2 = _context0.v;
           if (!(_ret2 === 0)) {
-            _context0.n = 34;
+            _context0.n = 37;
             break;
           }
-          return _context0.a(3, 34);
-        case 34:
-          _context0.n = 32;
+          return _context0.a(3, 37);
+        case 37:
+          _context0.n = 35;
           break;
-        case 35:
+        case 38:
           LEGS = LEGS.filter(function (l) {
             return l.std > now - 3 * 864e5 && l.std < now + 3 * 864e5 || l.k === _ls('pin');
           }).sort(function (a, b) {
@@ -1118,19 +1129,19 @@ function _update() {
             console.warn(BAD);
             BAD = [];
           }
-          _context0.n = 37;
+          _context0.n = 40;
           break;
-        case 36:
-          _context0.p = 36;
-          _t14 = _context0.v;
-          MSG = '⚠️ ' + _t14.message;
-        case 37:
+        case 39:
+          _context0.p = 39;
+          _t15 = _context0.v;
+          MSG = '⚠️ ' + _t15.message;
+        case 40:
           busy = false;
           draw();
-        case 38:
+        case 41:
           return _context0.a(2);
       }
-    }, _callee7, null, [[28, 30], [24, 26], [16, 21], [13, 15], [10, 12], [6, 8], [4, 36]]);
+    }, _callee7, null, [[31, 33], [28, 30], [24, 26], [16, 21], [13, 15], [10, 12], [6, 8], [4, 39]]);
   }));
   return _update.apply(this, arguments);
 }
@@ -1147,7 +1158,7 @@ function gunzip(_x5) {
 }
 function _gunzip() {
   _gunzip = _asyncToGenerator(_regenerator().m(function _callee8(u8) {
-    var _t15;
+    var _t16;
     return _regenerator().w(function (_context1) {
       while (1) switch (_context1.n) {
         case 0:
@@ -1155,11 +1166,11 @@ function _gunzip() {
             _context1.n = 2;
             break;
           }
-          _t15 = new TextDecoder();
+          _t16 = new TextDecoder();
           _context1.n = 1;
           return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
         case 1:
-          return _context1.a(2, _t15.decode.call(_t15, _context1.v));
+          return _context1.a(2, _t16.decode.call(_t16, _context1.v));
         case 2:
           if (!(window.AndroidPanel && AndroidPanel.gunzip)) {
             _context1.n = 3;
@@ -1232,7 +1243,7 @@ function _cloudSync() {
           idx = _context17.v;
           got = 0;
           _loop5 = _regenerator().m(function _loop5() {
-            var x, m, ex, fid, f, txt, o, leg, isNew, _t16, _t17, _t18;
+            var x, m, ex, fid, f, txt, o, leg, isNew, _t17, _t18, _t19;
             return _regenerator().w(function (_context11) {
               while (1) switch (_context11.n) {
                 case 0:
@@ -1274,14 +1285,14 @@ function _cloudSync() {
                   }
                   return _context11.a(2, 0);
                 case 5:
-                  _t16 = gunzip;
-                  _t17 = Uint8Array;
+                  _t17 = gunzip;
+                  _t18 = Uint8Array;
                   _context11.n = 6;
                   return f.arrayBuffer();
                 case 6:
-                  _t18 = _context11.v;
+                  _t19 = _context11.v;
                   _context11.n = 7;
-                  return _t16(new _t17(_t18));
+                  return _t17(new _t18(_t19));
                 case 7:
                   txt = _context11.v;
                   o = OFP.parse(txt);
@@ -1327,7 +1338,7 @@ function _cloudSync() {
           break;
         case 7:
           _loop6 = _regenerator().m(function _loop6() {
-            var x, t, _t19, _t20, _t21;
+            var x, t, _t20, _t21, _t22;
             return _regenerator().w(function (_context12) {
               while (1) switch (_context12.p = _context12.n) {
                 case 0:
@@ -1355,19 +1366,19 @@ function _cloudSync() {
                     _context12.n = 5;
                     break;
                   }
-                  _t19 = stApply;
-                  _t20 = x.k;
+                  _t20 = stApply;
+                  _t21 = x.k;
                   _context12.n = 4;
                   return t.json();
                 case 4:
-                  _t19(_t20, _context12.v);
+                  _t20(_t21, _context12.v);
                   _ls('stn.' + x.k, String(x.st));
                 case 5:
                   _context12.n = 7;
                   break;
                 case 6:
                   _context12.p = 6;
-                  _t21 = _context12.v;
+                  _t22 = _context12.v;
                 case 7:
                   return _context12.a(2);
               }
@@ -1392,7 +1403,7 @@ function _cloudSync() {
           break;
         case 11:
           _loop7 = _regenerator().m(function _loop7() {
-            var x, t, _t22, _t23, _t24;
+            var x, t, _t23, _t24, _t25;
             return _regenerator().w(function (_context13) {
               while (1) switch (_context13.p = _context13.n) {
                 case 0:
@@ -1420,19 +1431,19 @@ function _cloudSync() {
                     _context13.n = 5;
                     break;
                   }
-                  _t22 = _ls;
-                  _t23 = 'sb.' + x.k;
+                  _t23 = _ls;
+                  _t24 = 'sb.' + x.k;
                   _context13.n = 4;
                   return t.text();
                 case 4:
-                  _t22(_t23, _context13.v);
+                  _t23(_t24, _context13.v);
                   _ls('sbn.' + x.k, String(x.sb));
                 case 5:
                   _context13.n = 7;
                   break;
                 case 6:
                   _context13.p = 6;
-                  _t24 = _context13.v;
+                  _t25 = _context13.v;
                 case 7:
                   return _context13.a(2);
               }
@@ -1457,7 +1468,7 @@ function _cloudSync() {
           break;
         case 15:
           _loop8 = _regenerator().m(function _loop8() {
-            var x, t, _t25, _t26, _t27;
+            var x, t, _t26, _t27, _t28;
             return _regenerator().w(function (_context14) {
               while (1) switch (_context14.p = _context14.n) {
                 case 0:
@@ -1485,19 +1496,19 @@ function _cloudSync() {
                     _context14.n = 5;
                     break;
                   }
-                  _t25 = _ls;
-                  _t26 = 'full.' + x.k;
+                  _t26 = _ls;
+                  _t27 = 'full.' + x.k;
                   _context14.n = 4;
                   return t.text();
                 case 4:
-                  _t25(_t26, _context14.v);
+                  _t26(_t27, _context14.v);
                   _ls('fulln.' + x.k, String(x.full));
                 case 5:
                   _context14.n = 7;
                   break;
                 case 6:
                   _context14.p = 6;
-                  _t27 = _context14.v;
+                  _t28 = _context14.v;
                 case 7:
                   return _context14.a(2);
               }
@@ -1522,7 +1533,7 @@ function _cloudSync() {
           break;
         case 19:
           _loop9 = _regenerator().m(function _loop9() {
-            var x, a, b, _t28, _t29, _t30, _t31, _t32;
+            var x, a, b, _t29, _t30, _t31, _t32, _t33;
             return _regenerator().w(function (_context15) {
               while (1) switch (_context15.p = _context15.n) {
                 case 0:
@@ -1554,30 +1565,30 @@ function _cloudSync() {
                     _context15.n = 6;
                     break;
                   }
-                  _t28 = _ls;
-                  _t29 = 'sbw.' + x.k;
+                  _t29 = _ls;
+                  _t30 = 'sbw.' + x.k;
                   _context15.n = 5;
                   return a.text();
                 case 5:
-                  _t28(_t29, _context15.v);
+                  _t29(_t30, _context15.v);
                 case 6:
                   if (!b) {
                     _context15.n = 8;
                     break;
                   }
-                  _t30 = _ls;
-                  _t31 = 'fullw.' + x.k;
+                  _t31 = _ls;
+                  _t32 = 'fullw.' + x.k;
                   _context15.n = 7;
                   return b.text();
                 case 7:
-                  _t30(_t31, _context15.v);
+                  _t31(_t32, _context15.v);
                 case 8:
                   if (a) _ls('sbwn.' + x.k, String(x.sbn));
                   _context15.n = 10;
                   break;
                 case 9:
                   _context15.p = 9;
-                  _t32 = _context15.v;
+                  _t33 = _context15.v;
                 case 10:
                   return _context15.a(2);
               }
@@ -1602,7 +1613,7 @@ function _cloudSync() {
           break;
         case 23:
           _loop0 = _regenerator().m(function _loop0() {
-            var x, lg, t, _t33, _t34, _t35, _t36;
+            var x, lg, t, _t34, _t35, _t36, _t37;
             return _regenerator().w(function (_context16) {
               while (1) switch (_context16.p = _context16.n) {
                 case 0:
@@ -1631,20 +1642,20 @@ function _cloudSync() {
                     _context16.n = 5;
                     break;
                   }
-                  _t33 = _ls;
-                  _t34 = 'tr.' + x.k;
-                  _t35 = JSON;
+                  _t34 = _ls;
+                  _t35 = 'tr.' + x.k;
+                  _t36 = JSON;
                   _context16.n = 4;
                   return t.json();
                 case 4:
-                  _t33(_t34, _t35.stringify.call(_t35, _context16.v));
+                  _t34(_t35, _t36.stringify.call(_t36, _context16.v));
                   _ls('trn.' + x.k, String(x.tr));
                 case 5:
                   _context16.n = 7;
                   break;
                 case 6:
                   _context16.p = 6;
-                  _t36 = _context16.v;
+                  _t37 = _context16.v;
                 case 7:
                   return _context16.a(2);
               }
@@ -1679,7 +1690,7 @@ function cloudUp(_x8, _x9) {
 }
 function _cloudUp() {
   _cloudUp = _asyncToGenerator(_regenerator().m(function _callee1(text, o) {
-    var r, x, _t37;
+    var r, x, _t38;
     return _regenerator().w(function (_context18) {
       while (1) switch (_context18.p = _context18.n) {
         case 0:
@@ -1708,7 +1719,7 @@ function _cloudUp() {
           break;
         case 4:
           _context18.p = 4;
-          _t37 = _context18.v;
+          _t38 = _context18.v;
         case 5:
           try {
             fetch(API + '?k=' + encodeURIComponent(_ls('key') || ''), {
@@ -2510,6 +2521,7 @@ function ovwShow(L, ph, el) {
   o.style.display = h ? 'block' : 'none';
   if (h) fitFl();
 }
+var BOARDV = false;
 var CUR = null,
   wplTouch = 0,
   HOV = null,
@@ -2558,7 +2570,7 @@ function pickOfp(_x11) {
 }
 function _pickOfp() {
   _pickOfp = _asyncToGenerator(_regenerator().m(function _callee12(days) {
-    var sh, log, rows, errs, j, r, _t42, _t43;
+    var sh, log, rows, errs, j, r, _t43, _t44;
     return _regenerator().w(function (_context21) {
       while (1) switch (_context21.p = _context21.n) {
         case 0:
@@ -2611,8 +2623,8 @@ function _pickOfp() {
           break;
         case 3:
           _context21.p = 3;
-          _t42 = _context21.v;
-          errs.push(X('邮箱：', 'Mail: ') + _t42.message);
+          _t43 = _context21.v;
+          errs.push(X('邮箱：', 'Mail: ') + _t43.message);
         case 4:
           _context21.p = 4;
           _context21.n = 5;
@@ -2645,8 +2657,8 @@ function _pickOfp() {
           break;
         case 9:
           _context21.p = 9;
-          _t43 = _context21.v;
-          errs.push(X('云端：', 'Cloud: ') + _t43.message);
+          _t44 = _context21.v;
+          errs.push(X('云端：', 'Cloud: ') + _t44.message);
         case 10:
           rows.sort(function (a, b) {
             return b.t - a.t;
@@ -2659,7 +2671,7 @@ function _pickOfp() {
           log(errs.length ? '⚠️ ' + errs.map(esc).join('<br>⚠️ ') : X('点一个来下载、读取（会存在手机里，离线可用）', 'Tap one to download and read it (stored on the phone)'));
           $('pk-list').onclick = function () {
             var _ref5 = _asyncToGenerator(_regenerator().m(function _callee11(e) {
-              var d, r, f, txt, leg, u8, _txt, _leg, _t38, _t39, _t40, _t41;
+              var d, r, f, txt, leg, u8, _txt, _leg, _t39, _t40, _t41, _t42;
               return _regenerator().w(function (_context20) {
                 while (1) switch (_context20.p = _context20.n) {
                   case 0:
@@ -2687,14 +2699,14 @@ function _pickOfp() {
                     }
                     throw new Error('GitHub');
                   case 4:
-                    _t38 = gunzip;
-                    _t39 = Uint8Array;
+                    _t39 = gunzip;
+                    _t40 = Uint8Array;
                     _context20.n = 5;
                     return f.arrayBuffer();
                   case 5:
-                    _t40 = _context20.v;
+                    _t41 = _context20.v;
                     _context20.n = 6;
-                    return _t38(new _t39(_t40));
+                    return _t39(new _t40(_t41));
                   case 6:
                     txt = _context20.v;
                     _context20.n = 7;
@@ -2731,8 +2743,8 @@ function _pickOfp() {
                     break;
                   case 13:
                     _context20.p = 13;
-                    _t41 = _context20.v;
-                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t41.message || String(_t41)));
+                    _t42 = _context20.v;
+                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t42.message || String(_t42)));
                   case 14:
                     return _context20.a(2);
                 }
@@ -2908,7 +2920,7 @@ function board(L, now, off, on) {
   var enr = L.R.enr.length,
     arr = L.R.arr.length;
   h += '<h3>' + X('后面的提醒（起飞后到时候自动出现）', 'Later (appear automatically in flight)') + '</h3><div class="ok">✈️ ' + X('航路 ', 'En route ') + enr + ' · 🛬 ' + X('落地 ', 'Arrival ') + arr + '</div>' + (arr ? L.R.arr.map(item).join('') : '');
-  h += '<div class="ok" style="margin-top:8px">' + X('起飞后（填 ATD 或到计划起飞时间）自动换成地图', 'The map appears after take-off (ATD or planned time)') + '</div>';
+  h += '<div class="ok" style="margin-top:8px">' + X('再点一下地图右边的 🛫 关上这一页，回到地图', 'Tap 🛫 on the map again to close this page') + '</div>';
   if ($('board').innerHTML !== h) $('board').innerHTML = h;
 }
 function showWarn(ms) {
@@ -3047,7 +3059,9 @@ function draw() {
   gpscShow(L, ph, el, off, now);
   if ($('row').innerHTML !== row) $('row').innerHTML = row;
   var pre = ph === 0 && !L.noOfp;
-  $('board').style.display = pre ? 'block' : 'none';
+  $('board').style.display = pre && BOARDV ? 'block' : 'none';
+  $('zbd').style.display = pre ? '' : 'none';
+  $('zbd').classList.toggle('on', pre && BOARDV);
   $('board').style.paddingTop = DEMO ? '44px' : '';
   if (pre) board(L, now, off, on);
   var FA = L.noOfp ? [] : fiAlerts(L, LS, off, now).concat(crewAlerts(L, LS, now), tlAlerts(L, LS, now), ruleAlerts(L, LS, off, now), procAlerts(L, LS, off, now), wacAlerts(L, LS, off)),
@@ -3056,7 +3070,7 @@ function draw() {
     return HOT[a.x.id] = 1;
   });
   var drawMapNow = function drawMapNow() {
-    if (!L.noOfp && !pre) {
+    if (!L.noOfp) {
       drawMap(L, el, ph, LS, HOT);
       einkPix($('map'));
     } else {
@@ -3933,6 +3947,10 @@ function lypShow() {
     return '<span class="btn' + (LAY[k] ? ' on' : '') + '" data-ly="' + k + '">' + t + '</span>';
   }).join('');
 }
+$('zbd').onclick = function () {
+  BOARDV = !BOARDV;
+  draw();
+};
 $('zly').onclick = function () {
   var p = $('lyp');
   if (p.style.display === 'block') {
@@ -4375,7 +4393,7 @@ function wake() {
 }
 function _wake() {
   _wake = _asyncToGenerator(_regenerator().m(function _callee13() {
-    var _t44;
+    var _t45;
     return _regenerator().w(function (_context22) {
       while (1) switch (_context22.p = _context22.n) {
         case 0:
@@ -4396,7 +4414,7 @@ function _wake() {
           break;
         case 3:
           _context22.p = 3;
-          _t44 = _context22.v;
+          _t45 = _context22.v;
         case 4:
           return _context22.a(2);
       }
