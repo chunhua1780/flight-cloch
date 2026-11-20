@@ -369,7 +369,7 @@ body:not(.clk-g) .bigclock .t .s{color:var(--clk);opacity:.8}
 </div>
 
 <div id="err" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:3000;background:#2a0f0f;color:#ffb4ae;border:1px solid #6b2a26;border-radius:12px;padding:10px 14px;font:13px/1.4 -apple-system,sans-serif;white-space:pre-wrap"></div>
-<script src="scene.js?v=20261120092746"></script>
+<script src="scene.js?v=20261120093043"></script>
 <script>
 window.onerror = function (m, src, line) {
   var e = document.getElementById('err');
@@ -863,8 +863,8 @@ function nextCard(f, upcoming) {
   upcoming = null; // 之后的航班看右侧日历
   if (!f) return '<div class="nc"><div class="empty">No flights scheduled yet</div></div>';
   const oTz = apTz(f.origin), dTz = apTz(f.dest);
-  // 人在外站：回到迪拜是哪天、星期几、几点落地（绿色）—— 下一个落在基地的航班
-  const back = isHome(f.origin) ? null : (S.flights || []).filter(x => x.std >= f.std && isHome(x.dest)).sort((a, b) => a.std - b.std)[0] || null;
+  // 回到迪拜是哪天、星期几、几点落地（绿色）—— 这一班或之后第一个落在基地的航班（在家时 = 这次出去以后的回程，家人一看就知道哪天回来）
+  const back = (S.flights || []).filter(x => x.std >= f.std && isHome(x.dest) && x.std < f.std + 14 * 864e5).sort((a, b) => a.std - b.std)[0] || null;
   const pickup = f.std - CFG.pickup * MIN; // 接车 = 起飞前 2 小时 15 分（设置里可改）
   const toPick = NOCAR ? -1 : pickup - Date.now();   // 来回航班：人在机场，没有接车
   let more = '';
@@ -1713,7 +1713,7 @@ addEventListener('resize', () => { S.view = null; render(true); });
 addEventListener('resize', () => { if (map && L_route && document.body.dataset.mode === 'flight') fitMap(L_route.getLatLngs()); });
 
 /* ---------- 自动更新：发现新版本就自己刷新（kiosk 里不用手动刷新） ---------- */
-const APP_VER = '20261120092746';
+const APP_VER = '20261120093043';
 // ---------- 自动诊断：时钟定期把背景状态报给后台（只是技术信息），方便远程排查黑屏 ----------
 const CDIAG = { errs: [], wake: 0, t0: Date.now() };
 window.addEventListener('error', e => { CDIAG.errs.push(String(e.message || e).slice(0, 120)); CDIAG.errs = CDIAG.errs.slice(-5); });
