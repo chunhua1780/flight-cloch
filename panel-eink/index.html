@@ -176,6 +176,8 @@ html.cbold #tlc{border-color:#0f2c56}
 #chk .ci{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid #ccc;font-size:18px;font-weight:800;cursor:pointer}#chk .ci:last-child{border-bottom:0}#chk .ci i{flex:none;width:28px;height:28px;border:3px solid #000;border-radius:7px;font-style:normal;text-align:center;line-height:22px;font-size:20px}#chk .ci.on{color:#999}#chk .ci.on i{background:#000;color:#fff}#chk .ci small{font-size:13px;font-weight:600;color:#666}
 #chk .cols{display:grid;grid-template-columns:1fr 1fr;column-gap:10px}
 html.cbold #chk{border-color:#0f2c56}html.cbold #chk .ci.on i{background:#00a04a;border-color:#00a04a}
+#gpsc{display:none;position:absolute;left:8px;top:58px;z-index:6;background:#fff;border:3px solid #e07000;border-radius:12px;padding:5px 10px 6px;max-width:calc(100% - 64px);box-shadow:0 4px 14px rgba(0,0,0,.25)}#gpsc .gh{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:900;color:#a34a00}#gpsc .gh span{flex:1}#gpsc .gh b{font-size:20px;padding:0 4px;cursor:pointer;color:#000}#gpsc .gs{font-size:17px;font-weight:900;line-height:1.4;white-space:nowrap;font-variant-numeric:tabular-nums}
+html.eink #gpsc{border-color:#000}html.eink #gpsc .gh{color:#000}
 #cbt .ex{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--red);color:#fff;font-size:17px}
 html.cbold #cbt{border-color:#0f2c56}html.eink #cbt .ex{background:#000}
 .cc{border:2.5px solid #000;border-radius:14px;padding:8px 12px;margin:10px 0}.cc h4{margin:0 0 6px;font-size:19px}.cc h4 small{font-size:13px;color:#444;margin-left:6px}
@@ -219,7 +221,7 @@ html.cbold #menu{border-color:var(--navy)}html.cbold #menu .btn{border-color:var
 <div id="app">
   <div id="top"><div id="sel"><span class="fl" id="fl"></span></div><div id="tbar"><div id="ovw"></div><span id="cbt"></span><span id="tlc"></span></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
   <div id="legs"></div>
-  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span>
+  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><div id="gpsc"></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span>
     <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div></div></div>
   <div id="alc"><div class="ah"><b id="alt"></b><span class="ax" id="alc-x">✕</span></div><div id="alx"></div></div><span id="warn"></span>
   <div id="rk" style="display:none"></div><div id="chk"></div>
@@ -245,10 +247,10 @@ html.cbold #menu{border-color:var(--navy)}html.cbold #menu .btn{border-color:var
 <script src="pkg.js"></script>
 <script>'use strict';
 
+function _regeneratorValues(e) { if (null != e) { var t = e["function" == typeof Symbol && Symbol.iterator || "@@iterator"], r = 0; if (t) return t.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) return { next: function next() { return e && r >= e.length && (e = void 0), { value: e && e[r++], done: !e }; } }; } throw new TypeError(typeof e + " is not iterable"); }
 function _createForOfIteratorHelperLoose(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (t) return (t = t.call(r)).next.bind(t); if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var o = 0; return function () { return o >= r.length ? { done: !0 } : { done: !1, value: r[o++] }; }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
-function _regeneratorValues(e) { if (null != e) { var t = e["function" == typeof Symbol && Symbol.iterator || "@@iterator"], r = 0; if (t) return t.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) return { next: function next() { return e && r >= e.length && (e = void 0), { value: e && e[r++], done: !e }; } }; } throw new TypeError(typeof e + " is not iterable"); }
 function _regenerator() { var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? (c > 1 && (G.n = c < 3 ? -1 : u), d(c, u)) : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -822,13 +824,13 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611202029';
+var PAGEV = '202611202036';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
 function _update() {
   _update = _asyncToGenerator(_regenerator().m(function _callee7(quiet) {
-    var files, now, day0, best, got, _iterator, _step, l, c, want, _loop3, _ret, _iterator2, _step2, _t9, _t0, _t1, _t10, _t11, _t12, _t13;
+    var files, now, day0, best, got, _iterator2, _step2, l, c, want, _loop3, _ret, _iterator3, _step3, _t9, _t0, _t1, _t10, _t11, _t12, _t13;
     return _regenerator().w(function (_context0) {
       while (1) switch (_context0.p = _context0.n) {
         case 0:
@@ -908,15 +910,15 @@ function _update() {
           _context0.p = 15;
           _t10 = _context0.v;
         case 16:
-          _iterator = _createForOfIteratorHelperLoose(LEGS.filter(function (l) {
+          _iterator2 = _createForOfIteratorHelperLoose(LEGS.filter(function (l) {
             return l.std > now - 2 * HOUR && l.std < now + 48 * HOUR && !_ls('pkgai.' + String(l.k).replace(/[^\w.-]/g, ''));
           }));
         case 17:
-          if ((_step = _iterator()).done) {
+          if ((_step2 = _iterator2()).done) {
             _context0.n = 22;
             break;
           }
-          l = _step.value;
+          l = _step2.value;
           _context0.p = 18;
           _context0.n = 19;
           return withTimeout(postK({
@@ -958,7 +960,7 @@ function _update() {
             return _regenerator().w(function (_context9) {
               while (1) switch (_context9.n) {
                 case 0:
-                  f = _step2.value;
+                  f = _step3.value;
                   if (!LEGS.some(function (l) {
                     return l.fid === f.id && l.sv === SV;
                   })) {
@@ -1008,9 +1010,9 @@ function _update() {
               }
             }, _loop3);
           });
-          _iterator2 = _createForOfIteratorHelperLoose(want);
+          _iterator3 = _createForOfIteratorHelperLoose(want);
         case 26:
-          if ((_step2 = _iterator2()).done) {
+          if ((_step3 = _iterator3()).done) {
             _context0.n = 29;
             break;
           }
@@ -1141,7 +1143,7 @@ function cloudSync(_x7) {
 }
 function _cloudSync() {
   _cloudSync = _asyncToGenerator(_regenerator().m(function _callee0(now) {
-    var r, idx, got, _loop4, _ret2, _iterator3, _step3, _loop5, _ret3, _iterator4, _step4, _loop6, _ret4, _iterator5, _step5, _loop7, _ret5, _iterator6, _step6;
+    var r, idx, got, _loop4, _ret2, _iterator4, _step4, _loop5, _ret3, _iterator5, _step5, _loop6, _ret4, _iterator6, _step6, _loop7, _ret5, _iterator7, _step7;
     return _regenerator().w(function (_context15) {
       while (1) switch (_context15.n) {
         case 0:
@@ -1165,7 +1167,7 @@ function _cloudSync() {
             return _regenerator().w(function (_context11) {
               while (1) switch (_context11.n) {
                 case 0:
-                  x = _step3.value;
+                  x = _step4.value;
                   m = x.meta || {};
                   if (!(!m.std || m.std < now - 3 * 864e5 || m.std > now + 48 * HOUR)) {
                     _context11.n = 1;
@@ -1228,9 +1230,9 @@ function _cloudSync() {
               }
             }, _loop4);
           });
-          _iterator3 = _createForOfIteratorHelperLoose(idx);
+          _iterator4 = _createForOfIteratorHelperLoose(idx);
         case 4:
-          if ((_step3 = _iterator3()).done) {
+          if ((_step4 = _iterator4()).done) {
             _context15.n = 7;
             break;
           }
@@ -1251,7 +1253,7 @@ function _cloudSync() {
             return _regenerator().w(function (_context12) {
               while (1) switch (_context12.p = _context12.n) {
                 case 0:
-                  x = _step4.value;
+                  x = _step5.value;
                   if (!(!x.st || +(_ls('stn.' + x.k) || 0) >= x.st)) {
                     _context12.n = 1;
                     break;
@@ -1293,9 +1295,9 @@ function _cloudSync() {
               }
             }, _loop5, null, [[2, 6]]);
           });
-          _iterator4 = _createForOfIteratorHelperLoose(idx);
+          _iterator5 = _createForOfIteratorHelperLoose(idx);
         case 8:
-          if ((_step4 = _iterator4()).done) {
+          if ((_step5 = _iterator5()).done) {
             _context15.n = 11;
             break;
           }
@@ -1316,7 +1318,7 @@ function _cloudSync() {
             return _regenerator().w(function (_context13) {
               while (1) switch (_context13.p = _context13.n) {
                 case 0:
-                  x = _step5.value;
+                  x = _step6.value;
                   if (!(!x.sb || +(_ls('sbn.' + x.k) || 0) >= x.sb)) {
                     _context13.n = 1;
                     break;
@@ -1358,9 +1360,9 @@ function _cloudSync() {
               }
             }, _loop6, null, [[2, 6]]);
           });
-          _iterator5 = _createForOfIteratorHelperLoose(idx);
+          _iterator6 = _createForOfIteratorHelperLoose(idx);
         case 12:
-          if ((_step5 = _iterator5()).done) {
+          if ((_step6 = _iterator6()).done) {
             _context15.n = 15;
             break;
           }
@@ -1381,7 +1383,7 @@ function _cloudSync() {
             return _regenerator().w(function (_context14) {
               while (1) switch (_context14.p = _context14.n) {
                 case 0:
-                  x = _step6.value;
+                  x = _step7.value;
                   if (!(!x.tr || +(_ls('trn.' + x.k) || 0) >= x.tr)) {
                     _context14.n = 1;
                     break;
@@ -1425,9 +1427,9 @@ function _cloudSync() {
               }
             }, _loop7, null, [[2, 6]]);
           });
-          _iterator6 = _createForOfIteratorHelperLoose(idx);
+          _iterator7 = _createForOfIteratorHelperLoose(idx);
         case 16:
-          if ((_step6 = _iterator6()).done) {
+          if ((_step7 = _iterator7()).done) {
             _context15.n = 19;
             break;
           }
@@ -2773,6 +2775,7 @@ function draw() {
   cbtShow(L, ph, now);
   tlcShow(L, ph, now);
   chkShow(L, ph, now, F);
+  gpscShow(L, ph, el, off, now);
   if ($('row').innerHTML !== row) $('row').innerHTML = row;
   var pre = ph === 0 && !L.noOfp;
   $('board').style.display = pre ? 'block' : 'none';
@@ -3163,6 +3166,92 @@ function tlcShow(L, ph, now) {
   if (b.innerHTML !== h) b.innerHTML = h;
   b.style.display = h ? 'inline-flex' : 'none';
 }
+var GPS_RE = /\b(GNSS|GPS|RAIM)\b/,
+  GPS_BAD = /INTERFERENCE|JAMM|SPOOF|UNRELIAB|U\/S|NOT AVBL|OUTAGE|DEGRAD|UNAVBL|DISRUPT/;
+var GPS_STEPS = {
+  dep: ['POS GPS — OFF', 'TERR OVRD — ON', 'RADIO NAV — ENABLE'],
+  clr: ['GPS — ON', 'RADIO NAV — ON', 'TERR OVRD — OFF'],
+  arr: ['TERR OVRD — ON', 'GPS — OFF', 'RADIO NAV UPDATE — ON', 'RNP APCH · PROGRESS · RNP 1']
+};
+function gpsPlan(nts, dep, arr, fis, off, std, tr, el, ph, t) {
+  var bad = function bad(c, at) {
+    return (nts(c) || []).some(function (n) {
+      return GPS_RE.test(n.text || '') && GPS_BAD.test(n.text || '') && !(n.to && n.to < at - 60 * 6e4) && !(n.from && n.from > at + 60 * 6e4);
+    });
+  };
+  var depG = bad(dep, off),
+    arrG = bad(arr, off + tr * 6e4);
+  if (ph === 0 && depG && t >= std - 60 * 6e4 && t < std - 20 * 6e4) return {
+    k: 'dep',
+    at: dep
+  };
+  if (ph !== 1) return null;
+  if (arrG && tr - el <= 60) return {
+    k: 'arr',
+    at: arr
+  };
+  if (depG) {
+    var ex = null,
+      fr = dep;
+    for (var _iterator = _createForOfIteratorHelperLoose((fis || []).filter(function (f) {
+        return f.t > 0;
+      }).sort(function (a, b) {
+        return a.t - b.t;
+      })), _step; !(_step = _iterator()).done;) {
+      var f = _step.value;
+      if (!bad(f.code, off + f.t * 6e4)) {
+        ex = f.t;
+        break;
+      }
+      fr = f.code;
+    }
+    ex = Math.min(ex == null ? 45 : ex, Math.max(20, tr - 70));
+    if (el >= ex && el < ex + 15) return {
+      k: 'clr',
+      at: fr
+    };
+  }
+  return null;
+}
+function gpscShow(L, ph, el, off, now) {
+  var b = $('gpsc'),
+    P = L.noOfp ? null : gpsPlan(function (c) {
+      return (L.nt && L.nt[c] || FIRALIAS[c] && L.nt && L.nt[FIRALIAS[c]] || []).map(function (n) {
+        return {
+          text: n[1],
+          from: n[2],
+          to: n[3]
+        };
+      });
+    }, L.dep, L.arr, (L.fi || []).map(function (f) {
+      return {
+        code: f[1],
+        t: f[3]
+      };
+    }), off, L.std, L.tr, el, ph, now);
+  var key = P ? 'gpsx.' + L.k + '.' + P.k : '',
+    on = P && !_ls(key);
+  var h = '';
+  if (on) {
+    var tl = {
+      dep: XS('起飞机场 GPS 干扰 ', 'DEP GPS interference ') + P.at,
+      clr: XS('已飞出 GPS 干扰区 ', 'Clear of GPS interference ') + P.at,
+      arr: XS('目的地 GPS 干扰 ', 'DEST GPS interference ') + P.at
+    };
+    h = '<div class="gh"><span>📡 ' + esc(tl[P.k]) + '</span><b data-k="' + esc(key) + '">✕</b></div>' + GPS_STEPS[P.k].map(function (x) {
+      return '<div class="gs">' + esc(x) + '</div>';
+    }).join('');
+  }
+  if (b.innerHTML !== h) b.innerHTML = h;
+  b.style.display = h ? 'block' : 'none';
+}
+$('gpsc').onclick = function (e) {
+  var k = e.target.dataset && e.target.dataset.k;
+  if (k) {
+    _ls(k, '1');
+    draw();
+  }
+};
 var PICKUP_MIN = 135,
   CHK = [['📱', '手机', 'Phone'], ['👛', '钱包', 'Wallet'], ['🛂', '护照', 'Passport'], ['🪪', '执照', 'Licence'], ['🩺', '体检合格证', 'Medical'], ['📲', 'iPad', 'iPad'], ['🧢', '帽子', 'Hat'], ['👔', '制服', 'Uniform'], ['👟', '过夜的鞋', 'Overnight shoes'], ['👕', '过夜的衣服', 'Overnight clothes'], ['🥪', '吃的', 'Food']];
 var chkGet = function chkGet(L) {

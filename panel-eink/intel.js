@@ -636,6 +636,7 @@ function procAlerts(L, S, off, now) {
     var key = null,
       lab = '';
     if (x.trigger === 'gnss') {
+      return;
       var depG = gnssAt(L, L.dep, off),
         arrG = gnssAt(L, L.arr, off + L.tr * MIN);
       if (depG && (S.ph === 0 || S.el < 15)) {
