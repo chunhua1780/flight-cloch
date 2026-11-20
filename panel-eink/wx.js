@@ -248,6 +248,30 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
     if (vis < 3000 || ceil < 1000 || /TS|CB/.test(wx) || c.cb || g >= 35 || /FZ/.test(wx)) return 'amber';
     return 'green';
   }
+  function atWin(T, M, t, win) {
+    win = win == null ? 60 : win;
+    var w = at(T, M, t),
+      seen = new Set(w.maybe.map(function (m) {
+        return m.g;
+      }));
+    [-win, -win / 2, win / 2, win].forEach(function (d) {
+      var x = at(T, M, t + d * 60e3);
+      x.maybe.forEach(function (m) {
+        if (m.g && seen.has(m.g)) return;
+        if (m.g) seen.add(m.g);
+        w.maybe.push(m);
+      });
+      if (['vis', 'ceil', 'wx', 'wind', 'cb'].some(function (k) {
+        return JSON.stringify(x.main[k]) !== JSON.stringify(w.main[k]);
+      })) w.maybe.push({
+        c: x.main,
+        why: (d < 0 ? '之前 ' : '之后 ') + Math.abs(d) + ' 分钟',
+        whyEn: Math.abs(d) + ' min ' + (d < 0 ? 'before' : 'after')
+      });
+    });
+    w.win = win;
+    return w;
+  }
   var ORDER = {
     green: 0,
     amber: 1,
@@ -607,6 +631,7 @@ function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length)
     metar: metar,
     taf: taf,
     at: at,
+    atWin: atWin,
     rate: rate,
     say: say,
     sayOne: sayOne,
