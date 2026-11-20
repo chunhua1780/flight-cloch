@@ -852,7 +852,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611202218';
+var PAGEV = '202611202230';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -1016,7 +1016,7 @@ function _update() {
             }));
           });
           _loop4 = _regenerator().m(function _loop4() {
-            var f, u8, txt, o, leg;
+            var f, u8, txt, o, leg, ex;
             return _regenerator().w(function (_context9) {
               while (1) switch (_context9.n) {
                 case 0:
@@ -1056,6 +1056,15 @@ function _update() {
                   fixLeg(leg);
                   leg.fid = f.id;
                   leg.ft = f.t;
+                  ex = LEGS.find(function (l) {
+                    return l.k === leg.k;
+                  });
+                  if (!(ex && (ex.ofpn || 0) > (leg.ofpn || 0))) {
+                    _context9.n = 5;
+                    break;
+                  }
+                  return _context9.a(2, 0);
+                case 5:
                   cloudUp(txt, o);
                   if (!LEGS.some(function (l) {
                     return l.k === leg.k;
@@ -1065,7 +1074,7 @@ function _update() {
                   }).concat([leg]);
                   got++;
                   _ls('legs', JSON.stringify(LEGS));
-                case 5:
+                case 6:
                   return _context9.a(2);
               }
             }, _loop4);
@@ -1223,7 +1232,7 @@ function _cloudSync() {
           idx = _context17.v;
           got = 0;
           _loop5 = _regenerator().m(function _loop5() {
-            var x, m, fid, f, txt, o, leg, isNew, _t16, _t17, _t18;
+            var x, m, ex, fid, f, txt, o, leg, isNew, _t16, _t17, _t18;
             return _regenerator().w(function (_context11) {
               while (1) switch (_context11.n) {
                 case 0:
@@ -1235,44 +1244,53 @@ function _cloudSync() {
                   }
                   return _context11.a(2, 0);
                 case 1:
-                  fid = 'cloud:' + x.k + ':' + (x.len || 0);
-                  if (!LEGS.some(function (l) {
-                    return l.fid === fid && l.sv === SV;
-                  })) {
+                  ex = LEGS.find(function (l) {
+                    return l.k.replace(/[^\w.-]/g, '') === x.k;
+                  });
+                  if (!(ex && m.ofpn != null && (ex.ofpn || 0) > m.ofpn)) {
                     _context11.n = 2;
                     break;
                   }
                   return _context11.a(2, 0);
                 case 2:
-                  MSG = '☁️ ' + X('云端下载 ', 'Cloud ') + (m.no || x.k);
-                  draw();
-                  _context11.n = 3;
-                  return ghRaw('ofpdata/' + x.k + '.txt.gz');
-                case 3:
-                  f = _context11.v;
-                  if (f) {
-                    _context11.n = 4;
+                  fid = 'cloud:' + x.k + ':' + (x.len || 0);
+                  if (!LEGS.some(function (l) {
+                    return l.fid === fid && l.sv === SV;
+                  })) {
+                    _context11.n = 3;
                     break;
                   }
                   return _context11.a(2, 0);
+                case 3:
+                  MSG = '☁️ ' + X('云端下载 ', 'Cloud ') + (m.no || x.k);
+                  draw();
+                  _context11.n = 4;
+                  return ghRaw('ofpdata/' + x.k + '.txt.gz');
                 case 4:
+                  f = _context11.v;
+                  if (f) {
+                    _context11.n = 5;
+                    break;
+                  }
+                  return _context11.a(2, 0);
+                case 5:
                   _t16 = gunzip;
                   _t17 = Uint8Array;
-                  _context11.n = 5;
-                  return f.arrayBuffer();
-                case 5:
-                  _t18 = _context11.v;
                   _context11.n = 6;
-                  return _t16(new _t17(_t18));
+                  return f.arrayBuffer();
                 case 6:
+                  _t18 = _context11.v;
+                  _context11.n = 7;
+                  return _t16(new _t17(_t18));
+                case 7:
                   txt = _context11.v;
                   o = OFP.parse(txt);
                   if (o.ok) {
-                    _context11.n = 7;
+                    _context11.n = 8;
                     break;
                   }
                   return _context11.a(2, 0);
-                case 7:
+                case 8:
                   leg = summarize(o);
                   fixLeg(leg);
                   leg.fid = fid;
@@ -1285,7 +1303,7 @@ function _cloudSync() {
                   _ls('legs', JSON.stringify(LEGS));
                   got++;
                   if (isNew) NEWL.push(leg);
-                case 8:
+                case 9:
                   return _context11.a(2);
               }
             }, _loop5);
@@ -1656,38 +1674,80 @@ function _cloudSync() {
   }));
   return _cloudSync.apply(this, arguments);
 }
-function cloudUp(text, o) {
-  try {
-    fetch(API + '?k=' + encodeURIComponent(_ls('key') || ''), {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'ofpsave',
-        k: (o.flight.no + o.flight.date).replace(/[^\w.-]/g, ''),
-        text: text,
-        meta: {
-          no: o.flight.no,
-          date: o.flight.date,
-          dep: o.flight.dep,
-          arr: o.flight.arr,
-          depI: o.flight.depIata,
-          arrI: o.flight.arrIata,
-          std: o.times.std,
-          trip: o.times.trip,
-          cs: o.flight.cs || '',
-          reg: o.flight.reg || ''
-        },
-        nt: [].concat.apply([], Object.keys(o.notams || {}).map(function (c) {
-          return o.notams[c].map(function (n) {
-            return [n.id, n.text];
+function cloudUp(_x8, _x9) {
+  return _cloudUp.apply(this, arguments);
+}
+function _cloudUp() {
+  _cloudUp = _asyncToGenerator(_regenerator().m(function _callee1(text, o) {
+    var r, x, _t37;
+    return _regenerator().w(function (_context18) {
+      while (1) switch (_context18.p = _context18.n) {
+        case 0:
+          _context18.p = 0;
+          _context18.n = 1;
+          return ghRaw('ofpdata/index.json');
+        case 1:
+          r = _context18.v;
+          if (!r) {
+            _context18.n = 3;
+            break;
+          }
+          _context18.n = 2;
+          return r.json();
+        case 2:
+          x = _context18.v.find(function (e) {
+            return e.k === (o.flight.no + o.flight.date).replace(/[^\w.-]/g, '');
           });
-        })).filter(function (n, i, A) {
-          return A.findIndex(function (m) {
-            return m[0] === n[0];
-          }) === i;
-        })
-      })
-    }).catch(function () {});
-  } catch (e) {}
+          if (!(x && x.meta && (x.meta.ofpn || 0) > (o.flight.ofpn || 0))) {
+            _context18.n = 3;
+            break;
+          }
+          return _context18.a(2);
+        case 3:
+          _context18.n = 5;
+          break;
+        case 4:
+          _context18.p = 4;
+          _t37 = _context18.v;
+        case 5:
+          try {
+            fetch(API + '?k=' + encodeURIComponent(_ls('key') || ''), {
+              method: 'POST',
+              body: JSON.stringify({
+                action: 'ofpsave',
+                k: (o.flight.no + o.flight.date).replace(/[^\w.-]/g, ''),
+                text: text,
+                meta: {
+                  no: o.flight.no,
+                  date: o.flight.date,
+                  dep: o.flight.dep,
+                  arr: o.flight.arr,
+                  depI: o.flight.depIata,
+                  arrI: o.flight.arrIata,
+                  std: o.times.std,
+                  trip: o.times.trip,
+                  cs: o.flight.cs || '',
+                  reg: o.flight.reg || '',
+                  ofpn: o.flight.ofpn || 0
+                },
+                nt: [].concat.apply([], Object.keys(o.notams || {}).map(function (c) {
+                  return o.notams[c].map(function (n) {
+                    return [n.id, n.text];
+                  });
+                })).filter(function (n, i, A) {
+                  return A.findIndex(function (m) {
+                    return m[0] === n[0];
+                  }) === i;
+                })
+              })
+            }).catch(function () {});
+          } catch (e) {}
+        case 6:
+          return _context18.a(2);
+      }
+    }, _callee1, null, [[0, 4]]);
+  }));
+  return _cloudUp.apply(this, arguments);
 }
 var FIRN = [[/CONFLICT ZONE|HAZARDOUS SITUATION|SECURITY WARNING|MISSILE|ROCKET|HOSTILE|WEAPON|ARMED CONFLICT/, 'red', '冲突区 / 安全警告', 'Conflict zone / security warning'], [/VOLCANIC|\bVA\s+(CLOUD|ERUPTION)/, 'red', '火山灰', 'Volcanic ash'], [/(?:RTE|ROUTE|SEGMENT|AWY)S?\b[^.]{0,80}\bCLSD|AIRSPACE\s+CLSD|FIR\s+(?:IS\s+)?CLSD/, 'red', '航路 / 空域关闭', 'Route / airspace closed'], [/GNSS|\bGPS\b/, 'amber', 'GPS 干扰', 'GNSS interference'], [/(?:FREQ|HF)[^.]{0,120}\bU\/S\b|RADAR[^.]{0,80}(?:U\/S|NOT AVBL)|CPDLC[^.]{0,40}(?:U\/S|NOT AVBL)|ADS-C[^.]{0,40}NOT AVBL/, 'amber', 'ATC 频率 / 雷达部分不可用', 'ATC frequency / radar partly U/S'], [/\bBIRDS?\b[^.]{0,60}(?:ACTIVIT|MIGRAT|FLOCK|STRIKE)/, 'amber', '鸟群活动', 'Bird activity'], [/ARTILLERY|FIRING|\bEXER\b|MIL(?:ITARY)? EXERCISE|PARA DROP|DANGER AREA|DNG AREA|RESTRICTED AREA|PROHIBITED/, 'amber', '军事活动 / 限制区', 'Military activity / restricted area']];
 var SV = 3;
@@ -1739,6 +1799,7 @@ function summarize(o) {
   };
   var leg = {
     sv: SV,
+    ofpn: f.ofpn || 0,
     k: f.no + f.date,
     no: f.no,
     date: f.date,
@@ -2459,18 +2520,18 @@ var WARN = {
   },
   WSIG = '',
   wTimer = null;
-function useOfpText(_x8, _x9, _x0) {
+function useOfpText(_x0, _x1, _x10) {
   return _useOfpText.apply(this, arguments);
 }
 function _useOfpText() {
-  _useOfpText = _asyncToGenerator(_regenerator().m(function _callee1(txt, src, id) {
+  _useOfpText = _asyncToGenerator(_regenerator().m(function _callee10(txt, src, id) {
     var o, leg;
-    return _regenerator().w(function (_context18) {
-      while (1) switch (_context18.n) {
+    return _regenerator().w(function (_context19) {
+      while (1) switch (_context19.n) {
         case 0:
           o = OFP.parse(txt);
           if (o.ok) {
-            _context18.n = 1;
+            _context19.n = 1;
             break;
           }
           throw new Error(X('这个文件里没认出 OFP（', 'No OFP found in this file (') + (o.warnings || []).join('; ') + ')');
@@ -2486,20 +2547,20 @@ function _useOfpText() {
           _ls('legs', JSON.stringify(LEGS));
           _ls('pin', leg.k);
           if (src !== 'cloud') cloudUp(txt, o);
-          return _context18.a(2, leg);
+          return _context19.a(2, leg);
       }
-    }, _callee1);
+    }, _callee10);
   }));
   return _useOfpText.apply(this, arguments);
 }
-function pickOfp(_x1) {
+function pickOfp(_x11) {
   return _pickOfp.apply(this, arguments);
 }
 function _pickOfp() {
-  _pickOfp = _asyncToGenerator(_regenerator().m(function _callee11(days) {
-    var sh, log, rows, errs, j, r, _t41, _t42;
-    return _regenerator().w(function (_context20) {
-      while (1) switch (_context20.p = _context20.n) {
+  _pickOfp = _asyncToGenerator(_regenerator().m(function _callee12(days) {
+    var sh, log, rows, errs, j, r, _t42, _t43;
+    return _regenerator().w(function (_context21) {
+      while (1) switch (_context21.p = _context21.n) {
         case 0:
           days = days || 7;
           sh = $('sheet');
@@ -2522,14 +2583,14 @@ function _pickOfp() {
           rows = [];
           log('⏳ ' + X('正在看云端和邮箱…', 'Checking cloud and mail…'));
           errs = [];
-          _context20.p = 1;
-          _context20.n = 2;
+          _context21.p = 1;
+          _context21.n = 2;
           return withTimeout(postK({
             action: 'ofpmail',
             days: days
           }), 90000);
         case 2:
-          j = _context20.v;
+          j = _context21.v;
           if (j && j.ok) {
             if (j.gh && j.gh.tok) {
               _ls('ghtok', j.gh.tok);
@@ -2546,26 +2607,26 @@ function _pickOfp() {
               });
             });
           } else errs.push(X('邮箱：', 'Mail: ') + (j && j.error || '?'));
-          _context20.n = 4;
+          _context21.n = 4;
           break;
         case 3:
-          _context20.p = 3;
-          _t41 = _context20.v;
-          errs.push(X('邮箱：', 'Mail: ') + _t41.message);
+          _context21.p = 3;
+          _t42 = _context21.v;
+          errs.push(X('邮箱：', 'Mail: ') + _t42.message);
         case 4:
-          _context20.p = 4;
-          _context20.n = 5;
+          _context21.p = 4;
+          _context21.n = 5;
           return ghRaw('ofpdata/index.json');
         case 5:
-          r = _context20.v;
+          r = _context21.v;
           if (!r) {
-            _context20.n = 7;
+            _context21.n = 7;
             break;
           }
-          _context20.n = 6;
+          _context21.n = 6;
           return r.json();
         case 6:
-          _context20.v.filter(function (x) {
+          _context21.v.filter(function (x) {
             return x.meta && x.len && x.meta.std > Date.now() - days * 864e5;
           }).forEach(function (x) {
             return rows.push({
@@ -2575,17 +2636,17 @@ function _pickOfp() {
               name: (x.meta.no || x.k) + ' ' + (x.meta.depI || x.meta.dep || '') + '→' + (x.meta.arrI || x.meta.arr || '') + ' ' + dmZ(x.meta.std)
             });
           });
-          _context20.n = 8;
+          _context21.n = 8;
           break;
         case 7:
           errs.push(X('云端：', 'Cloud: ') + (GH().tok ? X('读不到（GitHub）', 'not reachable') : X('还没有同步码（先在有网时点一次 🔄 更新）', 'no sync key yet')));
         case 8:
-          _context20.n = 10;
+          _context21.n = 10;
           break;
         case 9:
-          _context20.p = 9;
-          _t42 = _context20.v;
-          errs.push(X('云端：', 'Cloud: ') + _t42.message);
+          _context21.p = 9;
+          _t43 = _context21.v;
+          errs.push(X('云端：', 'Cloud: ') + _t43.message);
         case 10:
           rows.sort(function (a, b) {
             return b.t - a.t;
@@ -2597,68 +2658,68 @@ function _pickOfp() {
           }).join('') || '<div class="ok">' + X('云端和邮箱里都没找到 OFP', 'No OFP in cloud or mail') + '</div>';
           log(errs.length ? '⚠️ ' + errs.map(esc).join('<br>⚠️ ') : X('点一个来下载、读取（会存在手机里，离线可用）', 'Tap one to download and read it (stored on the phone)'));
           $('pk-list').onclick = function () {
-            var _ref5 = _asyncToGenerator(_regenerator().m(function _callee10(e) {
-              var d, r, f, txt, leg, u8, _txt, _leg, _t37, _t38, _t39, _t40;
-              return _regenerator().w(function (_context19) {
-                while (1) switch (_context19.p = _context19.n) {
+            var _ref5 = _asyncToGenerator(_regenerator().m(function _callee11(e) {
+              var d, r, f, txt, leg, u8, _txt, _leg, _t38, _t39, _t40, _t41;
+              return _regenerator().w(function (_context20) {
+                while (1) switch (_context20.p = _context20.n) {
                   case 0:
                     d = e.target.closest('[data-i]');
                     if (d) {
-                      _context19.n = 1;
+                      _context20.n = 1;
                       break;
                     }
-                    return _context19.a(2);
+                    return _context20.a(2);
                   case 1:
                     r = rows[+d.dataset.i];
-                    _context19.p = 2;
+                    _context20.p = 2;
                     if (!(r.src === 'cloud')) {
-                      _context19.n = 8;
+                      _context20.n = 8;
                       break;
                     }
                     log('⏳ ' + X('云端下载…', 'Downloading…'));
-                    _context19.n = 3;
+                    _context20.n = 3;
                     return ghRaw('ofpdata/' + r.id + '.txt.gz');
                   case 3:
-                    f = _context19.v;
+                    f = _context20.v;
                     if (f) {
-                      _context19.n = 4;
+                      _context20.n = 4;
                       break;
                     }
                     throw new Error('GitHub');
                   case 4:
-                    _t37 = gunzip;
-                    _t38 = Uint8Array;
-                    _context19.n = 5;
+                    _t38 = gunzip;
+                    _t39 = Uint8Array;
+                    _context20.n = 5;
                     return f.arrayBuffer();
                   case 5:
-                    _t39 = _context19.v;
-                    _context19.n = 6;
-                    return _t37(new _t38(_t39));
+                    _t40 = _context20.v;
+                    _context20.n = 6;
+                    return _t38(new _t39(_t40));
                   case 6:
-                    txt = _context19.v;
-                    _context19.n = 7;
+                    txt = _context20.v;
+                    _context20.n = 7;
                     return useOfpText(txt, 'cloud', 'cloud:' + r.id + ':' + txt.length);
                   case 7:
-                    leg = _context19.v;
+                    leg = _context20.v;
                     log('✅ ' + esc(leg.no) + ' ' + X('已读入', 'loaded'));
-                    _context19.n = 12;
+                    _context20.n = 12;
                     break;
                   case 8:
                     log('⏳ ' + X('从邮箱下载…（大文件要 10–60 秒）', 'Downloading from mail… (10–60 s)'));
-                    _context19.n = 9;
+                    _context20.n = 9;
                     return getFile(r.id);
                   case 9:
-                    u8 = _context19.v;
-                    _context19.n = 10;
+                    u8 = _context20.v;
+                    _context20.n = 10;
                     return pdfText(u8, function (n, N) {
                       return log('⏳ ' + X('读取 PDF ', 'Reading PDF ') + n + '/' + N);
                     });
                   case 10:
-                    _txt = _context19.v;
-                    _context19.n = 11;
+                    _txt = _context20.v;
+                    _context20.n = 11;
                     return useOfpText(_txt, 'mail', r.id);
                   case 11:
-                    _leg = _context19.v;
+                    _leg = _context20.v;
                     log('✅ ' + esc(_leg.no) + ' ' + X('已读入，并传到云端', 'loaded and uploaded to the cloud'));
                   case 12:
                     setTimeout(function () {
@@ -2666,25 +2727,25 @@ function _pickOfp() {
                       draw();
                       maybeDemo();
                     }, 900);
-                    _context19.n = 14;
+                    _context20.n = 14;
                     break;
                   case 13:
-                    _context19.p = 13;
-                    _t40 = _context19.v;
-                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t40.message || String(_t40)));
+                    _context20.p = 13;
+                    _t41 = _context20.v;
+                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t41.message || String(_t41)));
                   case 14:
-                    return _context19.a(2);
+                    return _context20.a(2);
                 }
-              }, _callee10, null, [[2, 13]]);
+              }, _callee11, null, [[2, 13]]);
             }));
-            return function (_x10) {
+            return function (_x12) {
               return _ref5.apply(this, arguments);
             };
           }();
         case 11:
-          return _context20.a(2);
+          return _context21.a(2);
       }
-    }, _callee11, null, [[4, 9], [1, 3]]);
+    }, _callee12, null, [[4, 9], [1, 3]]);
   }));
   return _pickOfp.apply(this, arguments);
 }
@@ -4313,33 +4374,33 @@ function wake() {
   return _wake.apply(this, arguments);
 }
 function _wake() {
-  _wake = _asyncToGenerator(_regenerator().m(function _callee12() {
-    var _t43;
-    return _regenerator().w(function (_context21) {
-      while (1) switch (_context21.p = _context21.n) {
+  _wake = _asyncToGenerator(_regenerator().m(function _callee13() {
+    var _t44;
+    return _regenerator().w(function (_context22) {
+      while (1) switch (_context22.p = _context22.n) {
         case 0:
-          _context21.p = 0;
+          _context22.p = 0;
           if (!('wakeLock' in navigator && document.visibilityState === 'visible' && !wl)) {
-            _context21.n = 2;
+            _context22.n = 2;
             break;
           }
-          _context21.n = 1;
+          _context22.n = 1;
           return navigator.wakeLock.request('screen');
         case 1:
-          wl = _context21.v;
+          wl = _context22.v;
           wl.addEventListener('release', function () {
             wl = null;
           });
         case 2:
-          _context21.n = 4;
+          _context22.n = 4;
           break;
         case 3:
-          _context21.p = 3;
-          _t43 = _context21.v;
+          _context22.p = 3;
+          _t44 = _context22.v;
         case 4:
-          return _context21.a(2);
+          return _context22.a(2);
       }
-    }, _callee12, null, [[0, 3]]);
+    }, _callee13, null, [[0, 3]]);
   }));
   return _wake.apply(this, arguments);
 }

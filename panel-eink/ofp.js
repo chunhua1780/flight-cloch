@@ -94,6 +94,10 @@
       reg: normReg(reg || splitTR(h[8] || '')[1])
     };
     {
+      var n = /\bOFP:\s*(\d+)\/\d+\/\d+/.exec(T);
+      out.flight.ofpn = n ? +n[1] : 0;
+    }
+    {
       var c1 = /\(FPL-([A-Z]{3}[A-Z0-9]{1,5})-/.exec(T),
         c2 = /^\s*((?:UAE)[A-Z0-9]{1,5})\b/m.exec(T);
       out.flight.cs = c1 && c1[1] || c2 && c2[1] || '';
