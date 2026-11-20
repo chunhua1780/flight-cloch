@@ -178,6 +178,18 @@ html.cbold #tlc{border-color:#0f2c56}
 html.cbold #chk{border-color:#0f2c56}html.cbold #chk .ci.on i{background:#00a04a;border-color:#00a04a}
 #gpsc{display:none;position:absolute;left:8px;top:58px;z-index:6;background:#fff;border:3px solid #e07000;border-radius:12px;padding:5px 10px 6px;max-width:calc(100% - 64px);box-shadow:0 4px 14px rgba(0,0,0,.25)}#gpsc .gh{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:900;color:#a34a00}#gpsc .gh span{flex:1}#gpsc .gh b{font-size:20px;padding:0 4px;cursor:pointer;color:#000}#gpsc .gs{font-size:17px;font-weight:900;line-height:1.4;white-space:nowrap;font-variant-numeric:tabular-nums}
 html.eink #gpsc{border-color:#000}html.eink #gpsc .gh{color:#000}
+#zly{font-size:12px!important;font-weight:900;letter-spacing:-.02em}
+#lyp{display:none;position:absolute;right:52px;top:150px;z-index:8;background:#fff;border:2.5px solid #000;border-radius:12px;padding:6px;box-shadow:0 4px 16px rgba(0,0,0,.25);width:190px}#lyp .btn{display:block;margin:3px 0;text-align:left;font-size:14px;padding:6px 8px}#lyp .btn.on{background:#000;color:#fff}
+html.cbold #lyp{border-color:#0f2c56}html.cbold #lyp .btn.on{background:#0f2c56;border-color:#0f2c56}
+#altl{flex:none;border-top:3px solid #000;font-size:12px;line-height:1.2;max-height:42%;overflow-y:auto}#altl:empty{display:none}
+#altl .ah{display:flex;align-items:center;gap:4px;padding:2px 4px;font-weight:900;font-size:11.5px;background:#000;color:#fff}#altl .ah span{flex:1}
+#altl .ar{display:flex;flex-wrap:wrap;align-items:center;gap:1px 4px;padding:3px 4px;border-bottom:1px solid #ccc;font-weight:800;cursor:pointer}#altl .ar b{font-size:14px;font-weight:900}#altl .ar .d{margin-left:auto;font-size:11px;font-weight:700;color:#444;white-space:nowrap;font-variant-numeric:tabular-nums}#altl .wd{flex:none}
+.ct{display:inline-block;min-width:22px;text-align:center;border-radius:5px;font-size:10.5px;font-weight:900;padding:0 3px;border:1.5px solid #000;color:#000}
+.ct.cD{background:#14a04f;color:#fff;border-color:#14a04f}.ct.cA1{background:#8ff0a8}.ct.cA2{background:#f7dc2a}.ct.cCA{background:#ff8c1a}.ct.cEA{background:#ff3b30;color:#fff;border-color:#ff3b30}.ct.cN{background:#eee;color:#666;border-color:#999}
+.wd{display:inline-block;width:10px;height:10px;border-radius:50%;border:1.5px solid #000}.wd.green{background:#14a04f}.wd.amber{background:#ffb000}.wd.red{background:#e00000}.wd.none{background:#fff}
+html.eink .ct{background:#fff!important;color:#000!important;border-color:#000!important}html.eink .ct.cEA,html.eink .ct.cD{background:#000!important;color:#fff!important}html.eink .wd.red{background:#000}html.eink .wd.amber{background:#999}html.eink .wd.green{background:#fff}
+html.cbold #altl{border-top-color:#0f2c56}html.cbold #altl .ah{background:#0f2c56}
+.apx h3{margin:4px 0 6px;font-size:20px}.apx .r3{font-size:17px;font-weight:800;margin:6px 0;line-height:1.4}.apx .r3 small{display:block;font-size:13px;font-weight:600;color:#444}.apx .nt3{border-left:5px solid #e07000;padding:3px 8px;margin:5px 0;font-size:16px;font-weight:700}.apx .nt3.red{border-color:#d00000;color:#b00000}
 #cbt .ex{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--red);color:#fff;font-size:17px}
 html.cbold #cbt{border-color:#0f2c56}html.eink #cbt .ex{background:#000}
 .cc{border:2.5px solid #000;border-radius:14px;padding:8px 12px;margin:10px 0}.cc h4{margin:0 0 6px;font-size:19px}.cc h4 small{font-size:13px;color:#444;margin-left:6px}
@@ -236,8 +248,8 @@ html.eink .rf .ch.r,html.eink .rf .ch.b{background:#000;border-color:#000}html.e
 <div id="app">
   <div id="top"><div id="sel"><span class="fl" id="fl"></span></div><div id="tbar"><div id="ovw"></div><span id="cbt"></span><span id="tlc"></span></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
   <div id="legs"></div>
-  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><div id="gpsc"></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span>
-    <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div></div></div>
+  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><div id="gpsc"></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><div id="lyp"></div>
+    <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div><div id="altl"></div></div></div>
   <div id="alc"><div class="ah"><b id="alt"></b><span class="ax" id="alc-x">✕</span></div><div id="alx"></div></div><span id="warn"></span>
   <div id="rk" style="display:none"></div><div id="chk"></div>
   <div id="empty"></div>
@@ -839,13 +851,13 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611202040';
+var PAGEV = '202611202108';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
 function _update() {
   _update = _asyncToGenerator(_regenerator().m(function _callee7(quiet) {
-    var files, now, day0, best, got, _iterator2, _step2, l, c, want, _loop4, _ret2, _iterator3, _step3, _t9, _t0, _t1, _t10, _t11, _t12, _t13;
+    var files, now, day0, best, got, r, t, j, _iterator2, _step2, l, c, want, _loop4, _ret2, _iterator3, _step3, _t9, _t0, _t1, _t10, _t11, _t12, _t13, _t14;
     return _regenerator().w(function (_context0) {
       while (1) switch (_context0.p = _context0.n) {
         case 0:
@@ -925,43 +937,75 @@ function _update() {
           _context0.p = 15;
           _t10 = _context0.v;
         case 16:
+          _context0.p = 16;
+          if (!(Date.now() - +(_ls('ekt') || 0) > 6 * HOUR)) {
+            _context0.n = 20;
+            break;
+          }
+          _context0.n = 17;
+          return ghRaw('ofpdata/ZZEKTABLE.sb.html');
+        case 17:
+          r = _context0.v;
+          if (!r) {
+            _context0.n = 19;
+            break;
+          }
+          _context0.n = 18;
+          return r.text();
+        case 18:
+          t = _context0.v;
+          j = JSON.parse(t);
+          if (j && j.ap) {
+            EKT = j;
+            _ls('ek', t);
+            APC.k = '';
+          }
+        case 19:
+          _ls('ekt', String(Date.now()));
+        case 20:
+          _context0.n = 22;
+          break;
+        case 21:
+          _context0.p = 21;
+          _t11 = _context0.v;
+        case 22:
           _iterator2 = _createForOfIteratorHelperLoose(LEGS.filter(function (l) {
             return l.std > now - 2 * HOUR && l.std < now + 48 * HOUR && !_ls('pkgai.' + String(l.k).replace(/[^\w.-]/g, ''));
           }));
-        case 17:
+        case 23:
           if ((_step2 = _iterator2()).done) {
-            _context0.n = 22;
+            _context0.n = 28;
             break;
           }
           l = _step2.value;
-          _context0.p = 18;
-          _context0.n = 19;
+          _context0.p = 24;
+          _context0.n = 25;
           return withTimeout(postK({
             action: 'pkgaiget',
             k: String(l.k).replace(/[^\w.-]/g, '')
           }), 30000);
-        case 19:
+        case 25:
           c = _context0.v;
           if (c && c.ok && c.d && c.d.secs) _ls('pkgai.' + String(l.k).replace(/[^\w.-]/g, ''), JSON.stringify(c.d));
-          _context0.n = 21;
+          _context0.n = 27;
           break;
-        case 20:
-          _context0.p = 20;
-          _t11 = _context0.v;
-        case 21:
-          _context0.n = 17;
-          break;
-        case 22:
-          _context0.p = 22;
-          _context0.n = 23;
-          return wacSync();
-        case 23:
-          _context0.n = 25;
-          break;
-        case 24:
-          _context0.p = 24;
+        case 26:
+          _context0.p = 26;
           _t12 = _context0.v;
-        case 25:
+        case 27:
+          _context0.n = 23;
+          break;
+        case 28:
+          _context0.p = 28;
+          _context0.n = 29;
+          return wacSync();
+        case 29:
+          _context0.n = 31;
+          break;
+        case 30:
+          _context0.p = 30;
+          _t13 = _context0.v;
+        case 31:
           want = Object.keys(best).map(function (k) {
             return best[k];
           }).filter(function (f) {
@@ -1026,23 +1070,23 @@ function _update() {
             }, _loop4);
           });
           _iterator3 = _createForOfIteratorHelperLoose(want);
-        case 26:
+        case 32:
           if ((_step3 = _iterator3()).done) {
-            _context0.n = 29;
+            _context0.n = 35;
             break;
           }
-          return _context0.d(_regeneratorValues(_loop4()), 27);
-        case 27:
+          return _context0.d(_regeneratorValues(_loop4()), 33);
+        case 33:
           _ret2 = _context0.v;
           if (!(_ret2 === 0)) {
-            _context0.n = 28;
+            _context0.n = 34;
             break;
           }
-          return _context0.a(3, 28);
-        case 28:
-          _context0.n = 26;
+          return _context0.a(3, 34);
+        case 34:
+          _context0.n = 32;
           break;
-        case 29:
+        case 35:
           LEGS = LEGS.filter(function (l) {
             return l.std > now - 3 * 864e5 && l.std < now + 3 * 864e5 || l.k === _ls('pin');
           }).sort(function (a, b) {
@@ -1064,19 +1108,19 @@ function _update() {
             console.warn(BAD);
             BAD = [];
           }
-          _context0.n = 31;
+          _context0.n = 37;
           break;
-        case 30:
-          _context0.p = 30;
-          _t13 = _context0.v;
-          MSG = '⚠️ ' + _t13.message;
-        case 31:
+        case 36:
+          _context0.p = 36;
+          _t14 = _context0.v;
+          MSG = '⚠️ ' + _t14.message;
+        case 37:
           busy = false;
           draw();
-        case 32:
+        case 38:
           return _context0.a(2);
       }
-    }, _callee7, null, [[22, 24], [18, 20], [13, 15], [10, 12], [6, 8], [4, 30]]);
+    }, _callee7, null, [[28, 30], [24, 26], [16, 21], [13, 15], [10, 12], [6, 8], [4, 36]]);
   }));
   return _update.apply(this, arguments);
 }
@@ -1093,7 +1137,7 @@ function gunzip(_x5) {
 }
 function _gunzip() {
   _gunzip = _asyncToGenerator(_regenerator().m(function _callee8(u8) {
-    var _t14;
+    var _t15;
     return _regenerator().w(function (_context1) {
       while (1) switch (_context1.n) {
         case 0:
@@ -1101,11 +1145,11 @@ function _gunzip() {
             _context1.n = 2;
             break;
           }
-          _t14 = new TextDecoder();
+          _t15 = new TextDecoder();
           _context1.n = 1;
           return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
         case 1:
-          return _context1.a(2, _t14.decode.call(_t14, _context1.v));
+          return _context1.a(2, _t15.decode.call(_t15, _context1.v));
         case 2:
           if (!(window.AndroidPanel && AndroidPanel.gunzip)) {
             _context1.n = 3;
@@ -1178,7 +1222,7 @@ function _cloudSync() {
           idx = _context15.v;
           got = 0;
           _loop5 = _regenerator().m(function _loop5() {
-            var x, m, fid, f, txt, o, leg, isNew, _t15, _t16, _t17;
+            var x, m, fid, f, txt, o, leg, isNew, _t16, _t17, _t18;
             return _regenerator().w(function (_context11) {
               while (1) switch (_context11.n) {
                 case 0:
@@ -1211,14 +1255,14 @@ function _cloudSync() {
                   }
                   return _context11.a(2, 0);
                 case 4:
-                  _t15 = gunzip;
-                  _t16 = Uint8Array;
+                  _t16 = gunzip;
+                  _t17 = Uint8Array;
                   _context11.n = 5;
                   return f.arrayBuffer();
                 case 5:
-                  _t17 = _context11.v;
+                  _t18 = _context11.v;
                   _context11.n = 6;
-                  return _t15(new _t16(_t17));
+                  return _t16(new _t17(_t18));
                 case 6:
                   txt = _context11.v;
                   o = OFP.parse(txt);
@@ -1264,7 +1308,7 @@ function _cloudSync() {
           break;
         case 7:
           _loop6 = _regenerator().m(function _loop6() {
-            var x, t, _t18, _t19, _t20;
+            var x, t, _t19, _t20, _t21;
             return _regenerator().w(function (_context12) {
               while (1) switch (_context12.p = _context12.n) {
                 case 0:
@@ -1292,19 +1336,19 @@ function _cloudSync() {
                     _context12.n = 5;
                     break;
                   }
-                  _t18 = stApply;
-                  _t19 = x.k;
+                  _t19 = stApply;
+                  _t20 = x.k;
                   _context12.n = 4;
                   return t.json();
                 case 4:
-                  _t18(_t19, _context12.v);
+                  _t19(_t20, _context12.v);
                   _ls('stn.' + x.k, String(x.st));
                 case 5:
                   _context12.n = 7;
                   break;
                 case 6:
                   _context12.p = 6;
-                  _t20 = _context12.v;
+                  _t21 = _context12.v;
                 case 7:
                   return _context12.a(2);
               }
@@ -1329,7 +1373,7 @@ function _cloudSync() {
           break;
         case 11:
           _loop7 = _regenerator().m(function _loop7() {
-            var x, t, _t21, _t22, _t23;
+            var x, t, _t22, _t23, _t24;
             return _regenerator().w(function (_context13) {
               while (1) switch (_context13.p = _context13.n) {
                 case 0:
@@ -1357,19 +1401,19 @@ function _cloudSync() {
                     _context13.n = 5;
                     break;
                   }
-                  _t21 = _ls;
-                  _t22 = 'sb.' + x.k;
+                  _t22 = _ls;
+                  _t23 = 'sb.' + x.k;
                   _context13.n = 4;
                   return t.text();
                 case 4:
-                  _t21(_t22, _context13.v);
+                  _t22(_t23, _context13.v);
                   _ls('sbn.' + x.k, String(x.sb));
                 case 5:
                   _context13.n = 7;
                   break;
                 case 6:
                   _context13.p = 6;
-                  _t23 = _context13.v;
+                  _t24 = _context13.v;
                 case 7:
                   return _context13.a(2);
               }
@@ -1394,7 +1438,7 @@ function _cloudSync() {
           break;
         case 15:
           _loop8 = _regenerator().m(function _loop8() {
-            var x, lg, t, _t24, _t25, _t26, _t27;
+            var x, lg, t, _t25, _t26, _t27, _t28;
             return _regenerator().w(function (_context14) {
               while (1) switch (_context14.p = _context14.n) {
                 case 0:
@@ -1423,20 +1467,20 @@ function _cloudSync() {
                     _context14.n = 5;
                     break;
                   }
-                  _t24 = _ls;
-                  _t25 = 'tr.' + x.k;
-                  _t26 = JSON;
+                  _t25 = _ls;
+                  _t26 = 'tr.' + x.k;
+                  _t27 = JSON;
                   _context14.n = 4;
                   return t.json();
                 case 4:
-                  _t24(_t25, _t26.stringify.call(_t26, _context14.v));
+                  _t25(_t26, _t27.stringify.call(_t27, _context14.v));
                   _ls('trn.' + x.k, String(x.tr));
                 case 5:
                   _context14.n = 7;
                   break;
                 case 6:
                   _context14.p = 6;
-                  _t27 = _context14.v;
+                  _t28 = _context14.v;
                 case 7:
                   return _context14.a(2);
               }
@@ -2194,6 +2238,8 @@ function drawMap(L, el, ph, S, hot) {
   g.fill();
   g.stroke();
   g.restore();
+  CUR_POS = P;
+  drawLayers(L, P, xy, s, W, H, NOW());
   var nm = ZOOM > 1200 ? 200 : ZOOM > 500 ? 100 : 50,
     px = nm * s;
   if (!LT) {
@@ -2305,7 +2351,7 @@ function pickOfp(_x1) {
 }
 function _pickOfp() {
   _pickOfp = _asyncToGenerator(_regenerator().m(function _callee11(days) {
-    var sh, log, rows, errs, j, r, _t32, _t33;
+    var sh, log, rows, errs, j, r, _t33, _t34;
     return _regenerator().w(function (_context18) {
       while (1) switch (_context18.p = _context18.n) {
         case 0:
@@ -2358,8 +2404,8 @@ function _pickOfp() {
           break;
         case 3:
           _context18.p = 3;
-          _t32 = _context18.v;
-          errs.push(X('邮箱：', 'Mail: ') + _t32.message);
+          _t33 = _context18.v;
+          errs.push(X('邮箱：', 'Mail: ') + _t33.message);
         case 4:
           _context18.p = 4;
           _context18.n = 5;
@@ -2392,8 +2438,8 @@ function _pickOfp() {
           break;
         case 9:
           _context18.p = 9;
-          _t33 = _context18.v;
-          errs.push(X('云端：', 'Cloud: ') + _t33.message);
+          _t34 = _context18.v;
+          errs.push(X('云端：', 'Cloud: ') + _t34.message);
         case 10:
           rows.sort(function (a, b) {
             return b.t - a.t;
@@ -2405,8 +2451,8 @@ function _pickOfp() {
           }).join('') || '<div class="ok">' + X('云端和邮箱里都没找到 OFP', 'No OFP in cloud or mail') + '</div>';
           log(errs.length ? '⚠️ ' + errs.map(esc).join('<br>⚠️ ') : X('点一个来下载、读取（会存在手机里，离线可用）', 'Tap one to download and read it (stored on the phone)'));
           $('pk-list').onclick = function () {
-            var _ref3 = _asyncToGenerator(_regenerator().m(function _callee10(e) {
-              var d, r, f, txt, leg, u8, _txt, _leg, _t28, _t29, _t30, _t31;
+            var _ref5 = _asyncToGenerator(_regenerator().m(function _callee10(e) {
+              var d, r, f, txt, leg, u8, _txt, _leg, _t29, _t30, _t31, _t32;
               return _regenerator().w(function (_context17) {
                 while (1) switch (_context17.p = _context17.n) {
                   case 0:
@@ -2434,14 +2480,14 @@ function _pickOfp() {
                     }
                     throw new Error('GitHub');
                   case 4:
-                    _t28 = gunzip;
-                    _t29 = Uint8Array;
+                    _t29 = gunzip;
+                    _t30 = Uint8Array;
                     _context17.n = 5;
                     return f.arrayBuffer();
                   case 5:
-                    _t30 = _context17.v;
+                    _t31 = _context17.v;
                     _context17.n = 6;
-                    return _t28(new _t29(_t30));
+                    return _t29(new _t30(_t31));
                   case 6:
                     txt = _context17.v;
                     _context17.n = 7;
@@ -2478,15 +2524,15 @@ function _pickOfp() {
                     break;
                   case 13:
                     _context17.p = 13;
-                    _t31 = _context17.v;
-                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t31.message || String(_t31)));
+                    _t32 = _context17.v;
+                    log('❌ ' + X('失败：', 'Failed: ') + esc(_t32.message || String(_t32)));
                   case 14:
                     return _context17.a(2);
                 }
               }, _callee10, null, [[2, 13]]);
             }));
             return function (_x10) {
-              return _ref3.apply(this, arguments);
+              return _ref5.apply(this, arguments);
             };
           }();
         case 11:
@@ -2789,6 +2835,7 @@ function draw() {
   ovwShow(L, ph, el);
   cbtShow(L, ph, now);
   tlcShow(L, ph, now);
+  altlShow(L, P && P.p, now, ph);
   chkShow(L, ph, now, F);
   gpscShow(L, ph, el, off, now);
   if ($('row').innerHTML !== row) $('row').innerHTML = row;
@@ -3388,6 +3435,294 @@ $('gpsc').onclick = function (e) {
     draw();
   }
 };
+var EKT = null;
+try {
+  EKT = JSON.parse(_ls('ek') || 'null');
+} catch (e) {}
+var LAY = {
+  r: 1,
+  a: 1,
+  l: 1
+};
+try {
+  Object.assign(LAY, JSON.parse(_ls('lay') || '{}'));
+} catch (e) {}
+var R1NM = 410,
+  R2NM = 820,
+  CATO = {
+    D: 0,
+    A1: 1,
+    A2: 2,
+    CA: 3,
+    EA: 4
+  },
+  CATCOL = {
+    D: '#14a04f',
+    A1: '#8ff0a8',
+    A2: '#f7dc2a',
+    CA: '#ff8c1a',
+    EA: '#ff3b30'
+  };
+var CATZ = {
+    D: '可作目的地',
+    A1: '备降场',
+    A2: '备降（加油就走）',
+    CA: 'CA 类',
+    EA: '紧急情况才用'
+  },
+  CATE2 = {
+    D: 'Destination',
+    A1: 'Alternate',
+    A2: 'Alternate (fuel & go)',
+    CA: 'CA',
+    EA: 'Emergency only'
+  };
+function tyIdx(L) {
+  var t = String(L && L.ty || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (/77F|777F/.test(t)) return 6;
+  if (/SF/.test(t)) return 5;
+  if (/77W|300ER|7773/.test(t)) return 4;
+  if (/77L|200LR|7772/.test(t)) return 3;
+  if (/A38|388/.test(t)) return 2;
+  if (/A35|359/.test(t)) return 1;
+  if (/A319/.test(t)) return 0;
+  return 4;
+}
+function ekCat(e, ti, t) {
+  if (!e || !e.c) return null;
+  var base = e.c[ti];
+  var w = e.tw;
+  if (!w || base === '-' || w.only && base !== w.only || t == null) return base;
+  var d = new Date(t),
+    m = d.getUTCHours() * 60 + d.getUTCMinutes(),
+    inW = w.from <= w.to ? m >= w.from && m < w.to : m >= w.from || m < w.to;
+  return inW ? w.in : w.out || base;
+}
+var gcd = function gcd(a, b) {
+  var r = Math.PI / 180,
+    x = Math.sin((b[0] - a[0]) * r / 2),
+    y = Math.sin((b[1] - a[1]) * r / 2);
+  return 2 * 3440.065 * Math.asin(Math.sqrt(x * x + Math.cos(a[0] * r) * Math.cos(b[0] * r) * y * y));
+};
+var APC = {
+  k: '',
+  list: []
+};
+function apCands(L) {
+  var k = L.k + '|' + (EKT ? EKT.n + (EKT.at || '') : 0) + '|' + (APT ? 1 : 0);
+  if (APC.k === k) return APC.list;
+  var ti = tyIdx(L),
+    set = {},
+    EK = EKT && EKT.ap || {};
+  Object.keys(EK).forEach(function (c) {
+    var e = EK[c];
+    if (e.c && e.c[ti] && e.c[ti] !== '-' && e.c[ti] !== 'X' && APT && APT[c]) set[c] = {
+      icao: c,
+      e: e
+    };
+  });
+  Object.keys(L.wx || {}).concat(L.ap || []).forEach(function (c) {
+    if (!set[c] && APT && APT[c]) set[c] = {
+      icao: c,
+      e: EK[c] || null,
+      ofp: 1
+    };else if (set[c]) set[c].ofp = 1;
+  });
+  APC = {
+    k: k,
+    list: Object.values(set).map(function (a) {
+      return Object.assign(a, {
+        pos: APT[a.icao]
+      });
+    })
+  };
+  return APC.list;
+}
+function apWx(L, icao, at) {
+  var r = L.wx && L.wx[icao];
+  if (!r || !(r.m || r.t)) return null;
+  try {
+    var M = r.m ? WX.metar(r.m, at) : null,
+      _T = r.t ? WX.taf(String(r.t).replace(/^\s*TAF\s+((AMD|COR)\s+)?[A-Z]{4}\s+/, ''), at) : null;
+    var w = M || _T ? WX.at(_T, M, at) : null;
+    return w ? {
+      w: w,
+      rate: WX.rate(w)
+    } : null;
+  } catch (e) {
+    return null;
+  }
+}
+function altNow(L, pos, t) {
+  if (!pos) return [];
+  var ti = tyIdx(L),
+    R = {
+      green: 0,
+      none: 1,
+      amber: 2,
+      red: 3
+    };
+  return apCands(L).map(function (a) {
+    var d = gcd(pos, a.pos);
+    if (d > R1NM) return null;
+    var cat = a.e ? ekCat(a.e, ti, t) : null;
+    if (a.e && !(cat in CATO)) return null;
+    var wx = apWx(L, a.icao, t + d / R1NM * HOUR);
+    return {
+      a: a,
+      d: d,
+      cat: cat,
+      rate: wx ? wx.rate : 'none'
+    };
+  }).filter(Boolean).sort(function (x, y) {
+    return R[x.rate] - R[y.rate] || (CATO[x.cat] == null ? 9 : CATO[x.cat]) - (CATO[y.cat] == null ? 9 : CATO[y.cat]) || x.d - y.d;
+  }).slice(0, 6);
+}
+var ctTag = function ctTag(c) {
+  return '<span class="ct c' + (c && c in CATO ? c : 'N') + '">' + (c && c in CATO ? c : '—') + '</span>';
+};
+function altlShow(L, pos, t, ph) {
+  var b = $('altl');
+  var h = '';
+  if (LAY.l && !L.noOfp && pos && ph !== 2) {
+    var A = altNow(L, pos, t);
+    h = '<div class="ah"><span>🛬 ' + XS('1 小时内备降', 'Altn ≤ 1 h') + '</span>' + (EKT ? '' : '<small style="font-weight:600">' + XS('无授权表', 'no EK table') + '</small>') + '</div>' + (A.length ? A.map(function (x) {
+      return '<div class="ar" data-ap="' + x.a.icao + '"><span class="wd ' + x.rate + '"></span>' + ctTag(x.cat) + '<b>' + x.a.icao + '</b><span class="d">' + Math.round(x.d) + 'nm · ' + Math.round(x.d / R1NM * 60) + "'</span></div>";
+    }).join('') : '<div class="ar" style="cursor:default;color:#c00000">' + XS('1 小时内没有合适的机场', 'None within 1 h') + '</div>');
+  }
+  if (b.innerHTML !== h) b.innerHTML = h;
+}
+$('altl').onclick = function (e) {
+  var r = e.target.closest('[data-ap]');
+  if (r) openApt(r.dataset.ap);
+};
+function openApt(icao) {
+  var L = CUR;
+  if (!L) return;
+  var sh = $('sheet'),
+    t = NOW(),
+    ti = tyIdx(L),
+    a = apCands(L).find(function (x) {
+      return x.icao === icao;
+    }) || {
+      icao: icao,
+      e: EKT && EKT.ap && EKT.ap[icao],
+      pos: APT && APT[icao]
+    };
+  var cat = a.e ? ekCat(a.e, ti, t) : null,
+    P = CUR_POS,
+    d = P && a.pos ? gcd(P, a.pos) : null,
+    at = t + (d != null ? d / R1NM * HOUR : 0),
+    wx = apWx(L, icao, at);
+  var nts = function () {
+    try {
+      return WX.notams((L.nt && L.nt[icao] || []).map(function (n) {
+        return {
+          id: n[0],
+          text: n[1],
+          from: n[2],
+          to: n[3]
+        };
+      }), at).filter(function (n) {
+        return n.lv !== 'info';
+      }).slice(0, 4);
+    } catch (e) {
+      return [];
+    }
+  }();
+  var rm = a.e && a.e.r ? [].concat(a.e.r).filter(Boolean).slice(0, 2) : [];
+  sh.innerHTML = '<div style="display:flex;align-items:center;gap:6px"><span style="flex:1"></span><span class="btn" id="sh-x">✕</span></div><div class="apx"><h3>' + ctTag(cat) + ' ' + esc(icao) + (a.e && a.e.i ? ' / ' + esc(a.e.i) : '') + (a.e && a.e.n ? ' <small style="font-size:14px;font-weight:600">' + esc(a.e.n) + '</small>' : '') + '</h3>' + (cat in CATO ? '<div class="r3">' + esc(XS(CATZ[cat], CATE2[cat])) + '</div>' : '') + (d != null ? '<div class="r3">' + Math.round(d) + ' nm · ' + XS('约 ', '~') + Math.round(d / R1NM * 60) + XS(' 分钟', ' min') + '<small>' + XS('按 410 nm / 小时估算', 'at 410 nm per hour') + '</small></div>' : '') + '<div class="r3"><span class="wd ' + (wx ? wx.rate : 'none') + '"></span> ' + (wx ? esc(WX.say(wx.w, LANG === 'en' ? 'en' : 'zh').slice(0, 2).join(' · ')) : XS('OFP 里没有这个机场的天气', 'No weather in the OFP')) + '</div>' + (nts.length ? nts.map(function (n) {
+    return '<div class="nt3' + (n.lv === 'red' ? ' red' : '') + '">' + esc(LANG === 'en' ? n.en : n.zh) + '</div>';
+  }).join('') : '<div class="r3"><small>' + XS('OFP 里没有这个机场的重要通告', 'No significant NOTAMs in the OFP') + '</small></div>') + rm.map(function (x) {
+    return '<div class="r3"><small>' + esc(String(x).slice(0, 120)) + '</small></div>';
+  }).join('') + '</div>';
+  sh.style.display = 'block';
+  sh.scrollTop = 0;
+  $('sh-x').onclick = function () {
+    sh.style.display = 'none';
+    draw();
+  };
+}
+var CUR_POS = null;
+function drawLayers(L, P, xy, s, W, H, t) {
+  var cv = $('map'),
+    g = cv.getContext('2d'),
+    dpr = window.devicePixelRatio || 1;
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (LAY.a && !L.noOfp) {
+    var ti = tyIdx(L);
+    apCands(L).forEach(function (a) {
+      var q = xy(a.pos[0], a.pos[1]);
+      if (q[0] < -10 || q[0] > W + 10 || q[1] < -10 || q[1] > H + 10) return;
+      var cat = a.e ? ekCat(a.e, ti, t) : null;
+      if (a.e && !(cat in CATO)) return;
+      var big = a.icao === L.dep || a.icao === L.arr || (L.alt || []).includes(a.icao);
+      g.beginPath();
+      g.arc(q[0], q[1], big ? 7 : 5, 0, 7);
+      g.fillStyle = CATCOL[cat] || '#fff';
+      g.fill();
+      g.lineWidth = big ? 2.5 : 1.5;
+      g.strokeStyle = '#000';
+      g.stroke();
+      if (big || ZOOM <= 900) {
+        g.font = 'bold 10.5px sans-serif';
+        var tw = g.measureText(a.icao).width;
+        g.fillStyle = 'rgba(255,255,255,.85)';
+        g.fillRect(q[0] - tw / 2 - 2, q[1] + 7, tw + 4, 12);
+        g.fillStyle = '#000';
+        g.fillText(a.icao, q[0] - tw / 2, q[1] + 17);
+      }
+    });
+  }
+  if (LAY.r && P) {
+    var c = xy(P[0], P[1]);
+    [[R1NM, '#d08a00', '1h · 410 nm'], [R2NM, '#5a6f99', '2h · 820 nm']].forEach(function (_ref2) {
+      var nm = _ref2[0],
+        col = _ref2[1],
+        lab = _ref2[2];
+      var r = nm * s;
+      g.setLineDash([8, 7]);
+      g.lineWidth = 2.2;
+      g.strokeStyle = col;
+      g.beginPath();
+      g.arc(c[0], c[1], r, 0, 7);
+      g.stroke();
+      g.setLineDash([]);
+      if (c[1] - r > 14) {
+        g.font = 'bold 11px sans-serif';
+        var tw = g.measureText(lab).width;
+        g.fillStyle = 'rgba(255,255,255,.85)';
+        g.fillRect(c[0] - tw / 2 - 3, c[1] - r - 7, tw + 6, 14);
+        g.fillStyle = col;
+        g.fillText(lab, c[0] - tw / 2, c[1] - r + 4);
+      }
+    });
+  }
+}
+function lypShow() {
+  $('lyp').innerHTML = [['r', XS('◯ 1h / 2h 距离圈', '◯ 1h / 2h rings')], ['a', XS('🛬 航路机场', '🛬 Route airports')], ['l', XS('📋 合适备降列表', '📋 Suitable alternates')]].map(function (_ref3) {
+    var k = _ref3[0],
+      t = _ref3[1];
+    return '<span class="btn' + (LAY[k] ? ' on' : '') + '" data-ly="' + k + '">' + t + '</span>';
+  }).join('');
+}
+$('zly').onclick = function () {
+  var p = $('lyp');
+  if (p.style.display === 'block') {
+    p.style.display = 'none';
+    return;
+  }
+  lypShow();
+  p.style.display = 'block';
+};
+$('lyp').onclick = function (e) {
+  var b = e.target.closest('[data-ly]');
+  if (!b) return;
+  LAY[b.dataset.ly] = LAY[b.dataset.ly] ? 0 : 1;
+  _ls('lay', JSON.stringify(LAY));
+  lypShow();
+  draw();
+};
 var PICKUP_MIN = 135,
   CHK = [['📱', '手机', 'Phone'], ['👛', '钱包', 'Wallet'], ['🛂', '护照', 'Passport'], ['🪪', '执照', 'Licence'], ['🩺', '体检合格证', 'Medical'], ['📲', 'iPad', 'iPad'], ['🧢', '帽子', 'Hat'], ['👔', '制服', 'Uniform'], ['👟', '过夜的鞋', 'Overnight shoes'], ['👕', '过夜的衣服', 'Overnight clothes'], ['🥪', '吃的', 'Food']];
 var chkGet = function chkGet(L) {
@@ -3813,7 +4148,7 @@ function wake() {
 }
 function _wake() {
   _wake = _asyncToGenerator(_regenerator().m(function _callee12() {
-    var _t34;
+    var _t35;
     return _regenerator().w(function (_context19) {
       while (1) switch (_context19.p = _context19.n) {
         case 0:
@@ -3834,7 +4169,7 @@ function _wake() {
           break;
         case 3:
           _context19.p = 3;
-          _t34 = _context19.v;
+          _t35 = _context19.v;
         case 4:
           return _context19.a(2);
       }
