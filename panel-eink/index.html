@@ -192,6 +192,21 @@ html.eink .ct{background:#fff!important;color:#000!important;border-color:#000!i
 html.cbold #altl{border-top-color:#0f2c56}html.cbold #altl .ah{background:#0f2c56}
 .apx h3{margin:4px 0 6px;font-size:20px}.apx .r3{font-size:17px;font-weight:800;margin:6px 0;line-height:1.4}.apx .r3 small{display:block;font-size:13px;font-weight:600;color:#444}.apx .nt3{border-left:5px solid #e07000;padding:3px 8px;margin:5px 0;font-size:16px;font-weight:700}.apx .nt3.red{border-color:#d00000;color:#b00000}
 #sheet > div:first-child .btn{padding:4px 7px;font-size:13px;margin:1px}
+/* ===== 竖屏（手机）：航路点放到航班号下面一行，左右滑动；下面整块都是地图，备降列表、警告有内容才弹出 ===== */
+#wps{display:none}
+@media not all and (orientation:landscape) and (min-width:700px){
+#top{height:19vh}
+#wps{display:flex;gap:5px;overflow-x:auto;overflow-y:hidden;padding:4px 6px 5px;border-bottom:1px solid #ccc;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex:none;scroll-behavior:smooth}#wps::-webkit-scrollbar{display:none}
+#wps:empty{display:none}
+#wps .wp{flex:none;flex-direction:column;align-items:center;gap:1px;padding:2px 1px;border-radius:9px}
+#wps .bx{min-width:58px;max-width:none;font-size:14px}#wps .wp.nx .bx{font-size:16px}
+#wps .wp .m{flex:none;text-align:center;font-size:10px;line-height:1.15}#wps .wp .m .t{font-size:12px}#wps .wp.nx .m .t{font-size:13px}#wps .wp .m .tg{display:inline}
+#wps .fx{flex:none;display:flex;flex-direction:column;justify-content:center;padding:2px 8px;border-left:5px solid #e07000;font-size:11px;font-weight:800;line-height:1.25;color:#000;white-space:nowrap}#wps .fx b{font-size:14px}
+#side{display:none}
+#alc{right:4px}#warn{right:8px}
+#mapw > #altl{position:absolute;right:8px;bottom:52px;width:min(250px,64%);max-height:42%;background:#fff;border:2.5px solid #000;border-radius:12px;overflow:hidden auto;z-index:4;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+html.cbold #mapw > #altl{border-color:#0f2c56}
+}
 #cbt .ex{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--red);color:#fff;font-size:17px}
 html.cbold #cbt{border-color:#0f2c56}html.eink #cbt .ex{background:#000}
 .cc{border:2.5px solid #000;border-radius:14px;padding:8px 12px;margin:10px 0}.cc h4{margin:0 0 6px;font-size:19px}.cc h4 small{font-size:13px;color:#444;margin-left:6px}
@@ -249,7 +264,7 @@ html.eink .rf .ch.r,html.eink .rf .ch.b{background:#000;border-color:#000}html.e
 <body>
 <div id="app">
   <div id="top"><div id="sel"><span class="fl" id="fl"></span></div><div id="tbar"><div id="ovw"></div><span id="cbt"></span><span id="tlc"></span></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
-  <div id="legs"></div>
+  <div id="wps"></div><div id="legs"></div>
   <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><div id="gpsc"></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><span class="zb" id="zbd" style="top:218px;font-size:18px;display:none" title="Before departure">🛫</span><div id="lyp"></div>
     <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div><div id="altl"></div></div></div>
   <div id="alc"><div class="ah"><b id="alt"></b><span class="ax" id="alc-x">✕</span></div><div id="alx"></div></div><span id="warn"></span>
@@ -853,7 +868,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611202248';
+var PAGEV = '202611210503';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -2521,7 +2536,8 @@ function ovwShow(L, ph, el) {
   o.style.display = h ? 'block' : 'none';
   if (h) fitFl();
 }
-var BOARDV = false;
+var BOARDV = false,
+  wpsTouch = 0;
 var CUR = null,
   wplTouch = 0,
   HOV = null,
@@ -3108,6 +3124,30 @@ function draw() {
     if ($('wpl').innerHTML !== h) {
       $('wpl').innerHTML = h;
     }
+    {
+      var b0 = Math.max(0, ni - (ph === 1 ? 1 : 0)),
+        b1 = Math.min(N.length, b0 + 30),
+        hx0 = ph === 2 ? null : FI.find(function (f) {
+          return f[3] > Math.max(0, el);
+        });
+      var hs = hx0 ? '<div class="fx">' + XS('下一个管制区', 'Next FIR') + '<b>' + esc(hx0[1]) + '</b>' + dur(hx0[3] - Math.max(0, el)) + '</div>' : '';
+      N.slice(b0, b1).forEach(function (w) {
+        var f = FIW[w[0]],
+          code = f ? FIRALIAS[f[1]] || f[1] : '',
+          past = ph === 1 && w[1] <= el || ph === 2,
+          isNx = nx && w === nx;
+        var dd = !past && w.length >= 4 ? Math.round(alongNm(Nc, cum, w[1]) - dNow) : null;
+        hs += '<div class="wp' + (past ? ' past' : '') + (isNx ? ' nx' : '') + (f ? ' ho' : '') + '" data-w="' + esc(w[0]) + '"><span class="bx"><span class="n">' + esc(w[0]) + '</span>' + (f ? '<span class="hf" data-fir="' + esc(code) + '"><span class="h1">' + (riskFir.has(code) ? '⚠' : '') + esc(f[0]) + '</span><span class="h2">' + esc(f[1]) + '</span></span>' : '') + '</span>' + '<span class="m"><span class="t">' + hmZ(off + w[1] * MIN) + 'Z</span>' + (dd != null && dd >= 0 ? dd + 'nm' : '') + (!past && ph === 1 ? '<span class="tg"> ' + dur(w[1] - el) + '</span>' : '') + '</span></div>';
+      });
+      var ws = $('wps');
+      if (ws.innerHTML !== hs) {
+        ws.innerHTML = hs;
+        if (Date.now() - wpsTouch > 20000) {
+          var e = ws.querySelector('.wp.nx') || ws.querySelector('.wp:not(.past)');
+          ws.scrollLeft = e ? Math.max(0, e.offsetLeft - ws.offsetLeft - ((ws.querySelector('.fx') || {}).offsetWidth || 0) - 70) : 0;
+        }
+      }
+    }
     var hx = ph === 2 ? null : FI.find(function (f) {
         return f[3] > Math.max(0, el);
       }),
@@ -3126,6 +3166,7 @@ function draw() {
     $('hov').textContent = HOV ? '▸ ' + XS('下一个移交 ', 'Next handover ') + HOV.f[1] + ' ' + HOV.f[0] + ' · ' + dur(HOV.min) + ' · ' + HOV.nm + ' NM · ' + hmZ(HOV.t) + 'Z' : '';
   } else {
     $('wpl').innerHTML = '';
+    $('wps').innerHTML = '';
     $('fhdr').innerHTML = '';
     HOV = null;
     $('hov').textContent = '';
@@ -3832,6 +3873,11 @@ function altlShow(L, pos, t, ph) {
     }).join('') : '<div class="ar" style="cursor:default;color:#c00000">' + XS('1 小时内没有合适的机场', 'None within 1 h') + '</div>');
   }
   if (b.innerHTML !== h) b.innerHTML = h;
+  requestAnimationFrame(function () {
+    var c = $('alc'),
+      up = b.parentNode === $('mapw') && c && c.style.display === 'block';
+    b.style.bottom = up ? c.getBoundingClientRect().height + 62 + 'px' : '';
+  });
 }
 $('altl').onclick = function (e) {
   var r = e.target.closest('[data-ap]');
@@ -3947,6 +3993,20 @@ function lypShow() {
     return '<span class="btn' + (LAY[k] ? ' on' : '') + '" data-ly="' + k + '">' + t + '</span>';
   }).join('');
 }
+['touchstart', 'pointerdown', 'wheel'].forEach(function (ev) {
+  return $('wps').addEventListener(ev, function () {
+    wpsTouch = Date.now();
+  }, {
+    passive: true
+  });
+});
+var altlPlace = function altlPlace() {
+  var port = !matchMedia('(orientation:landscape) and (min-width:700px)').matches,
+    a = $('altl');
+  if (port && a.parentNode !== $('mapw')) $('mapw').appendChild(a);else if (!port && a.parentNode !== $('side')) $('side').appendChild(a);
+};
+altlPlace();
+addEventListener('resize', altlPlace);
 $('zbd').onclick = function () {
   BOARDV = !BOARDV;
   draw();
