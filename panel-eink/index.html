@@ -215,6 +215,9 @@ html.eink #sbar,html.eink #sbar .es{color:#000}
 #flash{position:fixed;inset:0;z-index:99999;background:#000;display:none}
 /* 防残影：不要一直在动的东西（名字固定显示、不闪） */
 html.calm .h1,html.calm .h2,html.calm #alc.flash,html.calm .rt-next,html.calm #tlc{animation:none!important}html.calm .h2{display:none}html.calm .h1{opacity:1!important}
+#mcards{position:absolute;left:8px;top:58px;z-index:6;display:flex;flex-direction:column;gap:6px;max-width:calc(100% - 64px)}#mcards #gpsc{position:static;max-width:none}
+#apn{display:none;background:#fff;border:3px solid #1c5fc4;border-radius:12px;padding:6px 10px;box-shadow:0 4px 14px rgba(0,0,0,.25)}#apn .ah{font-size:14px;font-weight:900;color:#1c5fc4}#apn .ax{font-size:16px;font-weight:800;line-height:1.4;margin:3px 0}#apn .btn{padding:3px 10px;font-size:14px;margin:2px 0}
+html.eink #apn{border-color:#000}html.eink #apn .ah{color:#000}
 #cbt .ex{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--red);color:#fff;font-size:17px}
 html.cbold #cbt{border-color:#0f2c56}html.eink #cbt .ex{background:#000}
 .cc{border:2.5px solid #000;border-radius:14px;padding:8px 12px;margin:10px 0}.cc h4{margin:0 0 6px;font-size:19px}.cc h4 small{font-size:13px;color:#444;margin-left:6px}
@@ -273,7 +276,7 @@ html.eink .rf .ch.r,html.eink .rf .ch.b{background:#000;border-color:#000}html.e
 <div id="app">
   <div id="top"><div id="sbar"></div><div id="sel"><span class="fl" id="fl"></span></div><div id="tbar"><div id="ovw"></div><span id="cbt"></span><span id="tlc"></span></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
   <div id="wps"></div><div id="legs"></div>
-  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><div id="gpsc"></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><span class="zb" id="zbd" style="top:218px;font-size:18px;display:none" title="Before departure">🛫</span><div id="lyp"></div>
+  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><div id="mcards"><div id="apn"></div><div id="gpsc"></div></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><span class="zb" id="zbd" style="top:218px;font-size:18px;display:none" title="Before departure">🛫</span><div id="lyp"></div>
     <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div><div id="altl"></div></div></div>
   <div id="alc"><div class="ah"><b id="alt"></b><span class="ax" id="alc-x">✕</span></div><div id="alx"></div></div><span id="warn"></span>
   <div id="rk" style="display:none"></div><div id="chk"></div>
@@ -877,7 +880,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611210725';
+var PAGEV = '202611210953';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -3177,6 +3180,7 @@ function draw() {
   altlShow(L, P && P.p, now, ph);
   chkShow(L, ph, now, F);
   gpscShow(L, ph, el, off, now);
+  apnShow(L, ph, now);
   if ($('row').innerHTML !== row) $('row').innerHTML = row;
   var pre = ph === 0 && !L.noOfp;
   $('board').style.display = pre && BOARDV ? 'block' : 'none';
@@ -4178,6 +4182,30 @@ $('lyp').onclick = function (e) {
   _ls('lay', JSON.stringify(LAY));
   lypShow();
   draw();
+};
+var APN = {
+  WADD: [{
+    zh: '巴厘岛：起飞前上网填写印尼入境健康声明，拿到二维码（落地要出示）',
+    en: 'Bali: complete the online Indonesia arrival health declaration and get the QR code before departure (shown on arrival)'
+  }]
+};
+function apnShow(L, ph, now) {
+  var b = $('apn'),
+    N = APN[L.arr] || APN[L.bi] || null,
+    k = 'apn.' + L.k;
+  var h = '';
+  if (N && ph === 0 && now > L.std - 24 * HOUR && !_ls(k)) h = '<div class="ah">📌 ' + XS('起飞前要办', 'Before departure') + ' · ' + esc(L.arr) + '</div>' + N.map(function (n) {
+    return '<div class="ax">' + esc(LANG === 'en' ? n.en : n.zh) + (LANG === 'both' ? '<div style="font-size:12px;font-weight:600;color:#444">' + esc(n.en) + '</div>' : '') + '</div>';
+  }).join('') + '<span class="btn" data-apn="' + esc(k) + '">✓ ' + XS('已办好', 'Done') + '</span>';
+  if (b.innerHTML !== h) b.innerHTML = h;
+  b.style.display = h ? 'block' : 'none';
+}
+$('apn').onclick = function (e) {
+  var k = e.target.closest('[data-apn]');
+  if (k) {
+    _ls(k.dataset.apn, '1');
+    draw();
+  }
 };
 var PICKUP_MIN = 135,
   CHK = [['📱', '手机', 'Phone'], ['👛', '钱包', 'Wallet'], ['🛂', '护照', 'Passport'], ['🪪', '执照', 'Licence'], ['🩺', '体检合格证', 'Medical'], ['📲', 'iPad', 'iPad'], ['🧢', '帽子', 'Hat'], ['👔', '制服', 'Uniform'], ['👟', '过夜的鞋', 'Overnight shoes'], ['👕', '过夜的衣服', 'Overnight clothes'], ['🥪', '吃的', 'Food']];

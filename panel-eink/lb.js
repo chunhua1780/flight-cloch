@@ -1,5 +1,8 @@
 'use strict';
 
+function _createForOfIteratorHelperLoose(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (t) return (t = t.call(r)).next.bind(t); if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var o = 0; return function () { return o >= r.length ? { done: !0 } : { done: !1, value: r[o++] }; }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _regenerator() { var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? (c > 1 && (G.n = c < 3 ? -1 : u), d(c, u)) : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
 function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
 function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
@@ -17,26 +20,147 @@ var lbSave = function lbSave() {
   ls('lbq', JSON.stringify(LBQ));
 };
 var lbMsg = '';
+var LBRK = {
+  man: 3,
+  adsb: 2,
+  est: 1.5,
+  fa: 1,
+  plan: 0
+};
+function lbAdsb(_x) {
+  return _lbAdsb.apply(this, arguments);
+}
+function _lbAdsb() {
+  _lbAdsb = _asyncToGenerator(_regenerator().m(function _callee(e) {
+    var j, st, y, ch, put, ok1, mv, ib, lg, _t;
+    return _regenerator().w(function (_context) {
+      while (1) switch (_context.p = _context.n) {
+        case 0:
+          if (!(!e || !navigator.onLine)) {
+            _context.n = 1;
+            break;
+          }
+          return _context.a(2, false);
+        case 1:
+          _context.p = 1;
+          _context.n = 2;
+          return fetch(API + '?action=logtimes&o=' + encodeURIComponent(e.depI || '') + '&d=' + encodeURIComponent(e.arrI || '') + '&t=' + (e.std || e.date) + '&reg=' + encodeURIComponent(e.reg || '') + '&_=' + Date.now(), {
+            cache: 'no-store'
+          });
+        case 2:
+          _context.n = 3;
+          return _context.v.json();
+        case 3:
+          j = _context.v;
+          if (!(!j || !j.ok || !j.found || !j.status || !(j.status.off || j.status.on))) {
+            _context.n = 4;
+            break;
+          }
+          return _context.a(2, false);
+        case 4:
+          st = j.status, y = JSON.parse(JSON.stringify(e));
+          y.src = y.src || {};
+          ch = false;
+          put = function put(f, v, src) {
+            if (v && (LBRK[src] || 0) >= (LBRK[y.src[f]] || 0) && y.src[f] !== 'man' && (y[f] !== v || y.src[f] !== src)) {
+              y[f] = v;
+              y.src[f] = src;
+              ch = true;
+            }
+          };
+          put('to', st.off, 'adsb');
+          put('ldg', st.on, 'adsb');
+          ok1 = function ok1(v) {
+            return v && st.off && st.off - v > 0 && st.off - v < 180 * MIN;
+          }, mv = ok1(st.move) ? st.move : ok1(st.taxi) ? st.taxi - 2 * MIN : null;
+          if (mv) put('offB', mv, 'adsb');else if (st.off) put('offB', st.off - Math.min(30, e.taxiP || 15) * MIN, 'est');
+          ib = st.in && st.on && st.in - st.on > 0 && st.in - st.on < 180 * MIN ? st.in : null, lg = st.lastGnd && st.on && st.lastGnd > st.on && st.lastGnd - st.on < 180 * MIN ? st.lastGnd + MIN : 0;
+          if (ib) put('onB', ib, 'adsb');else if (st.on) put('onB', Math.max(st.on + 10 * MIN, lg), 'est');
+          if (st.reg && !y.reg) {
+            y.reg = st.reg;
+            ch = true;
+          }
+          if (ch) lbPut(y);
+          return _context.a(2, ch);
+        case 5:
+          _context.p = 5;
+          _t = _context.v;
+          return _context.a(2, false);
+      }
+    }, _callee, null, [[1, 5]]);
+  }));
+  return _lbAdsb.apply(this, arguments);
+}
+function lbAutoAdsb() {
+  return _lbAutoAdsb.apply(this, arguments);
+}
+function _lbAutoAdsb() {
+  _lbAutoAdsb = _asyncToGenerator(_regenerator().m(function _callee2() {
+    var now, n, _iterator, _step, e;
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.n) {
+        case 0:
+          now = Date.now();
+          n = 0;
+          _iterator = _createForOfIteratorHelperLoose(LBK.filter(function (x) {
+            return x.std > now - 3 * 864e5 && now > (x.ldg || 0) + 20 * MIN && ['to', 'ldg', 'offB', 'onB'].some(function (f) {
+              return !x.src || (LBRK[x.src[f]] || 0) < 2;
+            });
+          }).slice(0, 4));
+        case 1:
+          if ((_step = _iterator()).done) {
+            _context2.n = 4;
+            break;
+          }
+          e = _step.value;
+          _context2.n = 2;
+          return lbAdsb(e);
+        case 2:
+          if (!_context2.v) {
+            _context2.n = 3;
+            break;
+          }
+          n++;
+        case 3:
+          _context2.n = 1;
+          break;
+        case 4:
+          return _context2.a(2, n);
+      }
+    }, _callee2);
+  }));
+  return _lbAutoAdsb.apply(this, arguments);
+}
 function lbSync() {
   return _lbSync.apply(this, arguments);
 }
 function _lbSync() {
-  _lbSync = _asyncToGenerator(_regenerator().m(function _callee() {
-    var send, j;
-    return _regenerator().w(function (_context) {
-      while (1) switch (_context.n) {
+  _lbSync = _asyncToGenerator(_regenerator().m(function _callee3() {
+    var send, j, _t2;
+    return _regenerator().w(function (_context3) {
+      while (1) switch (_context3.p = _context3.n) {
         case 0:
           if (!(!navigator.onLine || !ls('key'))) {
-            _context.n = 1;
+            _context3.n = 1;
             break;
           }
           lbMsg = '📵 ' + X('离线：显示手机里保存的记录，改动有网时再同步', 'Offline — showing saved records; changes sync when online');
-          return _context.a(2);
+          return _context3.a(2);
         case 1:
+          _context3.p = 1;
+          _context3.n = 2;
+          return lbAutoAdsb();
+        case 2:
+          _context3.n = 4;
+          break;
+        case 3:
+          _context3.p = 3;
+          _t2 = _context3.v;
+        case 4:
           send = Object.keys(LBQ).map(function (k) {
             return LBQ[k];
           });
-          _context.n = 2;
+          _context3.n = 5;
           return postK({
             action: 'lbsync',
             entries: send,
@@ -44,15 +168,15 @@ function _lbSync() {
             setU: 0,
             table: null
           });
-        case 2:
-          j = _context.v;
+        case 5:
+          j = _context3.v;
           if (!(!j || !j.ok)) {
-            _context.n = 3;
+            _context3.n = 6;
             break;
           }
           lbMsg = '⚠️ ' + (j && j.error || '?');
-          return _context.a(2);
-        case 3:
+          return _context3.a(2);
+        case 6:
           LBQ = {};
           LBK = (j.entries || []).filter(function (e) {
             return !e.del;
@@ -62,10 +186,10 @@ function _lbSync() {
           if (j.set) ls('lbset', JSON.stringify(j.set));
           lbSave();
           lbMsg = '✅ ' + XS('已同步 ' + LBK.length + ' 条', 'Synced ' + LBK.length + ' entries');
-        case 4:
-          return _context.a(2);
+        case 7:
+          return _context3.a(2);
       }
-    }, _callee);
+    }, _callee3, null, [[1, 3]]);
   }));
   return _lbSync.apply(this, arguments);
 }
@@ -244,7 +368,12 @@ function lbTable(S) {
       return (S.bf || {})[k];
     });
   var tc = function tc(e, f) {
-    return '<td class="lbt" data-k="' + esc(e.k) + '" data-f="' + f + '">' + lbHC(e[f]) + (e.src && e.src[f] === 'plan' ? '<sup>P</sup>' : '') + '</td>';
+    return '<td class="lbt" data-k="' + esc(e.k) + '" data-f="' + f + '">' + lbHC(e[f]) + (e.src && {
+      plan: '<sup>P</sup>',
+      est: '<sup>E</sup>',
+      adsb: '<sup>A</sup>',
+      man: '<sup>✎</sup>'
+    }[e.src[f]] || '') + '</td>';
   };
   if (S.fmt === 'caac') {
     var _H = '<tr><th rowspan="2">日期</th><th rowspan="2">航班号</th><th rowspan="2">型别</th><th rowspan="2">登记号</th><th colspan="2">航段</th><th colspan="4">时刻（UTC）</th><th colspan="2">飞行时间</th><th colspan="2">资格时间</th><th rowspan="2">夜航</th><th rowspan="2">仪表</th><th colspan="2">起飞</th><th colspan="2">着陆</th><th rowspan="2">备注</th></tr>' + '<tr><th>起飞地点</th><th>着陆地点</th><th>撤轮挡</th><th>起飞</th><th>着陆</th><th>挡轮挡</th><th>总时间</th><th>空中</th><th>机长</th><th>副驾驶</th><th>昼</th><th>夜</th><th>昼</th><th>夜</th></tr>';
@@ -277,10 +406,10 @@ function openLog() {
   return _openLog.apply(this, arguments);
 }
 function _openLog() {
-  _openLog = _asyncToGenerator(_regenerator().m(function _callee2() {
-    var sh, _paint, _t;
-    return _regenerator().w(function (_context2) {
-      while (1) switch (_context2.p = _context2.n) {
+  _openLog = _asyncToGenerator(_regenerator().m(function _callee5() {
+    var sh, _paint, _t3;
+    return _regenerator().w(function (_context5) {
+      while (1) switch (_context5.p = _context5.n) {
         case 0:
           sh = $('sheet');
           sh.style.display = 'block';
@@ -291,11 +420,48 @@ function _openLog() {
               have = L && !L.noOfp && LBK.some(function (x) {
                 return x.k === String(L.k).replace(/[^\w.-]/g, '');
               });
-            sh.innerHTML = '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><b style="font-size:17px">📒 ' + XS('飞行记录本', 'Logbook') + '</b><span style="flex:1"></span>' + '<span class="btn sg' + (S.fmt === 'caac' ? ' on' : '') + '" data-fmt="caac">中国民航</span><span class="btn sg' + (S.fmt !== 'caac' ? ' on' : '') + '" data-fmt="jepp">Jeppesen</span><span class="btn" id="lb-x">✕</span></div>' + '<div class="ok">' + esc(lbMsg) + (Object.keys(LBQ).length ? ' · ' + Object.keys(LBQ).length + XS(' 条改动等有网同步', ' change(s) waiting') : '') + '</div>' + (L && !L.noOfp && !have ? '<span class="btn" id="lb-add">＋ ' + XS('记下这班 ', 'Log this flight ') + esc(L.no) + ' ' + esc(L.ai) + '→' + esc(L.bi) + '</span>' : '') + lbTable(S) + '<div class="ok" style="font-size:12px">' + XS('表格可以左右滑动（手机横过来看更舒服）。点时刻可以改（UTC，4 位）。P = 计划时间。导出、承前数据、个人信息在 iPad 记录本里设置，这里自动同步。', 'Tap a time to edit (UTC). P = planned. Export and settings are on the iPad.') + '</div>';
+            sh.innerHTML = '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><b style="font-size:17px">📒 ' + XS('飞行记录本', 'Logbook') + '</b><span style="flex:1"></span>' + '<span class="btn sg' + (S.fmt === 'caac' ? ' on' : '') + '" data-fmt="caac">中国民航</span><span class="btn sg' + (S.fmt !== 'caac' ? ' on' : '') + '" data-fmt="jepp">Jeppesen</span><span class="btn" id="lb-a">📡 ADS-B</span><span class="btn" id="lb-x">✕</span></div>' + '<div class="ok">' + esc(lbMsg) + (Object.keys(LBQ).length ? ' · ' + Object.keys(LBQ).length + XS(' 条改动等有网同步', ' change(s) waiting') : '') + '</div>' + (L && !L.noOfp && !have ? '<span class="btn" id="lb-add">＋ ' + XS('记下这班 ', 'Log this flight ') + esc(L.no) + ' ' + esc(L.ai) + '→' + esc(L.bi) + '</span>' : '') + lbTable(S) + '<div class="ok" style="font-size:12px">' + XS('表格可以左右滑动（手机横过来看更舒服）。点时刻可以改（UTC，4 位）。P = 计划、E = 估算、A = ADS-B、✎ = 手改；等级高的为准（手改 > ADS-B > 估算 > 计划），同一等级用最后改的。导出、承前数据、个人信息在 iPad 记录本里设置，这里自动同步。', 'Tap a time to edit (UTC). P = planned. Export and settings are on the iPad.') + '</div>';
             $('lb-x').onclick = function () {
               sh.style.display = 'none';
               draw();
             };
+            $('lb-a').onclick = _asyncToGenerator(_regenerator().m(function _callee4() {
+              var n, _iterator2, _step2, e;
+              return _regenerator().w(function (_context4) {
+                while (1) switch (_context4.n) {
+                  case 0:
+                    lbMsg = '⏳ ' + XS('取 ADS-B 起降时间…', 'Loading ADS-B times…');
+                    _paint();
+                    n = 0;
+                    _iterator2 = _createForOfIteratorHelperLoose(LBK.filter(function (x) {
+                      return x.std > Date.now() - 7 * 864e5;
+                    }));
+                  case 1:
+                    if ((_step2 = _iterator2()).done) {
+                      _context4.n = 4;
+                      break;
+                    }
+                    e = _step2.value;
+                    _context4.n = 2;
+                    return lbAdsb(e);
+                  case 2:
+                    if (!_context4.v) {
+                      _context4.n = 3;
+                      break;
+                    }
+                    n++;
+                  case 3:
+                    _context4.n = 1;
+                    break;
+                  case 4:
+                    lbMsg = n ? '✅ ' + XS('更新了 ' + n + ' 条（手改的不动）', n + ' updated (edited times kept)') : XS('没有新的 ADS-B 时间', 'No new ADS-B times');
+                    _paint();
+                    lbSync().then(_paint);
+                  case 5:
+                    return _context4.a(2);
+                }
+              }, _callee4);
+            }));
             sh.querySelectorAll('[data-fmt]').forEach(function (b) {
               return b.onclick = function () {
                 ls('lbfmt', b.dataset.fmt);
@@ -339,22 +505,22 @@ function _openLog() {
           };
           lbMsg = '⏳ ' + XS('同步中…', 'Syncing…');
           _paint();
-          _context2.p = 1;
-          _context2.n = 2;
+          _context5.p = 1;
+          _context5.n = 2;
           return lbSync();
         case 2:
-          _context2.n = 4;
+          _context5.n = 4;
           break;
         case 3:
-          _context2.p = 3;
-          _t = _context2.v;
-          lbMsg = '⚠️ ' + _t.message;
+          _context5.p = 3;
+          _t3 = _context5.v;
+          lbMsg = '⚠️ ' + _t3.message;
         case 4:
           _paint();
         case 5:
-          return _context2.a(2);
+          return _context5.a(2);
       }
-    }, _callee2, null, [[1, 3]]);
+    }, _callee5, null, [[1, 3]]);
   }));
   return _openLog.apply(this, arguments);
 }
