@@ -382,7 +382,7 @@ body:not(.clk-g) .bigclock .t .s{color:var(--clk);opacity:.8}
 </div>
 
 <div id="err" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:3000;background:#2a0f0f;color:#ffb4ae;border:1px solid #6b2a26;border-radius:12px;padding:10px 14px;font:13px/1.4 -apple-system,sans-serif;white-space:pre-wrap"></div>
-<script src="scene.js?v=20261121024902"></script>
+<script src="scene.js?v=20261121040731"></script>
 <script>
 window.onerror = function (m, src, line) {
   var e = document.getElementById('err');
@@ -1372,6 +1372,8 @@ function renderFlight(st, light) {
     if (T.pts && T.pts.length > 1) {
       let prev = line[0].lng;
       const tr = T.pts.map(p => { const lo = unwrap(p[1], prev); prev = lo; return [p[0], lo]; });
+      // 实际轨迹接到飞机现在的位置：出了 ADS-B 覆盖（海上）以后飞机位置是估算往前推的，中间不能断开
+      const lp = tr[tr.length - 1]; if (lp && (Math.abs(lp[0] - pos.lat) > 1e-4 || Math.abs(lp[1] - plon) > 1e-4)) { const g = dist({ lat: lp[0], lon: lp[1] }, { lat: pos.lat, lon: plon }); if (g > 300) { const seg = gcLine({ lat: lp[0], lon: lp[1] }, { lat: pos.lat, lon: plon }, Math.min(60, Math.ceil(g / 100))); let pv = lp[1]; seg.slice(1).forEach(q => { const lo = unwrap(q[1], pv); pv = lo; tr.push([q[0], lo]); }); } else tr.push([pos.lat, plon]); }
       L_trail.setLatLngs(tr); L_trailGlow.setLatLngs(tr);
       // 轨迹开始前的部分（屏幕没开时）用大圆航段补上
       const p0 = { lat: T.pts[0][0], lon: T.pts[0][1] };
@@ -1752,7 +1754,7 @@ addEventListener('resize', () => { S.view = null; render(true); });
 addEventListener('resize', () => { if (map && L_route && document.body.dataset.mode === 'flight') fitMap(L_route.__full); });
 
 /* ---------- 自动更新：发现新版本就自己刷新（kiosk 里不用手动刷新） ---------- */
-const APP_VER = '20261121024902';
+const APP_VER = '20261121040731';
 // ---------- 自动诊断：时钟定期把背景状态报给后台（只是技术信息），方便远程排查黑屏 ----------
 const CDIAG = { errs: [], wake: 0, t0: Date.now() };
 window.addEventListener('error', e => { CDIAG.errs.push(String(e.message || e).slice(0, 120)); CDIAG.errs = CDIAG.errs.slice(-5); });
