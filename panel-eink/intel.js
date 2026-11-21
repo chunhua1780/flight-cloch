@@ -15,7 +15,14 @@ function gpsRead() {
     }
   } catch (e) {}
   var f = GPS.fix;
-  return f && Date.now() - f.t < 3 * 60e3 && (f.acc < 0 || f.acc < 500) ? f : null;
+  if (!f) return null;
+  var key = f.lat.toFixed(4) + ',' + f.lon.toFixed(4);
+  if (key !== GPS.lk) {
+    GPS.lk = key;
+    GPS.lkt = Date.now();
+  }
+  if (f.gs > 80 && Date.now() - GPS.lkt > 3 * 60e3) return null;
+  return Date.now() - f.t < 3 * 60e3 && (f.acc < 0 || f.acc < 500) ? f : null;
 }
 (function webGps() {
   if (window.AndroidPanel || !navigator.geolocation) return;
