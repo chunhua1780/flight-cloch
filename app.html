@@ -382,7 +382,7 @@ body:not(.clk-g) .bigclock .t .s{color:var(--clk);opacity:.8}
 </div>
 
 <div id="err" style="display:none;position:fixed;left:12px;right:12px;bottom:12px;z-index:3000;background:#2a0f0f;color:#ffb4ae;border:1px solid #6b2a26;border-radius:12px;padding:10px 14px;font:13px/1.4 -apple-system,sans-serif;white-space:pre-wrap"></div>
-<script src="scene.js?v=20261121024347"></script>
+<script src="scene.js?v=20261121024902"></script>
 <script>
 window.onerror = function (m, src, line) {
   var e = document.getElementById('err');
@@ -1357,7 +1357,16 @@ function renderFlight(st, light) {
     const ref = line[Math.min(line.length - 1, Math.round(pos.frac * (line.length - 1)))].lng;
     const plon = unwrap(pos.lon, ref);
     L_plane.setLatLng([pos.lat, plon]);
-    { const i = Math.min(line.length - 1, Math.ceil(pos.frac * (line.length - 1)) + (pos.frac > 0 ? 0 : 0)), rest = pos.frac >= 1 ? [] : pos.frac > 0 ? [[pos.lat, plon]].concat(line.slice(i)) : line; L_route.setLatLngs(rest); L_routeGlow.setLatLngs(rest); }   // 未飞：只画飞机前面那一段
+    { // 未飞：从飞机往前画。起点 = 航路上离飞机最近、而且在飞机前面（离目的地比飞机近）的点 —— 实际航迹偏离计划航路时不会往回长出一截
+      let rest = line;
+      if (pos.frac >= 1) rest = [];
+      else if (pos.frac > 0) {
+        const P = { lat: pos.lat, lon: plon }, E = line[line.length - 1], dE = q => dist({ lat: q.lat, lon: q.lng }, { lat: E.lat, lon: E.lng }), dP = dE({ lat: P.lat, lng: P.lon });
+        let k = 0, best = 1e12; line.forEach((q, j) => { const d = dist({ lat: q.lat, lon: q.lng }, P); if (d < best) { best = d; k = j; } });
+        while (k < line.length - 1 && dE(line[k]) >= dP) k++;   // 这个点在飞机后面（或旁边）：往前找
+        rest = [[P.lat, P.lon]].concat(line.slice(k));
+      }
+      L_route.setLatLngs(rest); L_routeGlow.setLatLngs(rest); }
     const pe = document.getElementById('plane'); if (pe) pe.style.transform = 'rotate(' + Math.round(pos.hdg || 0) + 'deg)';
     // 已飞航段：有实时轨迹就画轨迹，否则画估算的大圆航段
     if (T.pts && T.pts.length > 1) {
@@ -1743,7 +1752,7 @@ addEventListener('resize', () => { S.view = null; render(true); });
 addEventListener('resize', () => { if (map && L_route && document.body.dataset.mode === 'flight') fitMap(L_route.__full); });
 
 /* ---------- 自动更新：发现新版本就自己刷新（kiosk 里不用手动刷新） ---------- */
-const APP_VER = '20261121024347';
+const APP_VER = '20261121024902';
 // ---------- 自动诊断：时钟定期把背景状态报给后台（只是技术信息），方便远程排查黑屏 ----------
 const CDIAG = { errs: [], wake: 0, t0: Date.now() };
 window.addEventListener('error', e => { CDIAG.errs.push(String(e.message || e).slice(0, 120)); CDIAG.errs = CDIAG.errs.slice(-5); });
