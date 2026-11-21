@@ -877,7 +877,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611210633';
+var PAGEV = '202611210644';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -2466,7 +2466,7 @@ function drawMap(L, el, ph, S, hot) {
   g.save();
   g.translate(ac[0], ac[1]);
   g.rotate(hdg);
-  g.fillStyle = MC.ac;
+  g.fillStyle = S && S.src === 'GPS' ? '#00c853' : MC.ac;
   g.strokeStyle = '#000';
   g.lineWidth = LT ? 1.5 : 2.5;
   var z = LT ? 1 : 1.35;
