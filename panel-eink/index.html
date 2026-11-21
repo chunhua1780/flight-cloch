@@ -873,7 +873,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611210627';
+var PAGEV = '202611210629';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -2548,7 +2548,7 @@ function sbarShow(LS) {
   var S = SBLS,
     b = $('sbar');
   var h = '';
-  if (S) h += S.src === 'GPS' ? '● GPS' + (S.gs != null ? ' ' + S.gs + 'kt' : '') + (S.alt != null ? ' FL' + String(Math.round(S.alt / 100)).padStart(3, '0') : '') : '<span class="es">○ ' + XS('估算位置', 'EST position') + '</span>';
+  if (S) h += S.src === 'GPS' ? 'GPS' : '<span class="es">EST</span>';
   if (BAT) h += (h ? '  ·  ' : '') + '<span' + (BAT.l < .2 && !BAT.c ? ' class="lo"' : '') + '>' + (BAT.c ? '⚡' : '🔋') + Math.round(BAT.l * 100) + '%</span>';
   if (b.innerHTML !== h) b.innerHTML = h;
 }
