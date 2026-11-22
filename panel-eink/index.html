@@ -888,7 +888,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611221147';
+var PAGEV = '202611221148';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -3165,7 +3165,7 @@ function draw() {
   fitFl();
   $('rt').innerHTML = '<b class="rr">' + (ph === 0 && L.dep && L.arr ? esc(L.ai) + '<small>/' + esc(L.dep) + '</small> → ' + esc(L.bi) + '<small>/' + esc(L.arr) + '</small>' : esc(L.ai) + ' → ' + esc(L.bi)) + '</b><span class="rc">' + esc(cs) + (_ls('cs.' + L.k) ? '✎' : '') + (L.reg ? ' · ' + esc(L.reg) : '') + '</span><b id="phx"></b>';
   $('ph').style.display = 'none';
-  $('phx').textContent = ph === 0 ? off - now > 12 * HOUR ? X('计划 ', 'Planned ') + dmZ(off) : L.std > now ? X('轮挡前 ', 'Off-blk in ') + dur((L.std - now) / MIN) : X('已过轮挡 ', 'Off-blk +') + dur((now - L.std) / MIN) : ph === 1 ? '✈ ' + dur(el) + ' / ' + X('剩 ', 'to go ') + dur(L.tr - el) : X('已落地', 'Landed');
+  $('phx').textContent = ph === 0 ? off - now > 12 * HOUR ? X('计划 ', 'Planned ') + dmZ(off) : L.std > now ? X('轮挡前 ', 'Off-blk in ') + dur(Math.floor((L.std - now) / MIN)) : X('已过轮挡 ', 'Off-blk +') + dur(Math.floor((now - L.std) / MIN)) : ph === 1 ? '✈ ' + dur(el) + ' / ' + X('剩 ', 'to go ') + dur(L.tr - el) : X('已落地', 'Landed');
   var P = LS.P ? {
     p: LS.P
   } : wpos(L, ph === 0 ? -1 : ph === 2 ? 1e9 : el);
