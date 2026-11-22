@@ -225,7 +225,7 @@ html.eink #apn{border-color:#000}html.eink #apn .ah{color:#000}
 #depc .on{font-size:12px;font-weight:900;color:#444;letter-spacing:.06em}#depc .on b{display:block;font-size:52px;line-height:.95;color:#000;letter-spacing:-.02em}
 #depc .rw{font-size:22px;font-weight:900;line-height:1.15;margin-top:3px}#depc .rw small{font-size:13px;color:#444;margin-right:4px}#depc .sd{font-size:20px;font-weight:900;color:#1c5fc4}
 html.cbold #depc{border-color:#0f2c56}html.eink #depc .sd{color:#000}
-#tocd{display:none;position:absolute;top:8px;right:54px;z-index:6;background:#fff;border:3px solid var(--red);border-radius:12px;padding:3px 10px;font-size:30px;font-weight:900;color:var(--red);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.05;box-shadow:0 4px 14px rgba(0,0,0,.2)}#tocd small{font-size:13px;margin-right:5px}html.eink #tocd{border-color:#000;color:#000}
+#tocd{display:none;position:absolute;top:8px;right:54px;z-index:6;background:#fff;border:3px solid var(--red);border-radius:12px;padding:3px 10px 4px;font-weight:900;color:var(--red);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.05;box-shadow:0 4px 14px rgba(0,0,0,.2);text-align:right}#tocd .c1{font-size:30px}#tocd .c1 small{font-size:12px;margin-right:6px}#tocd .c2{font-size:13px;margin-top:2px}html.eink #tocd{border-color:#000;color:#000}
 #cbt .ex{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--red);color:#fff;font-size:17px}
 html.cbold #cbt{border-color:#0f2c56}html.eink #cbt .ex{background:#000}
 .cc{border:2.5px solid #000;border-radius:14px;padding:8px 12px;margin:10px 0}.cc h4{margin:0 0 6px;font-size:19px}.cc h4 small{font-size:13px;color:#444;margin-left:6px}
@@ -888,7 +888,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611221137';
+var PAGEV = '202611221145';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -4215,6 +4215,16 @@ function apnShow(L, ph, now) {
   if (b.innerHTML !== h) b.innerHTML = h;
   b.style.display = h ? 'block' : 'none';
 }
+setInterval(function () {
+  try {
+    var L = CUR;
+    if (L && !L.noOfp && !DEMO) {
+      var now = Date.now(),
+        off = offOf(L);
+      depShow(L, now < off ? 0 : 1, off, now);
+    }
+  } catch (e) {}
+}, 30000);
 $('apn').onclick = function (e) {
   var k = e.target.closest('[data-apn]');
   if (k) {
@@ -4229,13 +4239,17 @@ function depShow(L, ph, off, now) {
     t = '';
   if (ph === 0 && !L.noOfp) {
     h = (L.ofpn ? '<div class="on">OFP<b>' + L.ofpn + '</b></div>' : '') + (L.drw ? '<div class="rw"><small>' + esc(L.dep) + '</small>RWY ' + esc(L.drw) + '</div>' : '') + (L.sid ? '<div class="sd">' + esc(L.sid) + '</div>' : '');
-    var m = Math.max(0, Math.round((off - now) / MIN));
-    if (off - now < 24 * HOUR) t = '<small>T/O</small>' + Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0');
+    var hm = function hm(ms) {
+        var m = Math.max(0, Math.floor(ms / MIN));
+        return Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0');
+      },
+      sd = atdOf(L) ? 0 : L.std;
+    if (off - now < 24 * HOUR) t = (sd && sd > now ? '<div class="c1"><small>STD ' + hmZ(sd) + 'Z</small>' + hm(sd - now) + '</div>' : '') + '<div class="c2">T/O ' + hmZ(off) + 'Z · ' + XS('还有 ', 'in ') + hm(off - now) + '</div>';
   }
   if (b.innerHTML !== h) b.innerHTML = h;
   b.style.display = h ? 'block' : 'none';
   if (c.innerHTML !== t) c.innerHTML = t;
-  c.style.display = t ? 'inline-block' : 'none';
+  c.style.display = t ? 'block' : 'none';
 }
 var PICKUP_MIN = 135,
   CHK = [['📱', '手机', 'Phone'], ['👛', '钱包', 'Wallet'], ['🛂', '护照', 'Passport'], ['🪪', '执照', 'Licence'], ['🩺', '体检合格证', 'Medical'], ['📲', 'iPad', 'iPad'], ['🧢', '帽子', 'Hat'], ['👔', '制服', 'Uniform'], ['👟', '过夜的鞋', 'Overnight shoes'], ['👕', '过夜的衣服', 'Overnight clothes'], ['🥪', '吃的', 'Food']];
