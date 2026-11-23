@@ -550,7 +550,7 @@ function fiDrawMap(g, xy, hot, W, H) {
       }
     }
     g.fillStyle = '#888';
-    g.font = '10px sans-serif';
+    g.font = '700 12px sans-serif';
     vis.forEach(function (_ref3) {
       var q = _ref3[0],
         n = _ref3[1];
@@ -586,7 +586,7 @@ function fiDrawMap(g, xy, hot, W, H) {
     g.setLineDash([]);
     var q = xy(G.R[0][0][1], G.R[0][0][0]);
     g.fillStyle = h ? '#d00000' : '#7a3db8';
-    g.font = 'bold 11px sans-serif';
+    g.font = '900 13px sans-serif';
     g.fillText(x.name.slice(0, 22), q[0] + 3, q[1] - 3);
   });
 }

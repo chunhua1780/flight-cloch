@@ -204,7 +204,7 @@ html.cbold #altl{border-top-color:#0f2c56}html.cbold #altl .ah{background:#0f2c5
 #wps .fx{flex:none;display:flex;flex-direction:column;justify-content:center;padding:2px 8px;border-left:5px solid #e07000;font-size:11px;font-weight:800;line-height:1.25;color:#000;white-space:nowrap}#wps .fx b{font-size:14px}
 #side{display:none}
 #alc{right:4px}#warn{right:8px}
-#mapw > #altl{position:absolute;right:8px;bottom:52px;width:min(250px,64%);max-height:42%;background:#fff;border:2.5px solid #000;border-radius:12px;overflow:hidden auto;z-index:4;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#mapw > #altl{position:absolute;right:8px;bottom:52px;width:min(250px,64%);max-height:42%;background:#fff;border:2.5px solid #000;border-radius:12px;overflow:hidden auto;z-index:7;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 html.cbold #mapw > #altl{border-color:#0f2c56}
 }
 /* 左上角一行绿色小字：位置来源（GPS / 估算）+ 电量 */
@@ -226,6 +226,11 @@ html.eink #apn{border-color:#000}html.eink #apn .ah{color:#000}
 #depc .rw{font-size:22px;font-weight:900;line-height:1.15;margin-top:3px}#depc .rw small{font-size:13px;color:#444;margin-right:4px}#depc .sd{font-size:20px;font-weight:900;color:#1c5fc4}
 html.cbold #depc{border-color:#0f2c56}html.eink #depc .sd{color:#000}
 #tocd{display:none;position:absolute;top:8px;right:54px;z-index:6;background:#fff;border:3px solid var(--red);border-radius:12px;padding:3px 10px 4px;font-weight:900;color:var(--red);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.05;box-shadow:0 4px 14px rgba(0,0,0,.2);text-align:right}#tocd{font-size:30px}#tocd small{font-size:12px;margin-right:6px}html.eink #tocd{border-color:#000;color:#000}
+/* 现在的管制区：不要底色，大一号粗字直接写在地图上（白色描边，墨水屏上也看得清） */
+#firl,html.cbold #firl,html.eink #firl{background:none!important;border:0!important;padding:0!important;font-size:19px!important;font-weight:900!important;color:#000!important;letter-spacing:.01em;text-shadow:0 0 2px #fff,0 0 2px #fff,0 0 3px #fff,0 0 4px #fff,1px 1px 0 #fff,-1px -1px 0 #fff,1px -1px 0 #fff,-1px 1px 0 #fff}
+/* 字更粗：离远一点也看得见 */
+.wp .m{font-weight:800!important}.wp .m .t{font-weight:900!important}.rt .rc{font-weight:800}.row .v .s{font-weight:800}.si span{font-weight:800}.al .at small,.al .am{font-weight:700}#st{font-weight:800}.ok{font-weight:700}.nt .zh{font-weight:800}#wps .fx{font-weight:900}#altl .ar .d{font-weight:900;color:#000}
+#altl .ah{cursor:grab;touch-action:none}#altl .ah .gr{font-size:14px;opacity:.75}
 #cbt .ex{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--red);color:#fff;font-size:17px}
 html.cbold #cbt{border-color:#0f2c56}html.eink #cbt .ex{background:#000}
 .cc{border:2.5px solid #000;border-radius:14px;padding:8px 12px;margin:10px 0}.cc h4{margin:0 0 6px;font-size:19px}.cc h4 small{font-size:13px;color:#444;margin-left:6px}
@@ -888,7 +893,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611221148';
+var PAGEV = '202611230806';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -1568,7 +1573,7 @@ function _cloudSync() {
           break;
         case 19:
           _loop9 = _regenerator().m(function _loop9() {
-            var x, a, b, _t29, _t30, _t31, _t32, _t33;
+            var x, a, _b, _t29, _t30, _t31, _t32, _t33;
             return _regenerator().w(function (_context15) {
               while (1) switch (_context15.p = _context15.n) {
                 case 0:
@@ -1595,7 +1600,7 @@ function _cloudSync() {
                   _context15.n = 4;
                   return ghRaw('ofpdata/' + x.k + '.fulln.html');
                 case 4:
-                  b = _context15.v;
+                  _b = _context15.v;
                   if (!a) {
                     _context15.n = 6;
                     break;
@@ -1607,14 +1612,14 @@ function _cloudSync() {
                 case 5:
                   _t29(_t30, _context15.v);
                 case 6:
-                  if (!b) {
+                  if (!_b) {
                     _context15.n = 8;
                     break;
                   }
                   _t31 = _ls;
                   _t32 = 'fullw.' + x.k;
                   _context15.n = 7;
-                  return b.text();
+                  return _b.text();
                 case 7:
                   _t31(_t32, _context15.v);
                 case 8:
@@ -2376,7 +2381,7 @@ function drawMap(L, el, ph, S, hot) {
   }), MC.flown, MC.flownW);else ahead(N.map(function (w) {
     return [w[2], w[3]];
   }));
-  g.font = 'bold 11px sans-serif';
+  g.font = '900 13px sans-serif';
   var lastLab = null;
   var FIRWP = new Set((L.fi || []).map(function (f) {
     return f[2];
@@ -2404,18 +2409,18 @@ function drawMap(L, el, ph, S, hot) {
       var f = FIRAT[w[0]],
         lab = '→ ' + f[0] + ' ' + f[1];
       if (!(soon && BLINK)) {
-        g.font = 'bold 12px sans-serif';
+        g.font = '900 14px sans-serif';
         var tw = g.measureText(lab).width;
         g.fillStyle = soon ? LT ? '#e07000' : '#e00000' : MC.hoBg;
-        g.fillRect(q[0] - tw / 2 - 4, q[1] + 9, tw + 8, 17);
+        g.fillRect(q[0] - tw / 2 - 4, q[1] + 9, tw + 8, 19);
         if (!LT) {
           g.strokeStyle = '#000';
           g.lineWidth = 1;
-          g.strokeRect(q[0] - tw / 2 - 4, q[1] + 9, tw + 8, 17);
+          g.strokeRect(q[0] - tw / 2 - 4, q[1] + 9, tw + 8, 19);
         }
         g.fillStyle = soon ? '#fff' : MC.hoTx;
-        g.fillText(lab, q[0] - tw / 2, q[1] + 22);
-        g.font = 'bold 11px sans-serif';
+        g.fillText(lab, q[0] - tw / 2, q[1] + 24);
+        g.font = '900 13px sans-serif';
       }
     }
     g.fillStyle = MC.wp;
@@ -2441,14 +2446,14 @@ function drawMap(L, el, ph, S, hot) {
     }
     if (!lastLab || Math.hypot(q[0] - lastLab[0], q[1] - lastLab[1]) > 46 || i === N.length - 1) {
       g.fillStyle = LT ? 'rgba(255,255,255,.8)' : '#fff';
-      g.fillRect(q[0] + 5, q[1] - 13, g.measureText(w[0]).width + 4, 13);
+      g.fillRect(q[0] + 5, q[1] - 16, g.measureText(w[0]).width + 4, 16);
       if (!LT) {
         g.strokeStyle = fw ? MC.ho : '#000';
         g.lineWidth = 1;
-        g.strokeRect(q[0] + 5, q[1] - 13, g.measureText(w[0]).width + 4, 13);
+        g.strokeRect(q[0] + 5, q[1] - 16, g.measureText(w[0]).width + 4, 16);
       }
       g.fillStyle = fw ? LT ? '#c25a00' : '#000' : '#000';
-      g.fillText(w[0], q[0] + 7, q[1] - 3);
+      g.fillText(w[0], q[0] + 7, q[1] - 4);
       lastLab = q;
     }
   });
@@ -2505,7 +2510,7 @@ function drawMap(L, el, ph, S, hot) {
   }
   g.fillStyle = '#000';
   g.fillRect(W - px - 52, H - 14, px, 3);
-  g.font = 'bold 11px sans-serif';
+  g.font = '900 13px sans-serif';
   g.fillText(nm + ' NM', W - px - 52, H - 18);
   g.fillText('N↑', 8, 16);
 }
@@ -4000,17 +4005,89 @@ function altlShow(L, pos, t, ph) {
   var h = '';
   if (LAY.l && !L.noOfp && pos && ph !== 2) {
     var A = altNow(L, pos, t);
-    h = '<div class="ah"><span>🛬 ' + XS('1 小时内备降', 'Altn ≤ 1 h') + '</span>' + (EKT ? '' : '<small style="font-weight:600">' + XS('无授权表', 'no EK table') + '</small>') + '</div>' + (A.length ? A.map(function (x) {
+    h = '<div class="ah"><span>🛬 ' + XS('1 小时内备降', 'Altn ≤ 1 h') + '</span><span class="gr">⠿</span>' + (EKT ? '' : '<small style="font-weight:600">' + XS('无授权表', 'no EK table') + '</small>') + '</div>' + (A.length ? A.map(function (x) {
       return '<div class="ar" data-ap="' + x.a.icao + '"><span class="wd ' + x.rate + '"></span>' + ctTag(x.cat) + '<b>' + x.a.icao + '</b><span class="d"><i class="ba" style="transform:rotate(' + Math.round(x.brg) + 'deg)">↑</i>' + String(Math.round(x.brg) % 360).padStart(3, '0') + '° ' + Math.round(x.d) + 'nm · ' + Math.round(x.d / R1NM * 60) + "'</span></div>";
     }).join('') : '<div class="ar" style="cursor:default;color:#c00000">' + XS('1 小时内没有合适的机场', 'None within 1 h') + '</div>');
   }
   if (b.innerHTML !== h) b.innerHTML = h;
   requestAnimationFrame(function () {
+    if (b.parentNode === $('mapw') && altPos()) return;
     var c = $('alc'),
       up = b.parentNode === $('mapw') && c && c.style.display === 'block';
     b.style.bottom = up ? c.getBoundingClientRect().height + 62 + 'px' : '';
   });
 }
+var altPos = function altPos() {
+  try {
+    return JSON.parse(_ls('altpos') || 'null');
+  } catch (e) {
+    return null;
+  }
+};
+function altPlace() {
+  var b = $('altl'),
+    p = altPos();
+  if (b.parentNode !== $('mapw')) {
+    b.style.left = b.style.top = '';
+    return;
+  }
+  if (p) {
+    var W = $('mapw').clientWidth,
+      H = $('mapw').clientHeight;
+    b.style.left = Math.max(0, Math.min(W - 60, p.x * W)) + 'px';
+    b.style.top = Math.max(0, Math.min(H - 40, p.y * H)) + 'px';
+    b.style.right = 'auto';
+    b.style.bottom = 'auto';
+  } else {
+    b.style.left = b.style.top = b.style.right = '';
+  }
+}
+{
+  var drag = null;
+  var b = $('altl');
+  b.addEventListener('pointerdown', function (e) {
+    if (!e.target.closest('.ah') || b.parentNode !== $('mapw')) return;
+    var r = b.getBoundingClientRect();
+    drag = {
+      dx: e.clientX - r.left,
+      dy: e.clientY - r.top
+    };
+    try {
+      b.setPointerCapture(e.pointerId);
+    } catch (x) {}
+    e.preventDefault();
+  });
+  b.addEventListener('pointermove', function (e) {
+    if (!drag) return;
+    var m = $('mapw').getBoundingClientRect();
+    b.style.left = Math.max(0, Math.min(m.width - 60, e.clientX - m.left - drag.dx)) + 'px';
+    b.style.top = Math.max(0, Math.min(m.height - 40, e.clientY - m.top - drag.dy)) + 'px';
+    b.style.right = 'auto';
+    b.style.bottom = 'auto';
+  });
+  var end = function end() {
+    if (!drag) return;
+    drag = null;
+    var m = $('mapw').getBoundingClientRect();
+    _ls('altpos', JSON.stringify({
+      x: parseFloat(b.style.left) / m.width,
+      y: parseFloat(b.style.top) / m.height
+    }));
+  };
+  b.addEventListener('pointerup', end);
+  b.addEventListener('pointercancel', end);
+  b.addEventListener('dblclick', function (e) {
+    if (e.target.closest('.ah')) {
+      _ls('altpos', '');
+      altPlace();
+      draw();
+    }
+  });
+}
+addEventListener('resize', function () {
+  return setTimeout(altPlace, 50);
+});
+setTimeout(altPlace, 500);
 $('altl').onclick = function (e) {
   var r = e.target.closest('[data-ap]');
   if (r) openApt(r.dataset.ap);
@@ -4084,12 +4161,12 @@ function drawLayers(L, P, xy, s, W, H, t) {
       g.strokeStyle = '#000';
       g.stroke();
       if (big || ZOOM <= 900) {
-        g.font = 'bold 10.5px sans-serif';
+        g.font = '900 13px sans-serif';
         var tw = g.measureText(a.icao).width;
         g.fillStyle = 'rgba(255,255,255,.85)';
-        g.fillRect(q[0] - tw / 2 - 2, q[1] + 7, tw + 4, 12);
+        g.fillRect(q[0] - tw / 2 - 2, q[1] + 7, tw + 4, 15);
         g.fillStyle = '#000';
-        g.fillText(a.icao, q[0] - tw / 2, q[1] + 17);
+        g.fillText(a.icao, q[0] - tw / 2, q[1] + 19);
       }
     });
   }
@@ -4109,12 +4186,12 @@ function drawLayers(L, P, xy, s, W, H, t) {
         mx = c[0] + (q[0] - c[0]) * .55,
         my = c[1] + (q[1] - c[1]) * .55;
       g.setLineDash([]);
-      g.font = 'bold 10.5px sans-serif';
+      g.font = '900 13px sans-serif';
       var tw = g.measureText(lab).width;
       g.fillStyle = 'rgba(255,255,255,.88)';
-      g.fillRect(mx - tw / 2 - 3, my - 8, tw + 6, 13);
+      g.fillRect(mx - tw / 2 - 3, my - 10, tw + 6, 16);
       g.fillStyle = '#000';
-      g.fillText(lab, mx - tw / 2, my + 2);
+      g.fillText(lab, mx - tw / 2, my + 3);
       g.setLineDash([3, 5]);
     });
     g.restore();
@@ -4134,12 +4211,12 @@ function drawLayers(L, P, xy, s, W, H, t) {
       g.stroke();
       g.setLineDash([]);
       if (_c[1] - r > 14) {
-        g.font = 'bold 11px sans-serif';
+        g.font = '900 13px sans-serif';
         var tw = g.measureText(lab).width;
         g.fillStyle = 'rgba(255,255,255,.85)';
-        g.fillRect(_c[0] - tw / 2 - 3, _c[1] - r - 7, tw + 6, 14);
+        g.fillRect(_c[0] - tw / 2 - 3, _c[1] - r - 9, tw + 6, 17);
         g.fillStyle = col;
-        g.fillText(lab, _c[0] - tw / 2, _c[1] - r + 4);
+        g.fillText(lab, _c[0] - tw / 2, _c[1] - r + 5);
       }
     });
   }
@@ -4162,6 +4239,7 @@ var altlPlace = function altlPlace() {
   var port = !matchMedia('(orientation:landscape) and (min-width:700px)').matches,
     a = $('altl');
   if (port && a.parentNode !== $('mapw')) $('mapw').appendChild(a);else if (!port && a.parentNode !== $('side')) $('side').appendChild(a);
+  if (typeof altPlace === 'function') altPlace();
 };
 altlPlace();
 addEventListener('resize', altlPlace);
