@@ -1,8 +1,8 @@
 {
-  "versionCode": 5,
-  "versionName": "1.4",
+  "versionCode": 6,
+  "versionName": "1.5",
   "apk": "PilotHeadset.apk",
-  "size": 48636,
-  "sha256": "0d52e1a5ed9fd15596ef05b15580421951b22c28ec3936013d661beb432f3cd4",
-  "notes": "新增侧音消除：自动找到飞机送回来的你自己的声音并减掉；说话时可压低返回声；测试区可模拟侧音"
+  "size": 721760,
+  "sha256": "b8514025a9996dfc438368ef95d9e35839afaf833322c6918e04260c75b5d661",
+  "notes": "新的 C++ 低延迟音频引擎（AAudio 独占模式），显示实测的手机内延迟；新增 2.4G 话筒/耳机延迟测量"
 }
