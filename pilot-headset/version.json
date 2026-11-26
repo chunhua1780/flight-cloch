@@ -1,0 +1,8 @@
+{
+  "versionCode": 2,
+  "versionName": "1.1",
+  "apk": "PilotHeadset.apk",
+  "size": 36616,
+  "sha256": "0a63090e5f1c37059c9b2f69a0082dadebcad125ca7863bed1635ac786af0dac",
+  "notes": "自动调节音量（两路都有），输入过载提醒；延迟更低；可以从网站自动升级"
+}
