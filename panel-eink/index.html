@@ -893,7 +893,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611230806';
+var PAGEV = '202611261638';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -2098,8 +2098,11 @@ var offOf = function offOf(l) {
   if (w) return a.t - w[1] * MIN;
   return atdOf(l) || l.std + (l.tx || 0) * MIN;
 };
+var noOf = function noOf(l) {
+  return _ls('no.' + l.k) || l.no;
+};
 var csOf = function csOf(l) {
-  return _ls('cs.' + l.k) || l.cs || l.no;
+  return _ls('cs.' + l.k) || l.cs || noOf(l);
 };
 function pick(now, F) {
   F = F || flights(now);
@@ -3111,8 +3114,8 @@ function draw() {
   var L = pick(now, F);
   CUR = L;
   var lg = F.map(function (l) {
-    return '<div class="lg' + (L && l.k === L.k ? ' on' : '') + '" data-k="' + esc(l.k) + '">' + esc(csOf(l)) + ' · ' + esc(l.ai) + '→' + esc(l.bi) + (l.noOfp ? '' : ' 📄') + ' <small>' + esc(l.no) + ' · ' + dmZ(l.std) + (_ls('pin') === l.k ? ' · 📌' : '') + '</small></div>';
-  }).join('') + '<div class="lg" data-k="">🔁 ' + X('自动（按时间选当前航段）', 'Auto (current leg by time)') + (_ls('pin') ? '' : ' ✓') + '</div>' + (L ? '<div class="lg" data-k="#cs">✎ ' + X('改呼号', 'Change callsign') + '</div>' : '');
+    return '<div class="lg' + (L && l.k === L.k ? ' on' : '') + '" data-k="' + esc(l.k) + '">' + esc(csOf(l)) + ' · ' + esc(l.ai) + '→' + esc(l.bi) + (l.noOfp ? '' : ' 📄') + ' <small>' + esc(noOf(l)) + (_ls('no.' + l.k) ? '✎' : '') + ' · ' + dmZ(l.std) + (_ls('pin') === l.k ? ' · 📌' : '') + '</small></div>';
+  }).join('') + '<div class="lg" data-k="">🔁 ' + X('自动（按时间选当前航段）', 'Auto (current leg by time)') + (_ls('pin') ? '' : ' ✓') + '</div>' + (L ? '<div class="lg" data-k="#no">✎ ' + X('改航班号', 'Change flight no.') + '</div><div class="lg" data-k="#cs">✎ ' + X('改呼号', 'Change callsign') + '</div>' : '');
   if ($('legs').innerHTML !== lg) $('legs').innerHTML = lg;
   if (!L) {
     ['main', 'row', 'top'].forEach(function (i) {
@@ -3162,7 +3165,7 @@ function draw() {
     el = LS.el,
     ph = LS.ph;
   var cs = csOf(L),
-    dg = String(L.no || '').replace(/^[A-Z]{2}/, '').replace(/^0+(?=\d)/, '');
+    dg = String(noOf(L) || '').replace(/^[A-Z]{2}/, '').replace(/^0+(?=\d)/, '');
   var fl = '<small>EK</small>' + esc(dg) + '<span class="dd">▾</span>';
   if ($('fl').innerHTML !== fl) {
     $('fl').innerHTML = fl;
@@ -3434,10 +3437,19 @@ $('legs').onclick = function (e) {
   var t = e.target.closest('.lg');
   if (!t) return;
   $('legs').classList.remove('open');
-  if (t.dataset.k === '#cs') {
+  if (t.dataset.k === '#no') {
     var L = CUR;
-    var v = prompt(X('ATC 呼号（例如 UAE2AK；留空 = 用 OFP 上的 ', 'ATC callsign (e.g. UAE2AK; empty = OFP ') + (L.cs || L.no) + '）', _ls('cs.' + L.k) || '');
-    if (v !== null) _ls('cs.' + L.k, v.trim().toUpperCase().replace(/\s+/g, ''));
+    var v = prompt(X('航班号（例如 EK0368；留空 = 用系统的 ', 'Flight no. (e.g. EK0368; empty = system ') + L.no + '）', _ls('no.' + L.k) || '');
+    if (v !== null) {
+      var n = v.trim().toUpperCase().replace(/\s+/g, '');
+      if (/^\d/.test(n)) n = 'EK' + n;
+      _ls('no.' + L.k, n);
+      $('fl').dataset.f = '';
+    }
+  } else if (t.dataset.k === '#cs') {
+    var _L = CUR;
+    var _v = prompt(X('ATC 呼号（例如 UAE2AK；留空 = 用 OFP 上的 ', 'ATC callsign (e.g. UAE2AK; empty = OFP ') + (_L.cs || _L.no) + '）', _ls('cs.' + _L.k) || '');
+    if (_v !== null) _ls('cs.' + _L.k, _v.trim().toUpperCase().replace(/\s+/g, ''));
   } else _ls('pin', t.dataset.k);
   draw();
 };
@@ -4654,12 +4666,12 @@ $('row').addEventListener('click', function (e) {
     return;
   }
   if (e.target.closest('#c-atd')) {
-    var _v = prompt(L.no + X(' 实际起飞 ATD（UTC，4 位，例如 0815；留空 = 按计划）', ' actual T/O time (UTC, e.g. 0815; empty = plan)'), atdOf(L) ? hmZ(atdOf(L)) : '');
-    if (_v === null) return;
+    var _v2 = prompt(L.no + X(' 实际起飞 ATD（UTC，4 位，例如 0815；留空 = 按计划）', ' actual T/O time (UTC, e.g. 0815; empty = plan)'), atdOf(L) ? hmZ(atdOf(L)) : '');
+    if (_v2 === null) return;
     _ls('ato.' + L.k, '');
-    if (!/^\d{4}$/.test(_v.trim())) _ls('atd.' + L.k, '');else {
+    if (!/^\d{4}$/.test(_v2.trim())) _ls('atd.' + L.k, '');else {
       var s = L.std,
-        _d = Date.UTC(new Date(s).getUTCFullYear(), new Date(s).getUTCMonth(), new Date(s).getUTCDate()) + (+_v.slice(0, 2) * 60 + +_v.slice(2)) * MIN;
+        _d = Date.UTC(new Date(s).getUTCFullYear(), new Date(s).getUTCMonth(), new Date(s).getUTCDate()) + (+_v2.slice(0, 2) * 60 + +_v2.slice(2)) * MIN;
       _ls('atd.' + L.k, String([_d - 864e5, _d, _d + 864e5].sort(function (a, b) {
         return Math.abs(a - s) - Math.abs(b - s);
       })[0]));
