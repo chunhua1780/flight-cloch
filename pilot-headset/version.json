@@ -1,8 +1,8 @@
 {
-  "versionCode": 3,
-  "versionName": "1.2",
+  "versionCode": 4,
+  "versionName": "1.3",
   "apk": "PilotHeadset.apk",
-  "size": 43104,
-  "sha256": "0ae3f661fa0fc98cd2dd51082efbb28e0df24d9b45a35cdc5e1fa71508ac65dc",
-  "notes": "新增测试：一键自检、只开一路、录音回放"
+  "size": 44336,
+  "sha256": "26251a981a6c6991cac06724ee5cdced03a1d7377c1b133a73961b44a7d83b79",
+  "notes": "最上面新增“一键升级”按钮：点一下就检查、下载、安装"
 }
