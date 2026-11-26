@@ -1,0 +1,8 @@
+{
+  "versionCode": 6,
+  "versionName": "1.5",
+  "apk": "PilotHeadset.apk",
+  "size": 721760,
+  "sha256": "b8514025a9996dfc438368ef95d9e35839afaf833322c6918e04260c75b5d661",
+  "notes": "新的 C++ 低延迟音频引擎（AAudio 独占模式），显示实测的手机内延迟；新增 2.4G 话筒/耳机延迟测量"
+}
