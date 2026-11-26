@@ -1,8 +1,8 @@
 {
-  "versionCode": 4,
-  "versionName": "1.3",
+  "versionCode": 5,
+  "versionName": "1.4",
   "apk": "PilotHeadset.apk",
-  "size": 44336,
-  "sha256": "26251a981a6c6991cac06724ee5cdced03a1d7377c1b133a73961b44a7d83b79",
-  "notes": "最上面新增“一键升级”按钮：点一下就检查、下载、安装"
+  "size": 48636,
+  "sha256": "0d52e1a5ed9fd15596ef05b15580421951b22c28ec3936013d661beb432f3cd4",
+  "notes": "新增侧音消除：自动找到飞机送回来的你自己的声音并减掉；说话时可压低返回声；测试区可模拟侧音"
 }
