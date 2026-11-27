@@ -893,7 +893,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611271435';
+var PAGEV = '202611272228';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -3205,6 +3205,7 @@ function draw() {
   chkShow(L, ph, now, F);
   gpscShow(L, ph, el, off, now);
   apnShow(L, ph, now);
+  crrShow(L, ph, off, now);
   depShow(L, ph, off, now);
   if ($('row').innerHTML !== row) $('row').innerHTML = row;
   var pre = ph === 0 && !L.noOfp;
@@ -3736,6 +3737,33 @@ function crewAlerts(L, S, now) {
     min: 0,
     nm: 0
   }];
+}
+function crrShow(L, ph, off, now) {
+  var b = $('crr');
+  if (!b) {
+    b = document.createElement('div');
+    b.id = 'crr';
+    b.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999;background:#fff;color:#000;border:4px solid #000;border-radius:14px;padding:18px 24px;font-weight:800;text-align:center;min-width:280px;display:none';
+    b.onclick = function () {
+      if (CUR) _ls('crr.' + CUR.k, '1');
+      b.style.display = 'none';
+    };
+    document.body.appendChild(b);
+  }
+  var s = off + 10 * MIN,
+    e = off + ((L.tr || 0) - 60) * MIN,
+    m = s + Math.round((e - s) / 2 / MIN) * MIN,
+    show = ph === 1 && (L.tr || 0) > 12 * 60 && now >= s && now < s + 1.5 * MIN && !_ls('crr.' + L.k);
+  if (!show) {
+    if (b.style.display !== 'none') b.style.display = 'none';
+    return;
+  }
+  var d = function d(ms) {
+      return dur(Math.round(ms / MIN));
+    },
+    h = '<div style="font-size:22px">😴 ' + XS('机组休息时间', 'Crew rest') + '</div>' + '<div style="font-size:30px;margin:10px 0">A ' + hmZ(s) + 'Z – ' + hmZ(m) + 'Z<div style="font-size:16px">' + d(m - s) + '</div></div>' + '<div style="font-size:30px;margin:10px 0">B ' + hmZ(m) + 'Z – ' + hmZ(e) + 'Z<div style="font-size:16px">' + d(e - m) + '</div></div>' + '<div style="font-size:13px;font-weight:600">' + XS('起飞后 10 分 → 落地前 60 分 · 点一下关闭', 'T/O +10 → landing −60 · tap to close') + '</div>';
+  if (b.innerHTML !== h) b.innerHTML = h;
+  b.style.display = 'block';
 }
 function cbtShow(L, ph, now) {
   var t = L.std - CB_MIN * MIN,
@@ -4337,6 +4365,7 @@ setInterval(function () {
     if (L && !L.noOfp && !DEMO) {
       var now = Date.now(),
         off = offOf(L);
+      if (now > off && now < off + 15 * MIN) crrShow(L, 1, off, now);
       depShow(L, now < off ? 0 : 1, off, now);
     }
   } catch (e) {}
