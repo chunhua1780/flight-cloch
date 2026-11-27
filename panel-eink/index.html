@@ -893,7 +893,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611261646';
+var PAGEV = '202611271430';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -4294,16 +4294,40 @@ var APN = {
   WADD: [{
     zh: '巴厘岛：起飞前上网填写印尼入境健康声明，拿到二维码（落地要出示）',
     en: 'Bali: complete the online Indonesia arrival health declaration and get the QR code before departure (shown on arrival)'
+  }, {
+    w: 'land',
+    zh: '巴厘岛：拿一桶水带去酒店（酒店没有水）',
+    en: 'Bali: take a bottle of water to the hotel (none at the hotel)'
+  }],
+  VHHH: [{
+    w: 'desc',
+    zh: '香港：下飞机前拿点零食（酒店有水但没有吃的，半夜可能会饿）',
+    en: 'Hong Kong: take some snacks before leaving the aircraft (hotel has water but no food)'
   }]
 };
 function apnShow(L, ph, now) {
   var b = $('apn'),
-    N = APN[L.arr] || APN[L.bi] || null,
+    off = offOf(L),
+    on = off + (L.tr || 0) * MIN,
     k = 'apn.' + L.k;
+  var N = (APN[L.arr] || APN[L.bi] || []).map(function (n, i) {
+    return Object.assign({
+      i: i
+    }, n);
+  }).filter(function (n) {
+    var w = n.w || 'pre';
+    if (_ls(k + (w === 'pre' ? '' : '.' + n.i))) return false;
+    return w === 'pre' ? ph === 0 && now > L.std - 24 * HOUR : w === 'desc' ? ph === 1 && now > on - 60 * MIN : ph === 2 && now < on + 3 * HOUR;
+  });
   var h = '';
-  if (N && ph === 0 && now > L.std - 24 * HOUR && !_ls(k)) h = '<div class="ah">📌 ' + XS('起飞前要办', 'Before departure') + ' · ' + esc(L.arr) + '</div>' + N.map(function (n) {
-    return '<div class="ax">' + esc(LANG === 'en' ? n.en : n.zh) + (LANG === 'both' ? '<div style="font-size:12px;font-weight:600;color:#444">' + esc(n.en) + '</div>' : '') + '</div>';
-  }).join('') + '<span class="btn" data-apn="' + esc(k) + '">✓ ' + XS('已办好', 'Done') + '</span>';
+  if (N.length) {
+    var w = N[0].w || 'pre';
+    h = '<div class="ah">📌 ' + (w === 'pre' ? XS('起飞前要办', 'Before departure') : w === 'desc' ? XS('落地前别忘了', 'Before arrival') : XS('落地后别忘了', 'After landing')) + ' · ' + esc(L.arr || L.bi) + '</div>' + N.map(function (n) {
+      return '<div class="ax">' + esc(LANG === 'en' ? n.en : n.zh) + (LANG === 'both' ? '<div style="font-size:12px;font-weight:600;color:#444">' + esc(n.en) + '</div>' : '') + '</div>';
+    }).join('') + '<span class="btn" data-apn="' + esc(N.map(function (n) {
+      return k + ((n.w || 'pre') === 'pre' ? '' : '.' + n.i);
+    }).join('|')) + '">✓ ' + XS('知道了', 'Done') + '</span>';
+  }
   if (b.innerHTML !== h) b.innerHTML = h;
   b.style.display = h ? 'block' : 'none';
 }
@@ -4320,7 +4344,9 @@ setInterval(function () {
 $('apn').onclick = function (e) {
   var k = e.target.closest('[data-apn]');
   if (k) {
-    _ls(k.dataset.apn, '1');
+    k.dataset.apn.split('|').forEach(function (x) {
+      return _ls(x, '1');
+    });
     draw();
   }
 };
