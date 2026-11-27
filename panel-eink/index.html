@@ -893,7 +893,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611271430';
+var PAGEV = '202611271435';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -4295,7 +4295,7 @@ var APN = {
     zh: '巴厘岛：起飞前上网填写印尼入境健康声明，拿到二维码（落地要出示）',
     en: 'Bali: complete the online Indonesia arrival health declaration and get the QR code before departure (shown on arrival)'
   }, {
-    w: 'land',
+    w: 'desc',
     zh: '巴厘岛：拿一桶水带去酒店（酒店没有水）',
     en: 'Bali: take a bottle of water to the hotel (none at the hotel)'
   }],
@@ -4317,7 +4317,7 @@ function apnShow(L, ph, now) {
   }).filter(function (n) {
     var w = n.w || 'pre';
     if (_ls(k + (w === 'pre' ? '' : '.' + n.i))) return false;
-    return w === 'pre' ? ph === 0 && now > L.std - 24 * HOUR : w === 'desc' ? ph === 1 && now > on - 60 * MIN : ph === 2 && now < on + 3 * HOUR;
+    return w === 'pre' ? ph === 0 && now > L.std - 24 * HOUR : w === 'desc' ? ph === 1 && now > on - 60 * MIN || ph === 2 && now < on + 3 * HOUR : ph === 2 && now < on + 3 * HOUR;
   });
   var h = '';
   if (N.length) {
