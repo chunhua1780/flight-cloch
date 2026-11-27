@@ -893,7 +893,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611272228';
+var PAGEV = '202611272230';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -3738,30 +3738,60 @@ function crewAlerts(L, S, now) {
     nm: 0
   }];
 }
-function crrShow(L, ph, off, now) {
+var CRR_OPEN = 0;
+function crrBox() {
   var b = $('crr');
   if (!b) {
     b = document.createElement('div');
     b.id = 'crr';
-    b.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999;background:#fff;color:#000;border:4px solid #000;border-radius:14px;padding:18px 24px;font-weight:800;text-align:center;min-width:280px;display:none';
+    b.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:999;background:#fff;color:#000;border:4px solid #000;border-radius:14px;padding:16px 22px;font-weight:800;text-align:center;min-width:280px;display:none';
     b.onclick = function () {
+      CRR_OPEN = 0;
       if (CUR) _ls('crr.' + CUR.k, '1');
       b.style.display = 'none';
     };
     document.body.appendChild(b);
   }
-  var s = off + 10 * MIN,
-    e = off + ((L.tr || 0) - 60) * MIN,
-    m = s + Math.round((e - s) / 2 / MIN) * MIN,
-    show = ph === 1 && (L.tr || 0) > 12 * 60 && now >= s && now < s + 1.5 * MIN && !_ls('crr.' + L.k);
-  if (!show) {
+  var k = $('crrb');
+  if (!k) {
+    k = document.createElement('div');
+    k.id = 'crrb';
+    k.style.cssText = 'position:fixed;right:10px;bottom:10px;z-index:998;background:#fff;color:#000;border:3px solid #000;border-radius:10px;padding:6px 12px;font-size:18px;font-weight:800;display:none';
+    k.textContent = '😴 ' + XS('休息', 'Rest');
+    k.onclick = function () {
+      CRR_OPEN = Date.now();
+      draw();
+    };
+    document.body.appendChild(k);
+  }
+  return [b, k];
+}
+function crrShow(L, ph, off, now) {
+  var _crrBox = crrBox(),
+    b = _crrBox[0],
+    k = _crrBox[1],
+    tr = L.tr || 0,
+    n = tr > 12 * 60 ? 2 : tr >= 9 * 60 ? 3 : 0,
+    ok = ph === 1 && n > 0 && !L.noOfp;
+  k.style.display = ok ? 'block' : 'none';
+  var auto = now >= off + 5 * MIN && now < off + 6.5 * MIN && !_ls('crr.' + L.k),
+    man = CRR_OPEN && now - CRR_OPEN < 3 * MIN;
+  if (!ok || !(auto || man)) {
     if (b.style.display !== 'none') b.style.display = 'none';
+    if (!man) CRR_OPEN = 0;
     return;
   }
-  var d = function d(ms) {
-      return dur(Math.round(ms / MIN));
-    },
-    h = '<div style="font-size:22px">😴 ' + XS('机组休息时间', 'Crew rest') + '</div>' + '<div style="font-size:30px;margin:10px 0">A ' + hmZ(s) + 'Z – ' + hmZ(m) + 'Z<div style="font-size:16px">' + d(m - s) + '</div></div>' + '<div style="font-size:30px;margin:10px 0">B ' + hmZ(m) + 'Z – ' + hmZ(e) + 'Z<div style="font-size:16px">' + d(e - m) + '</div></div>' + '<div style="font-size:13px;font-weight:600">' + XS('起飞后 10 分 → 落地前 60 分 · 点一下关闭', 'T/O +10 → landing −60 · tap to close') + '</div>';
+  var s = off + 10 * MIN,
+    e = off + (tr - 60) * MIN,
+    seg = Math.floor((e - s) / n / MIN) * MIN,
+    cur = now >= s && now < e ? Math.min(n - 1, Math.floor((now - s) / seg)) : -1;
+  var h = '<div style="font-size:22px">😴 ' + XS('机组休息时间', 'Crew rest') + ' · ' + n + XS(' 组', ' groups') + '</div>';
+  for (var i = 0; i < n; i++) {
+    var a = s + i * seg,
+      z = i === n - 1 ? e : a + seg;
+    h += '<div style="font-size:28px;margin:8px 0;' + (i === cur ? 'border:3px solid #000;border-radius:8px;padding:2px 6px' : '') + '">' + 'ABC'[i] + ' ' + hmZ(a) + 'Z – ' + hmZ(z) + 'Z <span style="font-size:16px">' + dur((z - a) / MIN) + '</span></div>';
+  }
+  h += '<div style="font-size:13px;font-weight:600">' + XS('起飞后 10 分 → 落地前 60 分 · 点一下关闭', 'T/O +10 → landing −60 · tap to close') + '</div>';
   if (b.innerHTML !== h) b.innerHTML = h;
   b.style.display = 'block';
 }
@@ -4365,7 +4395,7 @@ setInterval(function () {
     if (L && !L.noOfp && !DEMO) {
       var now = Date.now(),
         off = offOf(L);
-      if (now > off && now < off + 15 * MIN) crrShow(L, 1, off, now);
+      if (now > off && (now < off + 15 * MIN || CRR_OPEN)) crrShow(L, 1, off, now);
       depShow(L, now < off ? 0 : 1, off, now);
     }
   } catch (e) {}
