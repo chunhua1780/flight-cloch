@@ -893,7 +893,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611280526';
+var PAGEV = '202611280527';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -1801,7 +1801,7 @@ function _cloudUp() {
   return _cloudUp.apply(this, arguments);
 }
 var FIRN = [[/CONFLICT ZONE|HAZARDOUS SITUATION|SECURITY WARNING|MISSILE|ROCKET|HOSTILE|WEAPON|ARMED CONFLICT/, 'red', '冲突区 / 安全警告', 'Conflict zone / security warning'], [/VOLCANIC|\bVA\s+(CLOUD|ERUPTION)/, 'red', '火山灰', 'Volcanic ash'], [/(?:RTE|ROUTE|SEGMENT|AWY)S?\b[^.]{0,80}\bCLSD|AIRSPACE\s+CLSD|FIR\s+(?:IS\s+)?CLSD/, 'red', '航路 / 空域关闭', 'Route / airspace closed'], [/GNSS|\bGPS\b/, 'amber', 'GPS 干扰', 'GNSS interference'], [/(?:FREQ|HF)[^.]{0,120}\bU\/S\b|RADAR[^.]{0,80}(?:U\/S|NOT AVBL)|CPDLC[^.]{0,40}(?:U\/S|NOT AVBL)|ADS-C[^.]{0,40}NOT AVBL/, 'amber', 'ATC 频率 / 雷达部分不可用', 'ATC frequency / radar partly U/S'], [/\bBIRDS?\b[^.]{0,60}(?:ACTIVIT|MIGRAT|FLOCK|STRIKE)/, 'amber', '鸟群活动', 'Bird activity'], [/ARTILLERY|FIRING|\bEXER\b|MIL(?:ITARY)? EXERCISE|PARA DROP|DANGER AREA|DNG AREA|RESTRICTED AREA|PROHIBITED/, 'amber', '军事活动 / 限制区', 'Military activity / restricted area']];
-var SV = 4;
+var SV = 5;
 var FIRALIAS = {
   ZGGG: 'ZGZU',
   ZGNN: 'ZGZU',
