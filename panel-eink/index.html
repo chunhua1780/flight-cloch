@@ -401,16 +401,16 @@ function stFlush() {
   return _stFlush.apply(this, arguments);
 }
 function _stFlush() {
-  _stFlush = _asyncToGenerator(_regenerator().m(function _callee3() {
+  _stFlush = _asyncToGenerator(_regenerator().m(function _callee7() {
     var q, ks, _loop2, _i2, _ks;
-    return _regenerator().w(function (_context4) {
-      while (1) switch (_context4.n) {
+    return _regenerator().w(function (_context8) {
+      while (1) switch (_context8.n) {
         case 0:
           if (!(!navigator.onLine || !_ls('key') || stFlush.busy)) {
-            _context4.n = 1;
+            _context8.n = 1;
             break;
           }
-          return _context4.a(2);
+          return _context8.a(2);
         case 1:
           q = {};
           try {
@@ -418,16 +418,16 @@ function _stFlush() {
           } catch (e) {}
           ks = Object.keys(q);
           if (ks.length) {
-            _context4.n = 2;
+            _context8.n = 2;
             break;
           }
-          return _context4.a(2);
+          return _context8.a(2);
         case 2:
           stFlush.busy = 1;
           _loop2 = _regenerator().m(function _loop2() {
             var k, set, t, j, _t5;
-            return _regenerator().w(function (_context3) {
-              while (1) switch (_context3.p = _context3.n) {
+            return _regenerator().w(function (_context7) {
+              while (1) switch (_context7.p = _context7.n) {
                 case 0:
                   k = _ks[_i2];
                   set = {};
@@ -436,8 +436,8 @@ function _stFlush() {
                     set[f] = q[k][f][0];
                     t = Math.max(t, q[k][f][1]);
                   });
-                  _context3.p = 1;
-                  _context3.n = 2;
+                  _context7.p = 1;
+                  _context7.n = 2;
                   return postK({
                     action: 'stput',
                     k: k,
@@ -445,40 +445,40 @@ function _stFlush() {
                     t: t
                   });
                 case 2:
-                  j = _context3.v;
+                  j = _context7.v;
                   if (j && j.ok) {
                     delete q[k];
                     _ls.quiet = 1;
                     _ls('stq', JSON.stringify(q));
                     _ls.quiet = 0;
                   }
-                  _context3.n = 4;
+                  _context7.n = 4;
                   break;
                 case 3:
-                  _context3.p = 3;
-                  _t5 = _context3.v;
+                  _context7.p = 3;
+                  _t5 = _context7.v;
                 case 4:
-                  return _context3.a(2);
+                  return _context7.a(2);
               }
             }, _loop2, null, [[1, 3]]);
           });
           _i2 = 0, _ks = ks;
         case 3:
           if (!(_i2 < _ks.length)) {
-            _context4.n = 5;
+            _context8.n = 5;
             break;
           }
-          return _context4.d(_regeneratorValues(_loop2()), 4);
+          return _context8.d(_regeneratorValues(_loop2()), 4);
         case 4:
           _i2++;
-          _context4.n = 3;
+          _context8.n = 3;
           break;
         case 5:
           stFlush.busy = 0;
         case 6:
-          return _context4.a(2);
+          return _context8.a(2);
       }
-    }, _callee3);
+    }, _callee7);
   }));
   return _stFlush.apply(this, arguments);
 }
@@ -619,25 +619,25 @@ function listFiles() {
   return _listFiles.apply(this, arguments);
 }
 function _listFiles() {
-  _listFiles = _asyncToGenerator(_regenerator().m(function _callee4() {
+  _listFiles = _asyncToGenerator(_regenerator().m(function _callee8() {
     var j, er, g, r, _t6;
-    return _regenerator().w(function (_context5) {
-      while (1) switch (_context5.p = _context5.n) {
+    return _regenerator().w(function (_context9) {
+      while (1) switch (_context9.p = _context9.n) {
         case 0:
           if (!_ls('key')) {
-            _context5.n = 6;
+            _context9.n = 6;
             break;
           }
-          _context5.p = 1;
-          _context5.n = 2;
+          _context9.p = 1;
+          _context9.n = 2;
           return withTimeout(postK({
             action: 'ofpmail',
             days: 3
           }), 60000);
         case 2:
-          j = _context5.v;
+          j = _context9.v;
           if (!(j && j.ok)) {
-            _context5.n = 3;
+            _context9.n = 3;
             break;
           }
           if (j.gh && j.gh.tok) {
@@ -648,35 +648,35 @@ function _listFiles() {
             ROSTER = j.legs;
             _ls('roster', JSON.stringify(ROSTER));
           }
-          return _context5.a(2, j.files || []);
+          return _context9.a(2, j.files || []);
         case 3:
           if (!(j && j.error && /key|口令|密码|denied/i.test(j.error))) {
-            _context5.n = 4;
+            _context9.n = 4;
             break;
           }
           er = new Error(X('口令不对', 'Wrong password'));
           er.pw = 1;
           throw er;
         case 4:
-          _context5.n = 6;
+          _context9.n = 6;
           break;
         case 5:
-          _context5.p = 5;
-          _t6 = _context5.v;
+          _context9.p = 5;
+          _t6 = _context9.v;
           if (!_t6.pw) {
-            _context5.n = 6;
+            _context9.n = 6;
             break;
           }
           throw _t6;
         case 6:
           g = GH();
           if (g.tok) {
-            _context5.n = 7;
+            _context9.n = 7;
             break;
           }
           throw new Error(_ls('key') ? X('连不上 Google', 'Cannot reach Google') : X('先在 ⚙︎ 里填口令', 'Set the password in ⚙︎'));
         case 7:
-          _context5.n = 8;
+          _context9.n = 8;
           return withTimeout(fetch('https://api.github.com/repos/' + g.repo + '/contents/ofp/index.json?_=' + Date.now(), {
             headers: {
               Authorization: 'Bearer ' + g.tok,
@@ -685,17 +685,17 @@ function _listFiles() {
             cache: 'no-store'
           }), 30000);
         case 8:
-          r = _context5.v;
+          r = _context9.v;
           if (r.ok) {
-            _context5.n = 9;
+            _context9.n = 9;
             break;
           }
           throw new Error('GitHub ' + r.status);
         case 9:
-          _context5.n = 10;
+          _context9.n = 10;
           return r.json();
         case 10:
-          return _context5.a(2, _context5.v.map(function (x) {
+          return _context9.a(2, _context9.v.map(function (x) {
             return {
               id: 'gh:' + x.path,
               name: x.name,
@@ -704,7 +704,7 @@ function _listFiles() {
             };
           }));
       }
-    }, _callee4, null, [[1, 5]]);
+    }, _callee8, null, [[1, 5]]);
   }));
   return _listFiles.apply(this, arguments);
 }
@@ -712,17 +712,17 @@ function getFile(_x) {
   return _getFile.apply(this, arguments);
 }
 function _getFile() {
-  _getFile = _asyncToGenerator(_regenerator().m(function _callee5(id) {
+  _getFile = _asyncToGenerator(_regenerator().m(function _callee9(id) {
     var g, r, a, b, u, i, _t7, _t8;
-    return _regenerator().w(function (_context6) {
-      while (1) switch (_context6.n) {
+    return _regenerator().w(function (_context0) {
+      while (1) switch (_context0.n) {
         case 0:
           if (!/^gh:/.test(id)) {
-            _context6.n = 4;
+            _context0.n = 4;
             break;
           }
           g = GH();
-          _context6.n = 1;
+          _context0.n = 1;
           return fetch('https://api.github.com/repos/' + g.repo + '/contents/' + id.slice(3), {
             headers: {
               Authorization: 'Bearer ' + g.tok,
@@ -730,38 +730,38 @@ function _getFile() {
             }
           });
         case 1:
-          r = _context6.v;
+          r = _context0.v;
           if (r.ok) {
-            _context6.n = 2;
+            _context0.n = 2;
             break;
           }
           throw new Error('GitHub ' + r.status);
         case 2:
           _t7 = Uint8Array;
-          _context6.n = 3;
+          _context0.n = 3;
           return r.arrayBuffer();
         case 3:
-          _t8 = _context6.v;
-          return _context6.a(2, new _t7(_t8));
+          _t8 = _context0.v;
+          return _context0.a(2, new _t7(_t8));
         case 4:
-          _context6.n = 5;
+          _context0.n = 5;
           return withTimeout(postK({
             action: 'ofpget',
             id: id
           }), 120000);
         case 5:
-          a = _context6.v;
+          a = _context0.v;
           if (!(!a.ok || !a.b64)) {
-            _context6.n = 6;
+            _context0.n = 6;
             break;
           }
           throw new Error(a.error || '下载失败');
         case 6:
           b = atob(a.b64), u = new Uint8Array(b.length);
           for (i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
-          return _context6.a(2, u);
+          return _context0.a(2, u);
       }
-    }, _callee5);
+    }, _callee9);
   }));
   return _getFile.apply(this, arguments);
 }
@@ -769,16 +769,16 @@ function pdfText(_x2, _x3) {
   return _pdfText.apply(this, arguments);
 }
 function _pdfText() {
-  _pdfText = _asyncToGenerator(_regenerator().m(function _callee6(u8, prog) {
+  _pdfText = _asyncToGenerator(_regenerator().m(function _callee0(u8, prog) {
     var doc, pages, _loop3, n;
-    return _regenerator().w(function (_context8) {
-      while (1) switch (_context8.n) {
+    return _regenerator().w(function (_context10) {
+      while (1) switch (_context10.n) {
         case 0:
           if (!(window.AndroidPanel && !window.pdfjsWorker)) {
-            _context8.n = 1;
+            _context10.n = 1;
             break;
           }
-          _context8.n = 1;
+          _context10.n = 1;
           return new Promise(function (ok, no) {
             var s = document.createElement('script');
             s.src = 'vendor/pdf.worker.min.js';
@@ -788,27 +788,27 @@ function _pdfText() {
           });
         case 1:
           pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdf.worker.min.js';
-          _context8.n = 2;
+          _context10.n = 2;
           return pdfjsLib.getDocument({
             data: u8,
             isEvalSupported: false,
             stopAtErrors: false
           }).promise;
         case 2:
-          doc = _context8.v;
+          doc = _context10.v;
           pages = [];
           _loop3 = _regenerator().m(function _loop3() {
             var tc, rows, cw, cn, pl, ind;
-            return _regenerator().w(function (_context7) {
-              while (1) switch (_context7.n) {
+            return _regenerator().w(function (_context1) {
+              while (1) switch (_context1.n) {
                 case 0:
-                  _context7.n = 1;
+                  _context1.n = 1;
                   return doc.getPage(n);
                 case 1:
-                  _context7.n = 2;
-                  return _context7.v.getTextContent();
+                  _context1.n = 2;
+                  return _context1.v.getTextContent();
                 case 2:
-                  tc = _context7.v;
+                  tc = _context1.v;
                   rows = {};
                   cw = 0, cn = 0;
                   tc.items.forEach(function (it) {
@@ -845,25 +845,25 @@ function _pdfText() {
                   });
                   if (prog) prog(n, doc.numPages);
                 case 3:
-                  return _context7.a(2);
+                  return _context1.a(2);
               }
             }, _loop3);
           });
           n = 1;
         case 3:
           if (!(n <= doc.numPages)) {
-            _context8.n = 5;
+            _context10.n = 5;
             break;
           }
-          return _context8.d(_regeneratorValues(_loop3()), 4);
+          return _context10.d(_regeneratorValues(_loop3()), 4);
         case 4:
           n++;
-          _context8.n = 3;
+          _context10.n = 3;
           break;
         case 5:
-          return _context8.a(2, pages.join('\n'));
+          return _context10.a(2, pages.join('\n'));
       }
-    }, _callee6);
+    }, _callee0);
   }));
   return _pdfText.apply(this, arguments);
 }
@@ -893,45 +893,45 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611280438';
+var PAGEV = '202611280443';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
 function _update() {
-  _update = _asyncToGenerator(_regenerator().m(function _callee7(quiet) {
+  _update = _asyncToGenerator(_regenerator().m(function _callee1(quiet) {
     var files, now, day0, best, got, r, t, j, _iterator2, _step2, l, c, want, _loop4, _ret2, _iterator3, _step3, _t9, _t0, _t1, _t10, _t11, _t12, _t13, _t14, _t15;
-    return _regenerator().w(function (_context0) {
-      while (1) switch (_context0.p = _context0.n) {
+    return _regenerator().w(function (_context12) {
+      while (1) switch (_context12.p = _context12.n) {
         case 0:
           if (!busy) {
-            _context0.n = 1;
+            _context12.n = 1;
             break;
           }
-          return _context0.a(2);
+          return _context12.a(2);
         case 1:
           if (navigator.onLine) {
-            _context0.n = 2;
+            _context12.n = 2;
             break;
           }
           MSG = '📵 ' + X('离线', 'Offline');
           draw();
-          return _context0.a(2);
+          return _context12.a(2);
         case 2:
           if (!(!_ls('key') && !GH().tok)) {
-            _context0.n = 3;
+            _context12.n = 3;
             break;
           }
           openSet();
-          return _context0.a(2);
+          return _context12.a(2);
         case 3:
           busy = true;
           MSG = '⏳ ' + X('查日历和邮箱…', 'Checking calendar & mail…');
           draw();
-          _context0.p = 4;
-          _context0.n = 5;
+          _context12.p = 4;
+          _context12.n = 5;
           return listFiles();
         case 5:
-          files = _context0.v;
+          files = _context12.v;
           now = Date.now();
           day0 = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate());
           best = {};
@@ -946,56 +946,56 @@ function _update() {
             var k = m[1] + m[2] + m[3].toUpperCase() + m[5];
             if (!best[k] || (f.t || 0) > (best[k].t || 0)) best[k] = f;
           });
-          _context0.p = 6;
-          _context0.n = 7;
+          _context12.p = 6;
+          _context12.n = 7;
           return stFlush();
         case 7:
-          _context0.n = 9;
+          _context12.n = 9;
           break;
         case 8:
-          _context0.p = 8;
-          _t9 = _context0.v;
+          _context12.p = 8;
+          _t9 = _context12.v;
         case 9:
           got = 0;
-          _context0.p = 10;
+          _context12.p = 10;
           _t0 = got;
-          _context0.n = 11;
+          _context12.n = 11;
           return cloudSync(now);
         case 11:
-          got = _t0 += _context0.v;
-          _context0.n = 13;
+          got = _t0 += _context12.v;
+          _context12.n = 13;
           break;
         case 12:
-          _context0.p = 12;
-          _t1 = _context0.v;
+          _context12.p = 12;
+          _t1 = _context12.v;
         case 13:
-          _context0.p = 13;
-          _context0.n = 14;
+          _context12.p = 13;
+          _context12.n = 14;
           return fiSync();
         case 14:
-          _context0.n = 16;
+          _context12.n = 16;
           break;
         case 15:
-          _context0.p = 15;
-          _t10 = _context0.v;
+          _context12.p = 15;
+          _t10 = _context12.v;
         case 16:
-          _context0.p = 16;
+          _context12.p = 16;
           if (!(Date.now() - +(_ls('ekt') || 0) > 6 * HOUR)) {
-            _context0.n = 20;
+            _context12.n = 20;
             break;
           }
-          _context0.n = 17;
+          _context12.n = 17;
           return ghRaw('ofpdata/ZZEKTABLE.sb.html');
         case 17:
-          r = _context0.v;
+          r = _context12.v;
           if (!r) {
-            _context0.n = 19;
+            _context12.n = 19;
             break;
           }
-          _context0.n = 18;
+          _context12.n = 18;
           return r.text();
         case 18:
-          t = _context0.v;
+          t = _context12.v;
           j = JSON.parse(t);
           if (j && j.ap) {
             EKT = j;
@@ -1005,58 +1005,58 @@ function _update() {
         case 19:
           _ls('ekt', String(Date.now()));
         case 20:
-          _context0.n = 22;
+          _context12.n = 22;
           break;
         case 21:
-          _context0.p = 21;
-          _t11 = _context0.v;
+          _context12.p = 21;
+          _t11 = _context12.v;
         case 22:
           _iterator2 = _createForOfIteratorHelperLoose(LEGS.filter(function (l) {
             return l.std > now - 2 * HOUR && l.std < now + 48 * HOUR && !_ls('pkgai.' + String(l.k).replace(/[^\w.-]/g, ''));
           }));
         case 23:
           if ((_step2 = _iterator2()).done) {
-            _context0.n = 28;
+            _context12.n = 28;
             break;
           }
           l = _step2.value;
-          _context0.p = 24;
-          _context0.n = 25;
+          _context12.p = 24;
+          _context12.n = 25;
           return withTimeout(postK({
             action: 'pkgaiget',
             k: String(l.k).replace(/[^\w.-]/g, '')
           }), 30000);
         case 25:
-          c = _context0.v;
+          c = _context12.v;
           if (c && c.ok && c.d && c.d.secs) _ls('pkgai.' + String(l.k).replace(/[^\w.-]/g, ''), JSON.stringify(c.d));
-          _context0.n = 27;
+          _context12.n = 27;
           break;
         case 26:
-          _context0.p = 26;
-          _t12 = _context0.v;
+          _context12.p = 26;
+          _t12 = _context12.v;
         case 27:
-          _context0.n = 23;
+          _context12.n = 23;
           break;
         case 28:
-          _context0.p = 28;
-          _context0.n = 29;
+          _context12.p = 28;
+          _context12.n = 29;
           return wacSync();
         case 29:
-          _context0.n = 31;
+          _context12.n = 31;
           break;
         case 30:
-          _context0.p = 30;
-          _t13 = _context0.v;
+          _context12.p = 30;
+          _t13 = _context12.v;
         case 31:
-          _context0.p = 31;
-          _context0.n = 32;
+          _context12.p = 31;
+          _context12.n = 32;
           return waczhSync();
         case 32:
-          _context0.n = 34;
+          _context12.n = 34;
           break;
         case 33:
-          _context0.p = 33;
-          _t14 = _context0.v;
+          _context12.p = 33;
+          _t14 = _context12.v;
         case 34:
           want = Object.keys(best).map(function (k) {
             return best[k];
@@ -1068,25 +1068,25 @@ function _update() {
           });
           _loop4 = _regenerator().m(function _loop4() {
             var f, u8, txt, o, leg, ex;
-            return _regenerator().w(function (_context9) {
-              while (1) switch (_context9.n) {
+            return _regenerator().w(function (_context11) {
+              while (1) switch (_context11.n) {
                 case 0:
                   f = _step3.value;
                   if (!LEGS.some(function (l) {
                     return l.fid === f.id && l.sv === SV;
                   })) {
-                    _context9.n = 1;
+                    _context11.n = 1;
                     break;
                   }
-                  return _context9.a(2, 0);
+                  return _context11.a(2, 0);
                 case 1:
                   MSG = '⏳ ' + X('下载 ', 'Downloading ') + f.name.replace(/\.pdf$/i, '');
                   draw();
-                  _context9.n = 2;
+                  _context11.n = 2;
                   return getFile(f.id);
                 case 2:
-                  u8 = _context9.v;
-                  _context9.n = 3;
+                  u8 = _context11.v;
+                  _context11.n = 3;
                   return pdfText(u8, function (n, N) {
                     if (n % 5 === 0 || n === N) {
                       MSG = '⏳ ' + X('读取 ', 'Reading ') + n + '/' + N + ' · ' + f.name.slice(0, 16);
@@ -1094,14 +1094,14 @@ function _update() {
                     }
                   });
                 case 3:
-                  txt = _context9.v;
+                  txt = _context11.v;
                   o = OFP.parse(txt);
                   if (o.ok) {
-                    _context9.n = 4;
+                    _context11.n = 4;
                     break;
                   }
                   BAD.push(f.name + ': ' + (o.warnings || []).join('; '));
-                  return _context9.a(2, 0);
+                  return _context11.a(2, 0);
                 case 4:
                   leg = summarize(o);
                   fixLeg(leg);
@@ -1111,10 +1111,10 @@ function _update() {
                     return l.k === leg.k;
                   });
                   if (!(ex && (ex.ofpn || 0) > (leg.ofpn || 0))) {
-                    _context9.n = 5;
+                    _context11.n = 5;
                     break;
                   }
-                  return _context9.a(2, 0);
+                  return _context11.a(2, 0);
                 case 5:
                   cloudUp(txt, o);
                   if (!LEGS.some(function (l) {
@@ -1126,26 +1126,26 @@ function _update() {
                   got++;
                   _ls('legs', JSON.stringify(LEGS));
                 case 6:
-                  return _context9.a(2);
+                  return _context11.a(2);
               }
             }, _loop4);
           });
           _iterator3 = _createForOfIteratorHelperLoose(want);
         case 35:
           if ((_step3 = _iterator3()).done) {
-            _context0.n = 38;
+            _context12.n = 38;
             break;
           }
-          return _context0.d(_regeneratorValues(_loop4()), 36);
+          return _context12.d(_regeneratorValues(_loop4()), 36);
         case 36:
-          _ret2 = _context0.v;
+          _ret2 = _context12.v;
           if (!(_ret2 === 0)) {
-            _context0.n = 37;
+            _context12.n = 37;
             break;
           }
-          return _context0.a(3, 37);
+          return _context12.a(3, 37);
         case 37:
-          _context0.n = 35;
+          _context12.n = 35;
           break;
         case 38:
           LEGS = LEGS.filter(function (l) {
@@ -1169,19 +1169,19 @@ function _update() {
             console.warn(BAD);
             BAD = [];
           }
-          _context0.n = 40;
+          _context12.n = 40;
           break;
         case 39:
-          _context0.p = 39;
-          _t15 = _context0.v;
+          _context12.p = 39;
+          _t15 = _context12.v;
           MSG = '⚠️ ' + _t15.message;
         case 40:
           busy = false;
           draw();
         case 41:
-          return _context0.a(2);
+          return _context12.a(2);
       }
-    }, _callee7, null, [[31, 33], [28, 30], [24, 26], [16, 21], [13, 15], [10, 12], [6, 8], [4, 39]]);
+    }, _callee1, null, [[31, 33], [28, 30], [24, 26], [16, 21], [13, 15], [10, 12], [6, 8], [4, 39]]);
   }));
   return _update.apply(this, arguments);
 }
@@ -1197,32 +1197,32 @@ function gunzip(_x5) {
   return _gunzip.apply(this, arguments);
 }
 function _gunzip() {
-  _gunzip = _asyncToGenerator(_regenerator().m(function _callee8(u8) {
+  _gunzip = _asyncToGenerator(_regenerator().m(function _callee10(u8) {
     var _t16;
-    return _regenerator().w(function (_context1) {
-      while (1) switch (_context1.n) {
+    return _regenerator().w(function (_context13) {
+      while (1) switch (_context13.n) {
         case 0:
           if (!(typeof DecompressionStream !== 'undefined')) {
-            _context1.n = 2;
+            _context13.n = 2;
             break;
           }
           _t16 = new TextDecoder();
-          _context1.n = 1;
+          _context13.n = 1;
           return new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
         case 1:
-          return _context1.a(2, _t16.decode.call(_t16, _context1.v));
+          return _context13.a(2, _t16.decode.call(_t16, _context13.v));
         case 2:
           if (!(window.AndroidPanel && AndroidPanel.gunzip)) {
-            _context1.n = 3;
+            _context13.n = 3;
             break;
           }
-          return _context1.a(2, AndroidPanel.gunzip(b64of(u8)));
+          return _context13.a(2, AndroidPanel.gunzip(b64of(u8)));
         case 3:
           throw new Error('no gunzip');
         case 4:
-          return _context1.a(2);
+          return _context13.a(2);
       }
-    }, _callee8);
+    }, _callee10);
   }));
   return _gunzip.apply(this, arguments);
 }
@@ -1230,19 +1230,19 @@ function ghRaw(_x6) {
   return _ghRaw.apply(this, arguments);
 }
 function _ghRaw() {
-  _ghRaw = _asyncToGenerator(_regenerator().m(function _callee9(path) {
+  _ghRaw = _asyncToGenerator(_regenerator().m(function _callee11(path) {
     var g, r;
-    return _regenerator().w(function (_context10) {
-      while (1) switch (_context10.n) {
+    return _regenerator().w(function (_context14) {
+      while (1) switch (_context14.n) {
         case 0:
           g = GH();
           if (g.tok) {
-            _context10.n = 1;
+            _context14.n = 1;
             break;
           }
-          return _context10.a(2, null);
+          return _context14.a(2, null);
         case 1:
-          _context10.n = 2;
+          _context14.n = 2;
           return fetch('https://api.github.com/repos/' + g.repo + '/contents/' + path + '?_=' + Date.now(), {
             headers: {
               Authorization: 'Bearer ' + g.tok,
@@ -1251,10 +1251,10 @@ function _ghRaw() {
             cache: 'no-store'
           });
         case 2:
-          r = _context10.v;
-          return _context10.a(2, r.ok ? r : null);
+          r = _context14.v;
+          return _context14.a(2, r.ok ? r : null);
       }
-    }, _callee9);
+    }, _callee11);
   }));
   return _ghRaw.apply(this, arguments);
 }
@@ -1262,85 +1262,85 @@ function cloudSync(_x7) {
   return _cloudSync.apply(this, arguments);
 }
 function _cloudSync() {
-  _cloudSync = _asyncToGenerator(_regenerator().m(function _callee0(now) {
+  _cloudSync = _asyncToGenerator(_regenerator().m(function _callee12(now) {
     var r, idx, got, _loop5, _ret3, _iterator4, _step4, _loop6, _ret4, _iterator5, _step5, _loop7, _ret5, _iterator6, _step6, _loop8, _ret6, _iterator7, _step7, _loop9, _ret7, _iterator8, _step8, _loop0, _ret8, _iterator9, _step9;
-    return _regenerator().w(function (_context17) {
-      while (1) switch (_context17.n) {
+    return _regenerator().w(function (_context21) {
+      while (1) switch (_context21.n) {
         case 0:
-          _context17.n = 1;
+          _context21.n = 1;
           return ghRaw('ofpdata/index.json');
         case 1:
-          r = _context17.v;
+          r = _context21.v;
           if (r) {
-            _context17.n = 2;
+            _context21.n = 2;
             break;
           }
-          return _context17.a(2, 0);
+          return _context21.a(2, 0);
         case 2:
-          _context17.n = 3;
+          _context21.n = 3;
           return r.json();
         case 3:
-          idx = _context17.v;
+          idx = _context21.v;
           got = 0;
           _loop5 = _regenerator().m(function _loop5() {
             var x, m, ex, fid, f, txt, o, leg, isNew, _t17, _t18, _t19;
-            return _regenerator().w(function (_context11) {
-              while (1) switch (_context11.n) {
+            return _regenerator().w(function (_context15) {
+              while (1) switch (_context15.n) {
                 case 0:
                   x = _step4.value;
                   m = x.meta || {};
                   if (!(!m.std || m.std < now - 3 * 864e5 || m.std > now + 48 * HOUR)) {
-                    _context11.n = 1;
+                    _context15.n = 1;
                     break;
                   }
-                  return _context11.a(2, 0);
+                  return _context15.a(2, 0);
                 case 1:
                   ex = LEGS.find(function (l) {
                     return l.k.replace(/[^\w.-]/g, '') === x.k;
                   });
                   if (!(ex && m.ofpn != null && (ex.ofpn || 0) > m.ofpn)) {
-                    _context11.n = 2;
+                    _context15.n = 2;
                     break;
                   }
-                  return _context11.a(2, 0);
+                  return _context15.a(2, 0);
                 case 2:
                   fid = 'cloud:' + x.k + ':' + (x.len || 0);
                   if (!LEGS.some(function (l) {
                     return l.fid === fid && l.sv === SV;
                   })) {
-                    _context11.n = 3;
+                    _context15.n = 3;
                     break;
                   }
-                  return _context11.a(2, 0);
+                  return _context15.a(2, 0);
                 case 3:
                   MSG = '☁️ ' + X('云端下载 ', 'Cloud ') + (m.no || x.k);
                   draw();
-                  _context11.n = 4;
+                  _context15.n = 4;
                   return ghRaw('ofpdata/' + x.k + '.txt.gz');
                 case 4:
-                  f = _context11.v;
+                  f = _context15.v;
                   if (f) {
-                    _context11.n = 5;
+                    _context15.n = 5;
                     break;
                   }
-                  return _context11.a(2, 0);
+                  return _context15.a(2, 0);
                 case 5:
                   _t17 = gunzip;
                   _t18 = Uint8Array;
-                  _context11.n = 6;
+                  _context15.n = 6;
                   return f.arrayBuffer();
                 case 6:
-                  _t19 = _context11.v;
-                  _context11.n = 7;
+                  _t19 = _context15.v;
+                  _context15.n = 7;
                   return _t17(new _t18(_t19));
                 case 7:
-                  txt = _context11.v;
+                  txt = _context15.v;
                   o = OFP.parse(txt);
                   if (o.ok) {
-                    _context11.n = 8;
+                    _context15.n = 8;
                     break;
                   }
-                  return _context11.a(2, 0);
+                  return _context15.a(2, 0);
                 case 8:
                   leg = summarize(o);
                   fixLeg(leg);
@@ -1355,319 +1355,43 @@ function _cloudSync() {
                   got++;
                   if (isNew) NEWL.push(leg);
                 case 9:
-                  return _context11.a(2);
+                  return _context15.a(2);
               }
             }, _loop5);
           });
           _iterator4 = _createForOfIteratorHelperLoose(idx);
         case 4:
           if ((_step4 = _iterator4()).done) {
-            _context17.n = 7;
+            _context21.n = 7;
             break;
           }
-          return _context17.d(_regeneratorValues(_loop5()), 5);
+          return _context21.d(_regeneratorValues(_loop5()), 5);
         case 5:
-          _ret3 = _context17.v;
+          _ret3 = _context21.v;
           if (!(_ret3 === 0)) {
-            _context17.n = 6;
+            _context21.n = 6;
             break;
           }
-          return _context17.a(3, 6);
+          return _context21.a(3, 6);
         case 6:
-          _context17.n = 4;
+          _context21.n = 4;
           break;
         case 7:
           _loop6 = _regenerator().m(function _loop6() {
             var x, t, _t20, _t21, _t22;
-            return _regenerator().w(function (_context12) {
-              while (1) switch (_context12.p = _context12.n) {
-                case 0:
-                  x = _step5.value;
-                  if (!(!x.st || +(_ls('stn.' + x.k) || 0) >= x.st)) {
-                    _context12.n = 1;
-                    break;
-                  }
-                  return _context12.a(2, 0);
-                case 1:
-                  if (LEGS.some(function (l) {
-                    return l.k.replace(/[^\w.-]/g, '') === x.k;
-                  })) {
-                    _context12.n = 2;
-                    break;
-                  }
-                  return _context12.a(2, 0);
-                case 2:
-                  _context12.p = 2;
-                  _context12.n = 3;
-                  return ghRaw('ofpdata/' + x.k + '.st.json');
-                case 3:
-                  t = _context12.v;
-                  if (!t) {
-                    _context12.n = 5;
-                    break;
-                  }
-                  _t20 = stApply;
-                  _t21 = x.k;
-                  _context12.n = 4;
-                  return t.json();
-                case 4:
-                  _t20(_t21, _context12.v);
-                  _ls('stn.' + x.k, String(x.st));
-                case 5:
-                  _context12.n = 7;
-                  break;
-                case 6:
-                  _context12.p = 6;
-                  _t22 = _context12.v;
-                case 7:
-                  return _context12.a(2);
-              }
-            }, _loop6, null, [[2, 6]]);
-          });
-          _iterator5 = _createForOfIteratorHelperLoose(idx);
-        case 8:
-          if ((_step5 = _iterator5()).done) {
-            _context17.n = 11;
-            break;
-          }
-          return _context17.d(_regeneratorValues(_loop6()), 9);
-        case 9:
-          _ret4 = _context17.v;
-          if (!(_ret4 === 0)) {
-            _context17.n = 10;
-            break;
-          }
-          return _context17.a(3, 10);
-        case 10:
-          _context17.n = 8;
-          break;
-        case 11:
-          _loop7 = _regenerator().m(function _loop7() {
-            var x, t, _t23, _t24, _t25;
-            return _regenerator().w(function (_context13) {
-              while (1) switch (_context13.p = _context13.n) {
-                case 0:
-                  x = _step6.value;
-                  if (!(!x.sb || +(_ls('sbn.' + x.k) || 0) >= x.sb)) {
-                    _context13.n = 1;
-                    break;
-                  }
-                  return _context13.a(2, 0);
-                case 1:
-                  if (LEGS.some(function (l) {
-                    return l.k.replace(/[^\w.-]/g, '') === x.k;
-                  })) {
-                    _context13.n = 2;
-                    break;
-                  }
-                  return _context13.a(2, 0);
-                case 2:
-                  _context13.p = 2;
-                  _context13.n = 3;
-                  return ghRaw('ofpdata/' + x.k + '.sb.html');
-                case 3:
-                  t = _context13.v;
-                  if (!t) {
-                    _context13.n = 5;
-                    break;
-                  }
-                  _t23 = _ls;
-                  _t24 = 'sb.' + x.k;
-                  _context13.n = 4;
-                  return t.text();
-                case 4:
-                  _t23(_t24, _context13.v);
-                  _ls('sbn.' + x.k, String(x.sb));
-                case 5:
-                  _context13.n = 7;
-                  break;
-                case 6:
-                  _context13.p = 6;
-                  _t25 = _context13.v;
-                case 7:
-                  return _context13.a(2);
-              }
-            }, _loop7, null, [[2, 6]]);
-          });
-          _iterator6 = _createForOfIteratorHelperLoose(idx);
-        case 12:
-          if ((_step6 = _iterator6()).done) {
-            _context17.n = 15;
-            break;
-          }
-          return _context17.d(_regeneratorValues(_loop7()), 13);
-        case 13:
-          _ret5 = _context17.v;
-          if (!(_ret5 === 0)) {
-            _context17.n = 14;
-            break;
-          }
-          return _context17.a(3, 14);
-        case 14:
-          _context17.n = 12;
-          break;
-        case 15:
-          _loop8 = _regenerator().m(function _loop8() {
-            var x, t, _t26, _t27, _t28;
-            return _regenerator().w(function (_context14) {
-              while (1) switch (_context14.p = _context14.n) {
-                case 0:
-                  x = _step7.value;
-                  if (!(!x.full || +(_ls('fulln.' + x.k) || 0) >= x.full)) {
-                    _context14.n = 1;
-                    break;
-                  }
-                  return _context14.a(2, 0);
-                case 1:
-                  if (LEGS.some(function (l) {
-                    return l.k.replace(/[^\w.-]/g, '') === x.k;
-                  })) {
-                    _context14.n = 2;
-                    break;
-                  }
-                  return _context14.a(2, 0);
-                case 2:
-                  _context14.p = 2;
-                  _context14.n = 3;
-                  return ghRaw('ofpdata/' + x.k + '.full.html');
-                case 3:
-                  t = _context14.v;
-                  if (!t) {
-                    _context14.n = 5;
-                    break;
-                  }
-                  _t26 = _ls;
-                  _t27 = 'full.' + x.k;
-                  _context14.n = 4;
-                  return t.text();
-                case 4:
-                  _t26(_t27, _context14.v);
-                  _ls('fulln.' + x.k, String(x.full));
-                case 5:
-                  _context14.n = 7;
-                  break;
-                case 6:
-                  _context14.p = 6;
-                  _t28 = _context14.v;
-                case 7:
-                  return _context14.a(2);
-              }
-            }, _loop8, null, [[2, 6]]);
-          });
-          _iterator7 = _createForOfIteratorHelperLoose(idx);
-        case 16:
-          if ((_step7 = _iterator7()).done) {
-            _context17.n = 19;
-            break;
-          }
-          return _context17.d(_regeneratorValues(_loop8()), 17);
-        case 17:
-          _ret6 = _context17.v;
-          if (!(_ret6 === 0)) {
-            _context17.n = 18;
-            break;
-          }
-          return _context17.a(3, 18);
-        case 18:
-          _context17.n = 16;
-          break;
-        case 19:
-          _loop9 = _regenerator().m(function _loop9() {
-            var x, a, _b, _t29, _t30, _t31, _t32, _t33;
-            return _regenerator().w(function (_context15) {
-              while (1) switch (_context15.p = _context15.n) {
-                case 0:
-                  x = _step8.value;
-                  if (!(!x.sbn || +(_ls('sbwn.' + x.k) || 0) >= x.sbn)) {
-                    _context15.n = 1;
-                    break;
-                  }
-                  return _context15.a(2, 0);
-                case 1:
-                  if (LEGS.some(function (l) {
-                    return l.k.replace(/[^\w.-]/g, '') === x.k;
-                  })) {
-                    _context15.n = 2;
-                    break;
-                  }
-                  return _context15.a(2, 0);
-                case 2:
-                  _context15.p = 2;
-                  _context15.n = 3;
-                  return ghRaw('ofpdata/' + x.k + '.sbn.html');
-                case 3:
-                  a = _context15.v;
-                  _context15.n = 4;
-                  return ghRaw('ofpdata/' + x.k + '.fulln.html');
-                case 4:
-                  _b = _context15.v;
-                  if (!a) {
-                    _context15.n = 6;
-                    break;
-                  }
-                  _t29 = _ls;
-                  _t30 = 'sbw.' + x.k;
-                  _context15.n = 5;
-                  return a.text();
-                case 5:
-                  _t29(_t30, _context15.v);
-                case 6:
-                  if (!_b) {
-                    _context15.n = 8;
-                    break;
-                  }
-                  _t31 = _ls;
-                  _t32 = 'fullw.' + x.k;
-                  _context15.n = 7;
-                  return _b.text();
-                case 7:
-                  _t31(_t32, _context15.v);
-                case 8:
-                  if (a) _ls('sbwn.' + x.k, String(x.sbn));
-                  _context15.n = 10;
-                  break;
-                case 9:
-                  _context15.p = 9;
-                  _t33 = _context15.v;
-                case 10:
-                  return _context15.a(2);
-              }
-            }, _loop9, null, [[2, 9]]);
-          });
-          _iterator8 = _createForOfIteratorHelperLoose(idx);
-        case 20:
-          if ((_step8 = _iterator8()).done) {
-            _context17.n = 23;
-            break;
-          }
-          return _context17.d(_regeneratorValues(_loop9()), 21);
-        case 21:
-          _ret7 = _context17.v;
-          if (!(_ret7 === 0)) {
-            _context17.n = 22;
-            break;
-          }
-          return _context17.a(3, 22);
-        case 22:
-          _context17.n = 20;
-          break;
-        case 23:
-          _loop0 = _regenerator().m(function _loop0() {
-            var x, lg, t, _t34, _t35, _t36, _t37;
             return _regenerator().w(function (_context16) {
               while (1) switch (_context16.p = _context16.n) {
                 case 0:
-                  x = _step9.value;
-                  if (!(!x.tr || +(_ls('trn.' + x.k) || 0) >= x.tr)) {
+                  x = _step5.value;
+                  if (!(!x.st || +(_ls('stn.' + x.k) || 0) >= x.st)) {
                     _context16.n = 1;
                     break;
                   }
                   return _context16.a(2, 0);
                 case 1:
-                  lg = LEGS.find(function (l) {
+                  if (LEGS.some(function (l) {
                     return l.k.replace(/[^\w.-]/g, '') === x.k;
-                  });
-                  if (lg) {
+                  })) {
                     _context16.n = 2;
                     break;
                   }
@@ -1675,53 +1399,329 @@ function _cloudSync() {
                 case 2:
                   _context16.p = 2;
                   _context16.n = 3;
-                  return ghRaw('ofpdata/' + x.k + '.tr.json');
+                  return ghRaw('ofpdata/' + x.k + '.st.json');
                 case 3:
                   t = _context16.v;
                   if (!t) {
                     _context16.n = 5;
                     break;
                   }
-                  _t34 = _ls;
-                  _t35 = 'tr.' + x.k;
-                  _t36 = JSON;
+                  _t20 = stApply;
+                  _t21 = x.k;
                   _context16.n = 4;
                   return t.json();
                 case 4:
-                  _t34(_t35, _t36.stringify.call(_t36, _context16.v));
-                  _ls('trn.' + x.k, String(x.tr));
+                  _t20(_t21, _context16.v);
+                  _ls('stn.' + x.k, String(x.st));
                 case 5:
                   _context16.n = 7;
                   break;
                 case 6:
                   _context16.p = 6;
-                  _t37 = _context16.v;
+                  _t22 = _context16.v;
                 case 7:
                   return _context16.a(2);
+              }
+            }, _loop6, null, [[2, 6]]);
+          });
+          _iterator5 = _createForOfIteratorHelperLoose(idx);
+        case 8:
+          if ((_step5 = _iterator5()).done) {
+            _context21.n = 11;
+            break;
+          }
+          return _context21.d(_regeneratorValues(_loop6()), 9);
+        case 9:
+          _ret4 = _context21.v;
+          if (!(_ret4 === 0)) {
+            _context21.n = 10;
+            break;
+          }
+          return _context21.a(3, 10);
+        case 10:
+          _context21.n = 8;
+          break;
+        case 11:
+          _loop7 = _regenerator().m(function _loop7() {
+            var x, t, _t23, _t24, _t25;
+            return _regenerator().w(function (_context17) {
+              while (1) switch (_context17.p = _context17.n) {
+                case 0:
+                  x = _step6.value;
+                  if (!(!x.sb || +(_ls('sbn.' + x.k) || 0) >= x.sb)) {
+                    _context17.n = 1;
+                    break;
+                  }
+                  return _context17.a(2, 0);
+                case 1:
+                  if (LEGS.some(function (l) {
+                    return l.k.replace(/[^\w.-]/g, '') === x.k;
+                  })) {
+                    _context17.n = 2;
+                    break;
+                  }
+                  return _context17.a(2, 0);
+                case 2:
+                  _context17.p = 2;
+                  _context17.n = 3;
+                  return ghRaw('ofpdata/' + x.k + '.sb.html');
+                case 3:
+                  t = _context17.v;
+                  if (!t) {
+                    _context17.n = 5;
+                    break;
+                  }
+                  _t23 = _ls;
+                  _t24 = 'sb.' + x.k;
+                  _context17.n = 4;
+                  return t.text();
+                case 4:
+                  _t23(_t24, _context17.v);
+                  _ls('sbn.' + x.k, String(x.sb));
+                case 5:
+                  _context17.n = 7;
+                  break;
+                case 6:
+                  _context17.p = 6;
+                  _t25 = _context17.v;
+                case 7:
+                  return _context17.a(2);
+              }
+            }, _loop7, null, [[2, 6]]);
+          });
+          _iterator6 = _createForOfIteratorHelperLoose(idx);
+        case 12:
+          if ((_step6 = _iterator6()).done) {
+            _context21.n = 15;
+            break;
+          }
+          return _context21.d(_regeneratorValues(_loop7()), 13);
+        case 13:
+          _ret5 = _context21.v;
+          if (!(_ret5 === 0)) {
+            _context21.n = 14;
+            break;
+          }
+          return _context21.a(3, 14);
+        case 14:
+          _context21.n = 12;
+          break;
+        case 15:
+          _loop8 = _regenerator().m(function _loop8() {
+            var x, t, _t26, _t27, _t28;
+            return _regenerator().w(function (_context18) {
+              while (1) switch (_context18.p = _context18.n) {
+                case 0:
+                  x = _step7.value;
+                  if (!(!x.full || +(_ls('fulln.' + x.k) || 0) >= x.full)) {
+                    _context18.n = 1;
+                    break;
+                  }
+                  return _context18.a(2, 0);
+                case 1:
+                  if (LEGS.some(function (l) {
+                    return l.k.replace(/[^\w.-]/g, '') === x.k;
+                  })) {
+                    _context18.n = 2;
+                    break;
+                  }
+                  return _context18.a(2, 0);
+                case 2:
+                  _context18.p = 2;
+                  _context18.n = 3;
+                  return ghRaw('ofpdata/' + x.k + '.full.html');
+                case 3:
+                  t = _context18.v;
+                  if (!t) {
+                    _context18.n = 5;
+                    break;
+                  }
+                  _t26 = _ls;
+                  _t27 = 'full.' + x.k;
+                  _context18.n = 4;
+                  return t.text();
+                case 4:
+                  _t26(_t27, _context18.v);
+                  _ls('fulln.' + x.k, String(x.full));
+                case 5:
+                  _context18.n = 7;
+                  break;
+                case 6:
+                  _context18.p = 6;
+                  _t28 = _context18.v;
+                case 7:
+                  return _context18.a(2);
+              }
+            }, _loop8, null, [[2, 6]]);
+          });
+          _iterator7 = _createForOfIteratorHelperLoose(idx);
+        case 16:
+          if ((_step7 = _iterator7()).done) {
+            _context21.n = 19;
+            break;
+          }
+          return _context21.d(_regeneratorValues(_loop8()), 17);
+        case 17:
+          _ret6 = _context21.v;
+          if (!(_ret6 === 0)) {
+            _context21.n = 18;
+            break;
+          }
+          return _context21.a(3, 18);
+        case 18:
+          _context21.n = 16;
+          break;
+        case 19:
+          _loop9 = _regenerator().m(function _loop9() {
+            var x, a, _b, _t29, _t30, _t31, _t32, _t33;
+            return _regenerator().w(function (_context19) {
+              while (1) switch (_context19.p = _context19.n) {
+                case 0:
+                  x = _step8.value;
+                  if (!(!x.sbn || +(_ls('sbwn.' + x.k) || 0) >= x.sbn)) {
+                    _context19.n = 1;
+                    break;
+                  }
+                  return _context19.a(2, 0);
+                case 1:
+                  if (LEGS.some(function (l) {
+                    return l.k.replace(/[^\w.-]/g, '') === x.k;
+                  })) {
+                    _context19.n = 2;
+                    break;
+                  }
+                  return _context19.a(2, 0);
+                case 2:
+                  _context19.p = 2;
+                  _context19.n = 3;
+                  return ghRaw('ofpdata/' + x.k + '.sbn.html');
+                case 3:
+                  a = _context19.v;
+                  _context19.n = 4;
+                  return ghRaw('ofpdata/' + x.k + '.fulln.html');
+                case 4:
+                  _b = _context19.v;
+                  if (!a) {
+                    _context19.n = 6;
+                    break;
+                  }
+                  _t29 = _ls;
+                  _t30 = 'sbw.' + x.k;
+                  _context19.n = 5;
+                  return a.text();
+                case 5:
+                  _t29(_t30, _context19.v);
+                case 6:
+                  if (!_b) {
+                    _context19.n = 8;
+                    break;
+                  }
+                  _t31 = _ls;
+                  _t32 = 'fullw.' + x.k;
+                  _context19.n = 7;
+                  return _b.text();
+                case 7:
+                  _t31(_t32, _context19.v);
+                case 8:
+                  if (a) _ls('sbwn.' + x.k, String(x.sbn));
+                  _context19.n = 10;
+                  break;
+                case 9:
+                  _context19.p = 9;
+                  _t33 = _context19.v;
+                case 10:
+                  return _context19.a(2);
+              }
+            }, _loop9, null, [[2, 9]]);
+          });
+          _iterator8 = _createForOfIteratorHelperLoose(idx);
+        case 20:
+          if ((_step8 = _iterator8()).done) {
+            _context21.n = 23;
+            break;
+          }
+          return _context21.d(_regeneratorValues(_loop9()), 21);
+        case 21:
+          _ret7 = _context21.v;
+          if (!(_ret7 === 0)) {
+            _context21.n = 22;
+            break;
+          }
+          return _context21.a(3, 22);
+        case 22:
+          _context21.n = 20;
+          break;
+        case 23:
+          _loop0 = _regenerator().m(function _loop0() {
+            var x, lg, t, _t34, _t35, _t36, _t37;
+            return _regenerator().w(function (_context20) {
+              while (1) switch (_context20.p = _context20.n) {
+                case 0:
+                  x = _step9.value;
+                  if (!(!x.tr || +(_ls('trn.' + x.k) || 0) >= x.tr)) {
+                    _context20.n = 1;
+                    break;
+                  }
+                  return _context20.a(2, 0);
+                case 1:
+                  lg = LEGS.find(function (l) {
+                    return l.k.replace(/[^\w.-]/g, '') === x.k;
+                  });
+                  if (lg) {
+                    _context20.n = 2;
+                    break;
+                  }
+                  return _context20.a(2, 0);
+                case 2:
+                  _context20.p = 2;
+                  _context20.n = 3;
+                  return ghRaw('ofpdata/' + x.k + '.tr.json');
+                case 3:
+                  t = _context20.v;
+                  if (!t) {
+                    _context20.n = 5;
+                    break;
+                  }
+                  _t34 = _ls;
+                  _t35 = 'tr.' + x.k;
+                  _t36 = JSON;
+                  _context20.n = 4;
+                  return t.json();
+                case 4:
+                  _t34(_t35, _t36.stringify.call(_t36, _context20.v));
+                  _ls('trn.' + x.k, String(x.tr));
+                case 5:
+                  _context20.n = 7;
+                  break;
+                case 6:
+                  _context20.p = 6;
+                  _t37 = _context20.v;
+                case 7:
+                  return _context20.a(2);
               }
             }, _loop0, null, [[2, 6]]);
           });
           _iterator9 = _createForOfIteratorHelperLoose(idx);
         case 24:
           if ((_step9 = _iterator9()).done) {
-            _context17.n = 27;
+            _context21.n = 27;
             break;
           }
-          return _context17.d(_regeneratorValues(_loop0()), 25);
+          return _context21.d(_regeneratorValues(_loop0()), 25);
         case 25:
-          _ret8 = _context17.v;
+          _ret8 = _context21.v;
           if (!(_ret8 === 0)) {
-            _context17.n = 26;
+            _context21.n = 26;
             break;
           }
-          return _context17.a(3, 26);
+          return _context21.a(3, 26);
         case 26:
-          _context17.n = 24;
+          _context21.n = 24;
           break;
         case 27:
-          return _context17.a(2, got);
+          return _context21.a(2, got);
       }
-    }, _callee0);
+    }, _callee12);
   }));
   return _cloudSync.apply(this, arguments);
 }
@@ -1729,37 +1729,37 @@ function cloudUp(_x8, _x9) {
   return _cloudUp.apply(this, arguments);
 }
 function _cloudUp() {
-  _cloudUp = _asyncToGenerator(_regenerator().m(function _callee1(text, o) {
+  _cloudUp = _asyncToGenerator(_regenerator().m(function _callee13(text, o) {
     var r, x, _t38;
-    return _regenerator().w(function (_context18) {
-      while (1) switch (_context18.p = _context18.n) {
+    return _regenerator().w(function (_context22) {
+      while (1) switch (_context22.p = _context22.n) {
         case 0:
-          _context18.p = 0;
-          _context18.n = 1;
+          _context22.p = 0;
+          _context22.n = 1;
           return ghRaw('ofpdata/index.json');
         case 1:
-          r = _context18.v;
+          r = _context22.v;
           if (!r) {
-            _context18.n = 3;
+            _context22.n = 3;
             break;
           }
-          _context18.n = 2;
+          _context22.n = 2;
           return r.json();
         case 2:
-          x = _context18.v.find(function (e) {
+          x = _context22.v.find(function (e) {
             return e.k === (o.flight.no + o.flight.date).replace(/[^\w.-]/g, '');
           });
           if (!(x && x.meta && (x.meta.ofpn || 0) > (o.flight.ofpn || 0))) {
-            _context18.n = 3;
+            _context22.n = 3;
             break;
           }
-          return _context18.a(2);
+          return _context22.a(2);
         case 3:
-          _context18.n = 5;
+          _context22.n = 5;
           break;
         case 4:
-          _context18.p = 4;
-          _t38 = _context18.v;
+          _context22.p = 4;
+          _t38 = _context22.v;
         case 5:
           try {
             fetch(API + '?k=' + encodeURIComponent(_ls('key') || ''), {
@@ -1794,9 +1794,9 @@ function _cloudUp() {
             }).catch(function () {});
           } catch (e) {}
         case 6:
-          return _context18.a(2);
+          return _context22.a(2);
       }
-    }, _callee1, null, [[0, 4]]);
+    }, _callee13, null, [[0, 4]]);
   }));
   return _cloudUp.apply(this, arguments);
 }
@@ -2694,14 +2694,14 @@ function useOfpText(_x0, _x1, _x10) {
   return _useOfpText.apply(this, arguments);
 }
 function _useOfpText() {
-  _useOfpText = _asyncToGenerator(_regenerator().m(function _callee10(txt, src, id) {
+  _useOfpText = _asyncToGenerator(_regenerator().m(function _callee14(txt, src, id) {
     var o, leg;
-    return _regenerator().w(function (_context19) {
-      while (1) switch (_context19.n) {
+    return _regenerator().w(function (_context23) {
+      while (1) switch (_context23.n) {
         case 0:
           o = OFP.parse(txt);
           if (o.ok) {
-            _context19.n = 1;
+            _context23.n = 1;
             break;
           }
           throw new Error(X('这个文件里没认出 OFP（', 'No OFP found in this file (') + (o.warnings || []).join('; ') + ')');
@@ -2717,9 +2717,9 @@ function _useOfpText() {
           _ls('legs', JSON.stringify(LEGS));
           _ls('pin', leg.k);
           if (src !== 'cloud') cloudUp(txt, o);
-          return _context19.a(2, leg);
+          return _context23.a(2, leg);
       }
-    }, _callee10);
+    }, _callee14);
   }));
   return _useOfpText.apply(this, arguments);
 }
@@ -2727,10 +2727,10 @@ function pickOfp(_x11) {
   return _pickOfp.apply(this, arguments);
 }
 function _pickOfp() {
-  _pickOfp = _asyncToGenerator(_regenerator().m(function _callee12(days) {
+  _pickOfp = _asyncToGenerator(_regenerator().m(function _callee16(days) {
     var sh, log, rows, errs, j, r, _t43, _t44;
-    return _regenerator().w(function (_context21) {
-      while (1) switch (_context21.p = _context21.n) {
+    return _regenerator().w(function (_context25) {
+      while (1) switch (_context25.p = _context25.n) {
         case 0:
           days = days || 7;
           sh = $('sheet');
@@ -2753,14 +2753,14 @@ function _pickOfp() {
           rows = [];
           log('⏳ ' + X('正在看云端和邮箱…', 'Checking cloud and mail…'));
           errs = [];
-          _context21.p = 1;
-          _context21.n = 2;
+          _context25.p = 1;
+          _context25.n = 2;
           return withTimeout(postK({
             action: 'ofpmail',
             days: days
           }), 90000);
         case 2:
-          j = _context21.v;
+          j = _context25.v;
           if (j && j.ok) {
             if (j.gh && j.gh.tok) {
               _ls('ghtok', j.gh.tok);
@@ -2777,26 +2777,26 @@ function _pickOfp() {
               });
             });
           } else errs.push(X('邮箱：', 'Mail: ') + (j && j.error || '?'));
-          _context21.n = 4;
+          _context25.n = 4;
           break;
         case 3:
-          _context21.p = 3;
-          _t43 = _context21.v;
+          _context25.p = 3;
+          _t43 = _context25.v;
           errs.push(X('邮箱：', 'Mail: ') + _t43.message);
         case 4:
-          _context21.p = 4;
-          _context21.n = 5;
+          _context25.p = 4;
+          _context25.n = 5;
           return ghRaw('ofpdata/index.json');
         case 5:
-          r = _context21.v;
+          r = _context25.v;
           if (!r) {
-            _context21.n = 7;
+            _context25.n = 7;
             break;
           }
-          _context21.n = 6;
+          _context25.n = 6;
           return r.json();
         case 6:
-          _context21.v.filter(function (x) {
+          _context25.v.filter(function (x) {
             return x.meta && x.len && x.meta.std > Date.now() - days * 864e5;
           }).forEach(function (x) {
             return rows.push({
@@ -2806,16 +2806,16 @@ function _pickOfp() {
               name: (x.meta.no || x.k) + ' ' + (x.meta.depI || x.meta.dep || '') + '→' + (x.meta.arrI || x.meta.arr || '') + ' ' + dmZ(x.meta.std)
             });
           });
-          _context21.n = 8;
+          _context25.n = 8;
           break;
         case 7:
           errs.push(X('云端：', 'Cloud: ') + (GH().tok ? X('读不到（GitHub）', 'not reachable') : X('还没有同步码（先在有网时点一次 🔄 更新）', 'no sync key yet')));
         case 8:
-          _context21.n = 10;
+          _context25.n = 10;
           break;
         case 9:
-          _context21.p = 9;
-          _t44 = _context21.v;
+          _context25.p = 9;
+          _t44 = _context25.v;
           errs.push(X('云端：', 'Cloud: ') + _t44.message);
         case 10:
           rows.sort(function (a, b) {
@@ -2828,68 +2828,68 @@ function _pickOfp() {
           }).join('') || '<div class="ok">' + X('云端和邮箱里都没找到 OFP', 'No OFP in cloud or mail') + '</div>';
           log(errs.length ? '⚠️ ' + errs.map(esc).join('<br>⚠️ ') : X('点一个来下载、读取（会存在手机里，离线可用）', 'Tap one to download and read it (stored on the phone)'));
           $('pk-list').onclick = function () {
-            var _ref5 = _asyncToGenerator(_regenerator().m(function _callee11(e) {
+            var _ref9 = _asyncToGenerator(_regenerator().m(function _callee15(e) {
               var d, r, f, txt, leg, u8, _txt, _leg, _t39, _t40, _t41, _t42;
-              return _regenerator().w(function (_context20) {
-                while (1) switch (_context20.p = _context20.n) {
+              return _regenerator().w(function (_context24) {
+                while (1) switch (_context24.p = _context24.n) {
                   case 0:
                     d = e.target.closest('[data-i]');
                     if (d) {
-                      _context20.n = 1;
+                      _context24.n = 1;
                       break;
                     }
-                    return _context20.a(2);
+                    return _context24.a(2);
                   case 1:
                     r = rows[+d.dataset.i];
-                    _context20.p = 2;
+                    _context24.p = 2;
                     if (!(r.src === 'cloud')) {
-                      _context20.n = 8;
+                      _context24.n = 8;
                       break;
                     }
                     log('⏳ ' + X('云端下载…', 'Downloading…'));
-                    _context20.n = 3;
+                    _context24.n = 3;
                     return ghRaw('ofpdata/' + r.id + '.txt.gz');
                   case 3:
-                    f = _context20.v;
+                    f = _context24.v;
                     if (f) {
-                      _context20.n = 4;
+                      _context24.n = 4;
                       break;
                     }
                     throw new Error('GitHub');
                   case 4:
                     _t39 = gunzip;
                     _t40 = Uint8Array;
-                    _context20.n = 5;
+                    _context24.n = 5;
                     return f.arrayBuffer();
                   case 5:
-                    _t41 = _context20.v;
-                    _context20.n = 6;
+                    _t41 = _context24.v;
+                    _context24.n = 6;
                     return _t39(new _t40(_t41));
                   case 6:
-                    txt = _context20.v;
-                    _context20.n = 7;
+                    txt = _context24.v;
+                    _context24.n = 7;
                     return useOfpText(txt, 'cloud', 'cloud:' + r.id + ':' + txt.length);
                   case 7:
-                    leg = _context20.v;
+                    leg = _context24.v;
                     log('✅ ' + esc(leg.no) + ' ' + X('已读入', 'loaded'));
-                    _context20.n = 12;
+                    _context24.n = 12;
                     break;
                   case 8:
                     log('⏳ ' + X('从邮箱下载…（大文件要 10–60 秒）', 'Downloading from mail… (10–60 s)'));
-                    _context20.n = 9;
+                    _context24.n = 9;
                     return getFile(r.id);
                   case 9:
-                    u8 = _context20.v;
-                    _context20.n = 10;
+                    u8 = _context24.v;
+                    _context24.n = 10;
                     return pdfText(u8, function (n, N) {
                       return log('⏳ ' + X('读取 PDF ', 'Reading PDF ') + n + '/' + N);
                     });
                   case 10:
-                    _txt = _context20.v;
-                    _context20.n = 11;
+                    _txt = _context24.v;
+                    _context24.n = 11;
                     return useOfpText(_txt, 'mail', r.id);
                   case 11:
-                    _leg = _context20.v;
+                    _leg = _context24.v;
                     log('✅ ' + esc(_leg.no) + ' ' + X('已读入，并传到云端', 'loaded and uploaded to the cloud'));
                   case 12:
                     setTimeout(function () {
@@ -2897,25 +2897,25 @@ function _pickOfp() {
                       draw();
                       maybeDemo();
                     }, 900);
-                    _context20.n = 14;
+                    _context24.n = 14;
                     break;
                   case 13:
-                    _context20.p = 13;
-                    _t42 = _context20.v;
+                    _context24.p = 13;
+                    _t42 = _context24.v;
                     log('❌ ' + X('失败：', 'Failed: ') + esc(_t42.message || String(_t42)));
                   case 14:
-                    return _context20.a(2);
+                    return _context24.a(2);
                 }
-              }, _callee11, null, [[2, 13]]);
+              }, _callee15, null, [[2, 13]]);
             }));
-            return function (_x12) {
-              return _ref5.apply(this, arguments);
+            return function (_x15) {
+              return _ref9.apply(this, arguments);
             };
           }();
         case 11:
-          return _context21.a(2);
+          return _context25.a(2);
       }
-    }, _callee12, null, [[4, 9], [1, 3]]);
+    }, _callee16, null, [[4, 9], [1, 3]]);
   }));
   return _pickOfp.apply(this, arguments);
 }
@@ -3449,29 +3449,95 @@ function openNotams(loc, onlyId) {
     };
   });
 }
+function askT(title, def) {
+  return new Promise(function (res) {
+    var o = document.getElementById('askt');
+    if (o) o.remove();
+    o = document.createElement('div');
+    o.id = 'askt';
+    o.style.cssText = 'position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.35);display:flex;align-items:flex-start;justify-content:center;padding-top:12vh';
+    o.innerHTML = '<div style="background:#fff;color:#000;border:3px solid #000;border-radius:12px;padding:14px;width:min(92vw,420px);box-sizing:border-box;font-weight:700"><div style="font-size:16px;margin-bottom:10px"></div><input style="width:100%;box-sizing:border-box;font-size:26px;font-weight:800;padding:8px;border:2px solid #000;border-radius:8px" autocomplete="off" autocapitalize="characters"><div style="display:flex;gap:10px;margin-top:12px"><span class="btn" data-a="x" style="flex:1;text-align:center">✕ ' + XS('取消', 'Cancel') + '</span><span class="btn" data-a="ok" style="flex:1;text-align:center;background:#000;color:#fff">✓ ' + XS('确定', 'OK') + '</span></div></div>';
+    o.firstChild.firstChild.textContent = title;
+    var inp = o.querySelector('input');
+    inp.value = def == null ? '' : String(def);
+    var done = function done(v) {
+      o.remove();
+      res(v);
+    };
+    o.onclick = function (e) {
+      var a = e.target.closest('[data-a]');
+      if (a) done(a.dataset.a === 'ok' ? inp.value : null);else if (e.target === o) done(null);
+    };
+    inp.onkeydown = function (e) {
+      if (e.key === 'Enter') done(inp.value);else if (e.key === 'Escape') done(null);
+    };
+    document.body.appendChild(o);
+    setTimeout(function () {
+      inp.focus();
+      inp.select();
+    }, 50);
+  });
+}
 $('sel').onclick = function () {
   return $('legs').classList.toggle('open');
 };
-$('legs').onclick = function (e) {
-  var t = e.target.closest('.lg');
-  if (!t) return;
-  $('legs').classList.remove('open');
-  if (t.dataset.k === '#no') {
-    var L = CUR;
-    var v = prompt(X('航班号（例如 EK0368 或 QR0123；只输数字 = EK；留空 = 用系统的 ', 'Flight no. (e.g. EK0368; empty = system ') + L.no + '）', _ls('no.' + L.k) || '');
-    if (v !== null) {
-      var n = v.trim().toUpperCase().replace(/\s+/g, '');
-      if (/^\d/.test(n)) n = 'EK' + n;
-      _ls('no.' + L.k, n);
-      $('fl').dataset.f = '';
-    }
-  } else if (t.dataset.k === '#cs') {
-    var _L = CUR;
-    var _v = prompt(X('ATC 呼号（例如 UAE2AK；留空 = 用 OFP 上的 ', 'ATC callsign (e.g. UAE2AK; empty = OFP ') + (_L.cs || _L.no) + '）', _ls('cs.' + _L.k) || '');
-    if (_v !== null) _ls('cs.' + _L.k, _v.trim().toUpperCase().replace(/\s+/g, ''));
-  } else _ls('pin', t.dataset.k);
-  draw();
-};
+$('legs').onclick = function () {
+  var _ref2 = _asyncToGenerator(_regenerator().m(function _callee2(e) {
+    var t, L, v, n, _L, _v;
+    return _regenerator().w(function (_context2) {
+      while (1) switch (_context2.n) {
+        case 0:
+          t = e.target.closest('.lg');
+          if (t) {
+            _context2.n = 1;
+            break;
+          }
+          return _context2.a(2);
+        case 1:
+          $('legs').classList.remove('open');
+          if (!(t.dataset.k === '#no')) {
+            _context2.n = 3;
+            break;
+          }
+          L = CUR;
+          _context2.n = 2;
+          return askT(X('航班号（例如 EK0368 或 QR0123；只输数字 = EK；留空 = 用系统的 ', 'Flight no. (e.g. EK0368; empty = system ') + L.no + '）', _ls('no.' + L.k) || '');
+        case 2:
+          v = _context2.v;
+          if (v !== null) {
+            n = v.trim().toUpperCase().replace(/\s+/g, '');
+            if (/^\d/.test(n)) n = 'EK' + n;
+            _ls('no.' + L.k, n);
+            $('fl').dataset.f = '';
+          }
+          _context2.n = 6;
+          break;
+        case 3:
+          if (!(t.dataset.k === '#cs')) {
+            _context2.n = 5;
+            break;
+          }
+          _L = CUR;
+          _context2.n = 4;
+          return askT(X('ATC 呼号（例如 UAE2AK；留空 = 用 OFP 上的 ', 'ATC callsign (e.g. UAE2AK; empty = OFP ') + (_L.cs || _L.no) + '）', _ls('cs.' + _L.k) || '');
+        case 4:
+          _v = _context2.v;
+          if (_v !== null) _ls('cs.' + _L.k, _v.trim().toUpperCase().replace(/\s+/g, ''));
+          _context2.n = 6;
+          break;
+        case 5:
+          _ls('pin', t.dataset.k);
+        case 6:
+          draw();
+        case 7:
+          return _context2.a(2);
+      }
+    }, _callee2);
+  }));
+  return function (_x12) {
+    return _ref2.apply(this, arguments);
+  };
+}();
 $('b-demo').onclick = function () {
   return demo();
 };
@@ -4294,10 +4360,10 @@ function drawLayers(L, P, xy, s, W, H, t) {
   }
   if (LAY.r && P) {
     var _c = xy(P[0], P[1]);
-    [[R1NM, '#d08a00', '1h · 410 nm'], [R2NM, '#5a6f99', '2h · 820 nm']].forEach(function (_ref2) {
-      var nm = _ref2[0],
-        col = _ref2[1],
-        lab = _ref2[2];
+    [[R1NM, '#d08a00', '1h · 410 nm'], [R2NM, '#5a6f99', '2h · 820 nm']].forEach(function (_ref3) {
+      var nm = _ref3[0],
+        col = _ref3[1],
+        lab = _ref3[2];
       var r = nm * s;
       g.setLineDash([8, 7]);
       g.lineWidth = 2.2;
@@ -4318,9 +4384,9 @@ function drawLayers(L, P, xy, s, W, H, t) {
   }
 }
 function lypShow() {
-  $('lyp').innerHTML = [['r', XS('◯ 1h / 2h 距离圈', '◯ 1h / 2h rings')], ['a', XS('🛬 航路机场', '🛬 Route airports')], ['l', XS('📋 合适备降列表', '📋 Suitable alternates')]].map(function (_ref3) {
-    var k = _ref3[0],
-      t = _ref3[1];
+  $('lyp').innerHTML = [['r', XS('◯ 1h / 2h 距离圈', '◯ 1h / 2h rings')], ['a', XS('🛬 航路机场', '🛬 Route airports')], ['l', XS('📋 合适备降列表', '📋 Suitable alternates')]].map(function (_ref4) {
+    var k = _ref4[0],
+      t = _ref4[1];
     return '<span class="btn' + (LAY[k] ? ' on' : '') + '" data-ly="' + k + '">' + t + '</span>';
   }).join('');
 }
@@ -4536,31 +4602,45 @@ function openCrew() {
     return openShort();
   };
 }
-$('b-zfw').onclick = function () {
-  var L = CUR;
-  if (!L || !wFix(L)) {
-    MSG = XS('这个航班没有 OFP 重量数据', 'No OFP weights for this flight');
-    draw();
-    return;
-  }
-  var v = prompt(XS('实际无油重量 ZFW（吨，例如 245.3；留空 = 用计划 ', 'Actual ZFW (t; empty = plan ') + T(L.w.z) + '）', zfwOf(L) ? T(zfwOf(L)) : '');
-  if (v !== null) setZfw(L, v);
-};
+$('b-zfw').onclick = _asyncToGenerator(_regenerator().m(function _callee3() {
+  var L, v;
+  return _regenerator().w(function (_context3) {
+    while (1) switch (_context3.n) {
+      case 0:
+        L = CUR;
+        if (!(!L || !wFix(L))) {
+          _context3.n = 1;
+          break;
+        }
+        MSG = XS('这个航班没有 OFP 重量数据', 'No OFP weights for this flight');
+        draw();
+        return _context3.a(2);
+      case 1:
+        _context3.n = 2;
+        return askT(XS('实际无油重量 ZFW（吨，例如 245.3；留空 = 用计划 ', 'Actual ZFW (t; empty = plan ') + T(L.w.z) + '）', zfwOf(L) ? T(zfwOf(L)) : '');
+      case 2:
+        v = _context3.v;
+        if (v !== null) setZfw(L, v);
+      case 3:
+        return _context3.a(2);
+    }
+  }, _callee3);
+}));
 $('b-eink').onclick = function () {
   try {
     localStorage.setItem('pnl.eink', EINK ? '0' : '1');
   } catch (e) {}
   location.reload();
 };
-$('b-fi').onclick = _asyncToGenerator(_regenerator().m(function _callee2() {
+$('b-fi').onclick = _asyncToGenerator(_regenerator().m(function _callee4() {
   var n, ok;
-  return _regenerator().w(function (_context2) {
-    while (1) switch (_context2.n) {
+  return _regenerator().w(function (_context4) {
+    while (1) switch (_context4.n) {
       case 0:
         _ls('fit', '0');
         MSG = '⏳ ' + X('下载区域提醒数据库…', 'Downloading Flight Intelligence…');
         draw();
-        _context2.n = 1;
+        _context4.n = 1;
         return fiSync();
       case 1:
         n = FIDB && FIDB.items ? FIDB.items.length : 0, ok = n ? FIDB.items.filter(function (x) {
@@ -4569,9 +4649,9 @@ $('b-fi').onclick = _asyncToGenerator(_regenerator().m(function _callee2() {
         MSG = FIDB ? '🛰 DB v' + (FIDB.v || 0) + ' · ' + ok + '/' + n + X(' 条有效（已审核、在有效期内）', ' usable (reviewed, in date)') : '⚠️ ' + X('没拿到数据库（要联网、要口令）', 'No database (needs network + password)');
         draw();
       case 2:
-        return _context2.a(2);
+        return _context4.a(2);
     }
-  }, _callee2);
+  }, _callee4);
 }));
 $('b-snd').onclick = function () {
   _ls('snd', _ls('snd') === 'off' ? 'on' : 'off');
@@ -4640,39 +4720,72 @@ $('wpop').onclick = function (e) {
   var t = e.target.closest('.it[data-id]');
   if (t) openNotams(t.dataset.loc, t.dataset.id);else $('wpop').style.display = 'none';
 };
-$('wpl').onclick = function (e) {
-  if (e.target.closest('[data-more]')) {
-    _ls('wpall', _ls('wpall') === '1' ? '0' : '1');
-    draw();
-    return;
-  }
-  var t = e.target.closest('[data-fir]');
-  if (t) {
-    openNotams(t.dataset.fir);
-    return;
-  }
-  var w = e.target.closest('.wp[data-w]');
-  if (!w || !CUR || !CUR.n) return;
-  var v = prompt(X('过 ', 'Time over ') + w.dataset.w + X(' 的实际时间（UTC，4 位，例如 0815；留空 = 取消过点修正）', ' (UTC, e.g. 0815; empty = clear)'), hmZ(Date.now()));
-  if (v === null) return;
-  if (!/^\d{4}$/.test(v.trim())) {
-    _ls('ato.' + CUR.k, '');
-    draw();
-    return;
-  }
-  var wp = CUR.n.find(function (x) {
-      return x[0] === w.dataset.w;
-    }),
-    plan = offOf(CUR) + wp[1] * MIN,
-    d0 = Date.UTC(new Date(plan).getUTCFullYear(), new Date(plan).getUTCMonth(), new Date(plan).getUTCDate()) + (+v.slice(0, 2) * 60 + +v.slice(2)) * MIN;
-  _ls('ato.' + CUR.k, JSON.stringify({
-    w: wp[0],
-    t: [d0 - 864e5, d0, d0 + 864e5].sort(function (a, b) {
-      return Math.abs(a - plan) - Math.abs(b - plan);
-    })[0]
+$('wpl').onclick = function () {
+  var _ref7 = _asyncToGenerator(_regenerator().m(function _callee5(e) {
+    var t, w, v, wp, plan, d0;
+    return _regenerator().w(function (_context5) {
+      while (1) switch (_context5.n) {
+        case 0:
+          if (!e.target.closest('[data-more]')) {
+            _context5.n = 1;
+            break;
+          }
+          _ls('wpall', _ls('wpall') === '1' ? '0' : '1');
+          draw();
+          return _context5.a(2);
+        case 1:
+          t = e.target.closest('[data-fir]');
+          if (!t) {
+            _context5.n = 2;
+            break;
+          }
+          openNotams(t.dataset.fir);
+          return _context5.a(2);
+        case 2:
+          w = e.target.closest('.wp[data-w]');
+          if (!(!w || !CUR || !CUR.n)) {
+            _context5.n = 3;
+            break;
+          }
+          return _context5.a(2);
+        case 3:
+          _context5.n = 4;
+          return askT(X('过 ', 'Time over ') + w.dataset.w + X(' 的实际时间（UTC，4 位，例如 0815；留空 = 取消过点修正）', ' (UTC, e.g. 0815; empty = clear)'), hmZ(Date.now()));
+        case 4:
+          v = _context5.v;
+          if (!(v === null)) {
+            _context5.n = 5;
+            break;
+          }
+          return _context5.a(2);
+        case 5:
+          if (/^\d{4}$/.test(v.trim())) {
+            _context5.n = 6;
+            break;
+          }
+          _ls('ato.' + CUR.k, '');
+          draw();
+          return _context5.a(2);
+        case 6:
+          wp = CUR.n.find(function (x) {
+            return x[0] === w.dataset.w;
+          }), plan = offOf(CUR) + wp[1] * MIN, d0 = Date.UTC(new Date(plan).getUTCFullYear(), new Date(plan).getUTCMonth(), new Date(plan).getUTCDate()) + (+v.slice(0, 2) * 60 + +v.slice(2)) * MIN;
+          _ls('ato.' + CUR.k, JSON.stringify({
+            w: wp[0],
+            t: [d0 - 864e5, d0, d0 + 864e5].sort(function (a, b) {
+              return Math.abs(a - plan) - Math.abs(b - plan);
+            })[0]
+          }));
+          draw();
+        case 7:
+          return _context5.a(2);
+      }
+    }, _callee5);
   }));
-  draw();
-};
+  return function (_x13) {
+    return _ref7.apply(this, arguments);
+  };
+}();
 $('wps').onclick = function (e) {
   return $('wpl').onclick(e);
 };
@@ -4749,68 +4862,113 @@ $('zout').onclick = function () {
   _ls('zoom', String(Math.round(ZOOM)));
   draw();
 };
-$('row').addEventListener('click', function (e) {
-  var L = CUR;
-  if (!L) return;
-  if (e.target.closest('#c-zfw')) {
-    $('b-zfw').click();
-    return;
-  }
-  if (e.target.closest('#c-fir')) {
-    var FI = L.fi || [],
-      el = (Date.now() - offOf(L)) / MIN,
-      fx = FI.find(function (f) {
-        return f[3] > Math.max(0, el);
-      });
-    if (fx) openNotams(FIRALIAS[fx[1]] || fx[1]);
-    return;
-  }
-  if (e.target.closest('#c-wp') && L.n) {
-    var off = offOf(L),
-      _el = (Date.now() - off) / MIN,
-      last = L.n.filter(function (w) {
-        return w[1] <= _el;
-      }).slice(-1)[0] || L.n[1] || L.n[0];
-    var v = prompt(X('过点时间：航路点 + UTC 时间（例如 ', 'Time over waypoint: name + UTC (e.g. ') + (last ? last[0] : 'CHILA') + ' ' + hmZ(Date.now()) + X('）；留空 = 取消过点修正', '); empty = clear'), last ? last[0] + ' ' + hmZ(Date.now()) : '');
-    if (v === null) return;
-    var mm = /^\s*([A-Z0-9]{2,8})\s+(\d{4})\s*$/i.exec(v);
-    if (!mm) {
-      _ls('ato.' + L.k, '');
-      draw();
-      return;
-    }
-    var w = L.n.find(function (x) {
-      return x[0] === mm[1].toUpperCase();
-    });
-    if (!w) {
-      alert(X('这条航路上没有 ', 'No waypoint ') + mm[1]);
-      return;
-    }
-    var plan = offOf(L) + w[1] * MIN,
-      d0 = Date.UTC(new Date(plan).getUTCFullYear(), new Date(plan).getUTCMonth(), new Date(plan).getUTCDate()) + (+mm[2].slice(0, 2) * 60 + +mm[2].slice(2)) * MIN;
-    _ls('ato.' + L.k, JSON.stringify({
-      w: w[0],
-      t: [d0 - 864e5, d0, d0 + 864e5].sort(function (a, b) {
-        return Math.abs(a - plan) - Math.abs(b - plan);
-      })[0]
-    }));
-    draw();
-    return;
-  }
-  if (e.target.closest('#c-atd')) {
-    var _v2 = prompt(L.no + X(' 实际起飞 ATD（UTC，4 位，例如 0815；留空 = 按计划）', ' actual T/O time (UTC, e.g. 0815; empty = plan)'), atdOf(L) ? hmZ(atdOf(L)) : '');
-    if (_v2 === null) return;
-    _ls('ato.' + L.k, '');
-    if (!/^\d{4}$/.test(_v2.trim())) _ls('atd.' + L.k, '');else {
-      var s = L.std,
-        _d = Date.UTC(new Date(s).getUTCFullYear(), new Date(s).getUTCMonth(), new Date(s).getUTCDate()) + (+_v2.slice(0, 2) * 60 + +_v2.slice(2)) * MIN;
-      _ls('atd.' + L.k, String([_d - 864e5, _d, _d + 864e5].sort(function (a, b) {
-        return Math.abs(a - s) - Math.abs(b - s);
-      })[0]));
-    }
-    draw();
-  }
-});
+$('row').addEventListener('click', function () {
+  var _ref8 = _asyncToGenerator(_regenerator().m(function _callee6(e) {
+    var L, FI, el, fx, off, _el, last, v, mm, w, plan, d0, _v2, s, _d;
+    return _regenerator().w(function (_context6) {
+      while (1) switch (_context6.n) {
+        case 0:
+          L = CUR;
+          if (L) {
+            _context6.n = 1;
+            break;
+          }
+          return _context6.a(2);
+        case 1:
+          if (!e.target.closest('#c-zfw')) {
+            _context6.n = 2;
+            break;
+          }
+          $('b-zfw').click();
+          return _context6.a(2);
+        case 2:
+          if (!e.target.closest('#c-fir')) {
+            _context6.n = 3;
+            break;
+          }
+          FI = L.fi || [], el = (Date.now() - offOf(L)) / MIN, fx = FI.find(function (f) {
+            return f[3] > Math.max(0, el);
+          });
+          if (fx) openNotams(FIRALIAS[fx[1]] || fx[1]);
+          return _context6.a(2);
+        case 3:
+          if (!(e.target.closest('#c-wp') && L.n)) {
+            _context6.n = 8;
+            break;
+          }
+          off = offOf(L), _el = (Date.now() - off) / MIN, last = L.n.filter(function (w) {
+            return w[1] <= _el;
+          }).slice(-1)[0] || L.n[1] || L.n[0];
+          _context6.n = 4;
+          return askT(X('过点时间：航路点 + UTC 时间（例如 ', 'Time over waypoint: name + UTC (e.g. ') + (last ? last[0] : 'CHILA') + ' ' + hmZ(Date.now()) + X('）；留空 = 取消过点修正', '); empty = clear'), last ? last[0] + ' ' + hmZ(Date.now()) : '');
+        case 4:
+          v = _context6.v;
+          if (!(v === null)) {
+            _context6.n = 5;
+            break;
+          }
+          return _context6.a(2);
+        case 5:
+          mm = /^\s*([A-Z0-9]{2,8})\s+(\d{4})\s*$/i.exec(v);
+          if (mm) {
+            _context6.n = 6;
+            break;
+          }
+          _ls('ato.' + L.k, '');
+          draw();
+          return _context6.a(2);
+        case 6:
+          w = L.n.find(function (x) {
+            return x[0] === mm[1].toUpperCase();
+          });
+          if (w) {
+            _context6.n = 7;
+            break;
+          }
+          alert(X('这条航路上没有 ', 'No waypoint ') + mm[1]);
+          return _context6.a(2);
+        case 7:
+          plan = offOf(L) + w[1] * MIN, d0 = Date.UTC(new Date(plan).getUTCFullYear(), new Date(plan).getUTCMonth(), new Date(plan).getUTCDate()) + (+mm[2].slice(0, 2) * 60 + +mm[2].slice(2)) * MIN;
+          _ls('ato.' + L.k, JSON.stringify({
+            w: w[0],
+            t: [d0 - 864e5, d0, d0 + 864e5].sort(function (a, b) {
+              return Math.abs(a - plan) - Math.abs(b - plan);
+            })[0]
+          }));
+          draw();
+          return _context6.a(2);
+        case 8:
+          if (!e.target.closest('#c-atd')) {
+            _context6.n = 11;
+            break;
+          }
+          _context6.n = 9;
+          return askT(L.no + X(' 实际起飞 ATD（UTC，4 位，例如 0815；留空 = 按计划）', ' actual T/O time (UTC, e.g. 0815; empty = plan)'), atdOf(L) ? hmZ(atdOf(L)) : '');
+        case 9:
+          _v2 = _context6.v;
+          if (!(_v2 === null)) {
+            _context6.n = 10;
+            break;
+          }
+          return _context6.a(2);
+        case 10:
+          _ls('ato.' + L.k, '');
+          if (!/^\d{4}$/.test(_v2.trim())) _ls('atd.' + L.k, '');else {
+            s = L.std, _d = Date.UTC(new Date(s).getUTCFullYear(), new Date(s).getUTCMonth(), new Date(s).getUTCDate()) + (+_v2.slice(0, 2) * 60 + +_v2.slice(2)) * MIN;
+            _ls('atd.' + L.k, String([_d - 864e5, _d, _d + 864e5].sort(function (a, b) {
+              return Math.abs(a - s) - Math.abs(b - s);
+            })[0]));
+          }
+          draw();
+        case 11:
+          return _context6.a(2);
+      }
+    }, _callee6);
+  }));
+  return function (_x14) {
+    return _ref8.apply(this, arguments);
+  };
+}());
 $('b-menu').onclick = function () {
   return $('menu').classList.toggle('open');
 };
@@ -4897,33 +5055,33 @@ function wake() {
   return _wake.apply(this, arguments);
 }
 function _wake() {
-  _wake = _asyncToGenerator(_regenerator().m(function _callee13() {
+  _wake = _asyncToGenerator(_regenerator().m(function _callee17() {
     var _t45;
-    return _regenerator().w(function (_context22) {
-      while (1) switch (_context22.p = _context22.n) {
+    return _regenerator().w(function (_context26) {
+      while (1) switch (_context26.p = _context26.n) {
         case 0:
-          _context22.p = 0;
+          _context26.p = 0;
           if (!('wakeLock' in navigator && document.visibilityState === 'visible' && !wl)) {
-            _context22.n = 2;
+            _context26.n = 2;
             break;
           }
-          _context22.n = 1;
+          _context26.n = 1;
           return navigator.wakeLock.request('screen');
         case 1:
-          wl = _context22.v;
+          wl = _context26.v;
           wl.addEventListener('release', function () {
             wl = null;
           });
         case 2:
-          _context22.n = 4;
+          _context26.n = 4;
           break;
         case 3:
-          _context22.p = 3;
-          _t45 = _context22.v;
+          _context26.p = 3;
+          _t45 = _context26.v;
         case 4:
-          return _context22.a(2);
+          return _context26.a(2);
       }
-    }, _callee13, null, [[0, 3]]);
+    }, _callee17, null, [[0, 3]]);
   }));
   return _wake.apply(this, arguments);
 }

@@ -406,10 +406,10 @@ function openLog() {
   return _openLog.apply(this, arguments);
 }
 function _openLog() {
-  _openLog = _asyncToGenerator(_regenerator().m(function _callee5() {
+  _openLog = _asyncToGenerator(_regenerator().m(function _callee6() {
     var sh, _paint, _t3;
-    return _regenerator().w(function (_context5) {
-      while (1) switch (_context5.p = _context5.n) {
+    return _regenerator().w(function (_context6) {
+      while (1) switch (_context6.p = _context6.n) {
         case 0:
           sh = $('sheet');
           sh.style.display = 'block';
@@ -475,52 +475,70 @@ function _openLog() {
               lbSync().then(_paint);
             };
             sh.querySelectorAll('td.lbt').forEach(function (el) {
-              return el.onclick = function () {
-                var k = el.dataset.k,
-                  f = el.dataset.f,
-                  e = LBK.find(function (x) {
-                    return x.k === k;
-                  });
-                if (!e) return;
-                var v = prompt(e.flt + ' ' + {
-                  offB: XS('撤轮挡', 'OFF'),
-                  to: XS('起飞', 'T/O'),
-                  ldg: XS('落地', 'LDG'),
-                  onB: XS('挡轮挡', 'ON')
-                }[f] + ' (UTC hhmm)', e[f] ? hmZ(e[f]) : '');
-                if (v === null || !/^\d{4}$/.test(v.trim())) return;
-                var ref = e[f] || e.std || e.date,
-                  d0 = Date.UTC(new Date(ref).getUTCFullYear(), new Date(ref).getUTCMonth(), new Date(ref).getUTCDate()) + (+v.slice(0, 2) * 60 + +v.slice(2)) * MIN;
-                var y = JSON.parse(JSON.stringify(e));
-                y[f] = [d0 - 864e5, d0, d0 + 864e5].sort(function (a, b) {
-                  return Math.abs(a - ref) - Math.abs(b - ref);
-                })[0];
-                y.src = y.src || {};
-                y.src[f] = 'man';
-                lbPut(y);
-                _paint();
-                lbSync().then(_paint);
-              };
+              return el.onclick = _asyncToGenerator(_regenerator().m(function _callee5() {
+                var k, f, e, v, ref, d0, y;
+                return _regenerator().w(function (_context5) {
+                  while (1) switch (_context5.n) {
+                    case 0:
+                      k = el.dataset.k, f = el.dataset.f, e = LBK.find(function (x) {
+                        return x.k === k;
+                      });
+                      if (e) {
+                        _context5.n = 1;
+                        break;
+                      }
+                      return _context5.a(2);
+                    case 1:
+                      _context5.n = 2;
+                      return askT(e.flt + ' ' + {
+                        offB: XS('撤轮挡', 'OFF'),
+                        to: XS('起飞', 'T/O'),
+                        ldg: XS('落地', 'LDG'),
+                        onB: XS('挡轮挡', 'ON')
+                      }[f] + ' (UTC hhmm)', e[f] ? hmZ(e[f]) : '');
+                    case 2:
+                      v = _context5.v;
+                      if (!(v === null || !/^\d{4}$/.test(v.trim()))) {
+                        _context5.n = 3;
+                        break;
+                      }
+                      return _context5.a(2);
+                    case 3:
+                      ref = e[f] || e.std || e.date, d0 = Date.UTC(new Date(ref).getUTCFullYear(), new Date(ref).getUTCMonth(), new Date(ref).getUTCDate()) + (+v.slice(0, 2) * 60 + +v.slice(2)) * MIN;
+                      y = JSON.parse(JSON.stringify(e));
+                      y[f] = [d0 - 864e5, d0, d0 + 864e5].sort(function (a, b) {
+                        return Math.abs(a - ref) - Math.abs(b - ref);
+                      })[0];
+                      y.src = y.src || {};
+                      y.src[f] = 'man';
+                      lbPut(y);
+                      _paint();
+                      lbSync().then(_paint);
+                    case 4:
+                      return _context5.a(2);
+                  }
+                }, _callee5);
+              }));
             });
           };
           lbMsg = '⏳ ' + XS('同步中…', 'Syncing…');
           _paint();
-          _context5.p = 1;
-          _context5.n = 2;
+          _context6.p = 1;
+          _context6.n = 2;
           return lbSync();
         case 2:
-          _context5.n = 4;
+          _context6.n = 4;
           break;
         case 3:
-          _context5.p = 3;
-          _t3 = _context5.v;
+          _context6.p = 3;
+          _t3 = _context6.v;
           lbMsg = '⚠️ ' + _t3.message;
         case 4:
           _paint();
         case 5:
-          return _context5.a(2);
+          return _context6.a(2);
       }
-    }, _callee5, null, [[1, 3]]);
+    }, _callee6, null, [[1, 3]]);
   }));
   return _openLog.apply(this, arguments);
 }
