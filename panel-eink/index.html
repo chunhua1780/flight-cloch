@@ -289,7 +289,7 @@ html.eink .rf .ch.r,html.eink .rf .ch.b{background:#000;border-color:#000}html.e
 <div id="app">
   <div id="top"><div id="sbar"></div><div id="sel"><span class="fl" id="fl"></span></div><div id="tbar"><div id="ovw"></div><span id="cbt"></span><span id="tlc"></span></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
   <div id="wps"></div><div id="legs"></div>
-  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><span id="tocd"></span><div id="mcards"><div id="depc"></div><div id="apn"></div><div id="gpsc"></div></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><span class="zb" id="zbd" style="top:218px;font-size:18px;display:none" title="Before departure">🛫</span><div id="lyp"></div>
+  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><span id="tocd"></span><div id="mcards"><div id="depc"></div><div id="apn"></div><div id="gpsc"></div></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><span class="zb" id="zbd" style="top:218px;font-size:18px;display:none" title="Before departure">🛫</span><span class="zb" id="zrot" style="top:260px;font-size:15px" title="Map orientation">N↑</span><div id="lyp"></div>
     <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div><div id="altl"></div></div></div>
   <div id="alc"><div class="ah"><b id="alt"></b><span class="ax" id="alc-x">✕</span></div><div id="alx"></div></div><span id="warn"></span>
   <div id="rk" style="display:none"></div><div id="chk"></div>
@@ -893,7 +893,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611272230';
+var PAGEV = '202611280412';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -2178,6 +2178,13 @@ function bbox(a) {
 }
 var ZOOM = +(_ls('zoom') || 700);
 var AREAS = {};
+var MROT = function () {
+  try {
+    return localStorage.getItem('pnl.mrot') || 'N';
+  } catch (e) {
+    return 'N';
+  }
+}();
 var FOCUS = null;
 function focusArea(A) {
   var pts = A.poly || [A.c || A.pt];
@@ -2283,8 +2290,16 @@ function drawMap(L, el, ph, S, hot) {
   var FR = freeRect(cv, W, H),
     CX = FR[0],
     CY = FR[1];
+  var cur0 = ph === 1 ? wpos(L, el) : null,
+    gtrk = S && S.src === 'GPS' && GPS.fix && GPS.fix.trk >= 0 && GPS.fix.gs > 50 ? GPS.fix.trk : null;
+  var trkD = gtrk != null ? gtrk : cur0 && cur0.a && cur0.b ? brgOf([cur0.a[2], cur0.a[3]], [cur0.b[2], cur0.b[3]]) : N[1] ? brgOf([N[0][2], N[0][3]], [N[1][2], N[1][3]]) : 0;
+  var rot = (MROT === 'H' ? -trkD : MROT === 'R' ? 90 : MROT === 'L' ? -90 : 0) * Math.PI / 180,
+    rc = Math.cos(rot),
+    rs = Math.sin(rot);
   var xy = function xy(la, lo) {
-    return [CX + dlon(lo, c0[1]) * 60 * k * s, CY - (la - c0[0]) * 60 * s];
+    var x = dlon(lo, c0[1]) * 60 * k * s,
+      y = -(la - c0[0]) * 60 * s;
+    return [CX + x * rc - y * rs, CY + x * rs + y * rc];
   };
   var vis = function vis(bb) {
     var sc = LAND && LAND.s || 20,
@@ -2292,8 +2307,8 @@ function drawMap(L, el, ph, S, hot) {
       la1 = bb[3] / sc,
       lo0 = bb[0] / sc,
       lo1 = bb[2] / sc,
-      hw = ZOOM / 60 / Math.max(.2, k) * .8,
-      hh = ZOOM / 60 * H / W;
+      hw = ZOOM / 60 / Math.max(.2, k) * (rot ? 1.6 : .8),
+      hh = ZOOM / 60 * (rot ? Math.max(1, H / W) * 1.6 : H / W);
     return !(la1 < c0[0] - hh || la0 > c0[0] + hh) && (lo1 - lo0 > 300 || !(dlon(lo1, c0[1]) < -hw || dlon(lo0, c0[1]) > hw));
   };
   if (LAND) {
@@ -2462,7 +2477,7 @@ function drawMap(L, el, ph, S, hot) {
   });
   var ac = xy(P[0], P[1]);
   var hdg = 0;
-  if (S && S.src === 'GPS' && GPS.fix && GPS.fix.trk >= 0 && GPS.fix.gs > 50) hdg = GPS.fix.trk * Math.PI / 180;else if (cur && cur.a && cur.b) {
+  if (S && S.src === 'GPS' && GPS.fix && GPS.fix.trk >= 0 && GPS.fix.gs > 50) hdg = GPS.fix.trk * Math.PI / 180 + rot;else if (cur && cur.a && cur.b) {
     var a = xy(cur.a[2], cur.a[3]),
       b = xy(cur.b[2], cur.b[3]);
     hdg = Math.atan2(b[0] - a[0], -(b[1] - a[1]));
@@ -4043,7 +4058,8 @@ var brgOf = function brgOf(a, b) {
   return (Math.atan2(y, x) / r + 360) % 360;
 };
 var ACTRK = 0;
-function altNow(L, pos, t) {
+function altNow(L, pos, t, lim) {
+  lim = lim || R1NM;
   if (!pos) return [];
   var ti = tyIdx(L),
     R = {
@@ -4054,7 +4070,7 @@ function altNow(L, pos, t) {
     };
   return apCands(L).map(function (a) {
     var d = gcd(pos, a.pos);
-    if (d > R1NM) return null;
+    if (d > lim) return null;
     var cat = a.e ? ekCat(a.e, ti, t) : null;
     if (a.e && !(cat in CATO)) return null;
     var wx = apWx(L, a.icao, t + d / R1NM * HOUR);
@@ -4076,8 +4092,15 @@ function altlShow(L, pos, t, ph) {
   var b = $('altl');
   var h = '';
   if (LAY.l && !L.noOfp && pos && ph !== 2) {
-    var A = altNow(L, pos, t);
-    h = '<div class="ah"><span>🛬 ' + XS('1 小时内备降', 'Altn ≤ 1 h') + '</span><span class="gr">⠿</span>' + (EKT ? '' : '<small style="font-weight:600">' + XS('无授权表', 'no EK table') + '</small>') + '</div>' + (A.length ? A.map(function (x) {
+    var A = altNow(L, pos, t),
+      far = 0;
+    if (!A.length) {
+      A = altNow(L, pos, t, 1e5).sort(function (x, y) {
+        return x.d - y.d;
+      }).slice(0, 3);
+      far = 1;
+    }
+    h = '<div class="ah"><span>🛬 ' + (far ? XS('最近备降（超过 1 小时）', 'Nearest altn (> 1 h)') : XS('1 小时内备降', 'Altn ≤ 1 h')) + '</span><span class="gr">⠿</span>' + (EKT ? '' : '<small style="font-weight:600">' + XS('无授权表', 'no EK table') + '</small>') + '</div>' + (A.length ? A.map(function (x) {
       return '<div class="ar" data-ap="' + x.a.icao + '"><span class="wd ' + x.rate + '"></span>' + ctTag(x.cat) + '<b>' + x.a.icao + '</b><span class="d"><i class="ba" style="transform:rotate(' + Math.round(x.brg) + 'deg)">↑</i>' + String(Math.round(x.brg) % 360).padStart(3, '0') + '° ' + Math.round(x.d) + 'nm · ' + Math.round(x.d / R1NM * 60) + "'</span></div>";
     }).join('') : '<div class="ar" style="cursor:default;color:#c00000">' + XS('1 小时内没有合适的机场', 'None within 1 h') + '</div>');
   }
@@ -4649,6 +4672,9 @@ $('wpl').onclick = function (e) {
   }));
   draw();
 };
+$('wps').onclick = function (e) {
+  return $('wpl').onclick(e);
+};
 $('sinfo').onclick = function (e) {
   var t = e.target.closest('.si');
   if (!t) return;
@@ -4688,6 +4714,24 @@ $('wpl').addEventListener('scroll', function () {
 });
 $('zcb').onclick = function () {
   return openCrew();
+};
+var MROTL = {
+  N: 'N↑',
+  H: '✈↑',
+  R: 'N→',
+  L: '←N'
+};
+$('zrot').textContent = MROTL[MROT] || 'N↑';
+$('zrot').onclick = function () {
+  MROT = {
+    N: 'H',
+    H: 'R',
+    R: 'L',
+    L: 'N'
+  }[MROT] || 'N';
+  _ls('mrot', MROT);
+  $('zrot').textContent = MROTL[MROT];
+  draw();
 };
 $('zfoc').onclick = function () {
   FOCUS = null;
