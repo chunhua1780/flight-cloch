@@ -221,6 +221,7 @@ html.eink #apn{border-color:#000}html.eink #apn .ah{color:#000}
 .bx .sid{display:block;font-size:10.5px;font-weight:900;color:#1c5fc4;letter-spacing:.02em}html.eink .bx .sid{color:#000}
 .rt .rr small{font-size:.72em;font-weight:700;color:#444}
 /* 起飞前：大卡片（OFP 编号 + 跑道 + 离场程序）、航班号下面红色起飞倒计时 */
+#arrc{display:none;background:#fff;border:3px solid #000;border-radius:12px;padding:6px 14px 8px;box-shadow:0 4px 14px rgba(0,0,0,.25);text-align:center}#arrc .h{font-size:13px;font-weight:900;color:#444}#arrc .rw{font-size:44px;font-weight:900;line-height:1}#arrc .rw small{font-size:16px;color:#444;margin-right:6px}#arrc .st{font-size:30px;font-weight:900;color:#1c5fc4;margin-top:2px}#arrc .btn{margin-top:6px}
 #depc{display:none;background:#fff;border:3px solid #000;border-radius:12px;padding:4px 12px 6px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 #depc .on{font-size:12px;font-weight:900;color:#444;letter-spacing:.06em}#depc .on b{display:block;font-size:52px;line-height:.95;color:#000;letter-spacing:-.02em}
 #depc .rw{font-size:22px;font-weight:900;line-height:1.15;margin-top:3px}#depc .rw small{font-size:13px;color:#444;margin-right:4px}#depc .sd{font-size:20px;font-weight:900;color:#1c5fc4}
@@ -289,7 +290,7 @@ html.eink .rf .ch.r,html.eink .rf .ch.b{background:#000;border-color:#000}html.e
 <div id="app">
   <div id="top"><div id="sbar"></div><div id="sel"><span class="fl" id="fl"></span></div><div id="tbar"><div id="ovw"></div><span id="cbt"></span><span id="tlc"></span></div><div id="tinfo"><div class="rt" id="rt"></div><div class="row" id="row"></div><div class="ph" id="ph"></div><div id="hov"></div></div></div>
   <div id="wps"></div><div id="legs"></div>
-  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><span id="tocd"></span><div id="mcards"><div id="depc"></div><div id="apn"></div><div id="gpsc"></div></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><span class="zb" id="zbd" style="top:218px;font-size:18px;display:none" title="Before departure">🛫</span><span class="zb" id="zrot" style="top:260px;font-size:15px" title="Map orientation">N↑</span><div id="lyp"></div>
+  <div id="main"><div id="mapw"><canvas id="map"></canvas><span id="firl"></span><span id="gpsb"></span><span id="tocd"></span><div id="mcards"><div id="depc"></div><div id="arrc"></div><div id="apn"></div><div id="gpsc"></div></div><span class="zb" id="zin" style="top:8px">+</span><span class="zb" id="zout" style="top:50px">−</span><span class="zb" id="zfoc" style="top:92px;display:none">◎</span><span class="zb" id="zcb" style="top:134px;font-size:19px" title="Crew brief">📋</span><span class="zb" id="zly" style="top:176px;font-size:17px" title="Layers">ALT</span><span class="zb" id="zbd" style="top:218px;font-size:18px;display:none" title="Before departure">🛫</span><span class="zb" id="zrot" style="top:260px;font-size:15px" title="Map orientation">N↑</span><div id="lyp"></div>
     <div id="board"></div><div id="newb" style="position:absolute;left:8px;right:8px;top:8px;display:none;background:#0a8a3a;color:#fff;border-radius:12px;padding:8px 10px;font-weight:800;font-size:14px;z-index:4"></div><span id="demob"></span><div id="wpop"></div><span class="fab" id="b-menu">☰</span><div id="st"></div></div><div id="side"><div id="fhdr"></div><div id="wpl"></div><div id="sinfo"></div><div id="altl"></div></div></div>
   <div id="alc"><div class="ah"><b id="alt"></b><span class="ax" id="alc-x">✕</span></div><div id="alx"></div></div><span id="warn"></span>
   <div id="rk" style="display:none"></div><div id="chk"></div>
@@ -893,7 +894,7 @@ var VER = function VER() {
   } catch (e) {}
   return 'v' + (w || PAGEV).slice(-8) + (a ? ' · App ' + a : '');
 };
-var PAGEV = '202611280527';
+var PAGEV = '202611280532';
 function update(_x4) {
   return _update.apply(this, arguments);
 }
@@ -1801,7 +1802,7 @@ function _cloudUp() {
   return _cloudUp.apply(this, arguments);
 }
 var FIRN = [[/CONFLICT ZONE|HAZARDOUS SITUATION|SECURITY WARNING|MISSILE|ROCKET|HOSTILE|WEAPON|ARMED CONFLICT/, 'red', '冲突区 / 安全警告', 'Conflict zone / security warning'], [/VOLCANIC|\bVA\s+(CLOUD|ERUPTION)/, 'red', '火山灰', 'Volcanic ash'], [/(?:RTE|ROUTE|SEGMENT|AWY)S?\b[^.]{0,80}\bCLSD|AIRSPACE\s+CLSD|FIR\s+(?:IS\s+)?CLSD/, 'red', '航路 / 空域关闭', 'Route / airspace closed'], [/GNSS|\bGPS\b/, 'amber', 'GPS 干扰', 'GNSS interference'], [/(?:FREQ|HF)[^.]{0,120}\bU\/S\b|RADAR[^.]{0,80}(?:U\/S|NOT AVBL)|CPDLC[^.]{0,40}(?:U\/S|NOT AVBL)|ADS-C[^.]{0,40}NOT AVBL/, 'amber', 'ATC 频率 / 雷达部分不可用', 'ATC frequency / radar partly U/S'], [/\bBIRDS?\b[^.]{0,60}(?:ACTIVIT|MIGRAT|FLOCK|STRIKE)/, 'amber', '鸟群活动', 'Bird activity'], [/ARTILLERY|FIRING|\bEXER\b|MIL(?:ITARY)? EXERCISE|PARA DROP|DANGER AREA|DNG AREA|RESTRICTED AREA|PROHIBITED/, 'amber', '军事活动 / 限制区', 'Military activity / restricted area']];
-var SV = 5;
+var SV = 6;
 var FIRALIAS = {
   ZGGG: 'ZGZU',
   ZGNN: 'ZGZU',
@@ -1854,6 +1855,10 @@ function summarize(o) {
     drw: f.depRwy || '',
     arw: f.arrRwy || '',
     sid: (o.navlog || [])[1] && /^[A-Z]{2,6}\d[A-Z]$/.test(o.navlog[1].awy || '') ? o.navlog[1].awy : '',
+    star: function () {
+      var z = (o.navlog || [])[(o.navlog || []).length - 1];
+      return z && /^[A-Z]{2,6}\d[A-Z]$/.test(z.awy || '') ? z.awy : '';
+    }(),
     k: f.no + f.date,
     no: f.no,
     date: f.date,
@@ -3222,6 +3227,7 @@ function draw() {
   gpscShow(L, ph, el, off, now);
   apnShow(L, ph, now);
   crrShow(L, ph, off, now);
+  arrShow(L, ph, off, now);
   depShow(L, ph, off, now);
   if ($('row').innerHTML !== row) $('row').innerHTML = row;
   var pre = ph === 0 && !L.noOfp;
@@ -3821,6 +3827,18 @@ function crewAlerts(L, S, now) {
   }];
 }
 var CRR_OPEN = 0;
+function arrShow(L, ph, off, now) {
+  var b = $('arrc'),
+    on = off + (L.tr || 0) * MIN;
+  var h = '';
+  if (ph === 1 && !L.noOfp && (L.arw || L.star) && now >= on - 60 * MIN && !_ls('arrc.' + L.k)) h = '<div class="h">🛬 ' + XS('落地', 'Arrival') + ' · ' + esc(L.arr || L.bi) + '</div>' + (L.arw ? '<div class="rw"><small>RWY</small>' + esc(L.arw) + '</div>' : '') + (L.star ? '<div class="st">' + esc(L.star) + '</div>' : '') + '<span class="btn">✓ ' + XS('知道了', 'OK') + '</span>';
+  if (b.innerHTML !== h) b.innerHTML = h;
+  b.style.display = h ? 'block' : 'none';
+}
+$('arrc').onclick = function () {
+  if (CUR) _ls('arrc.' + CUR.k, '1');
+  $('arrc').style.display = 'none';
+};
 function crrBox() {
   var b = $('crr');
   if (!b) {
