@@ -1,6 +1,6 @@
 /* ===== 自动更新 =====
    这个文件（Code）会自己从 GitHub 更新（每小时检查一次）。私人的口令、Key 和公司资料放在另一个文件 Secrets.gs 里，自动更新不会碰它。 */
-const BACKEND_VER = '2026-11-28a';
+const BACKEND_VER = '2026-11-28b';
 ['OFP_POST_KEY', 'PEXELS_KEY_INLINE', 'GEMINI_KEY_INLINE', 'GITHUB_TOKEN_INLINE', 'WAC_GZ', 'DEEPSEEK_KEY'].forEach(function (k) {
   Object.defineProperty(globalThis, k, { configurable: true, get: function () { return (typeof SECRETS === 'object' && SECRETS && SECRETS[k]) || ''; } });
 });
@@ -1660,13 +1660,13 @@ function aofpRead_(bytes) {
 // 激活码表在私有仓库 lic/licences.json：{ "员工号": { "c": "激活码", "ed": "pro|full|lite", "max": 2, "off": 0, "n": "备注" } }
 // 绑定的设备记在脚本属性 licdev_员工号；off = 1 停用；把这一项删掉设备也就作废
 function clockApp_(p) {
-  const staff = String(p.staff || '').trim().toUpperCase().replace(/\s+/g, ''), code = String(p.code || '').trim().toUpperCase(), dev = String(p.dev || '').slice(0, 64);
+  const staff = String(p.staff || '').trim().toUpperCase().replace(/\s+/g, ''), code = String(p.code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''), dev = String(p.dev || '').slice(0, 64);
   if (!staff || !code || !dev) return { ok: false, error: 'missing' };
   const cache = CacheService.getScriptCache(); let L = null;
   try { L = JSON.parse(cache.get('lic') || 'null'); } catch (e) {}
   if (!L) { try { L = JSON.parse(ghRawText_('lic/licences.json')); cache.put('lic', JSON.stringify(L), 300); } catch (e) { return { ok: false, error: 'licence list unavailable' }; } }
   const r = L[staff];
-  if (!r || String(r.c).toUpperCase() !== code) { Utilities.sleep(1500); return { ok: false, error: 'wrong staff number or code' }; }
+  if (!r || String(r.c).toUpperCase().replace(/[^A-Z0-9]/g, '') !== code) { Utilities.sleep(1500); return { ok: false, error: 'wrong staff number or code' }; }
   if (r.off) return { ok: false, error: 'code disabled' };
   const pr = PropertiesService.getScriptProperties(), k = 'licdev_' + staff; let D = []; try { D = JSON.parse(pr.getProperty(k) || '[]'); } catch (e) {}
   if (D.indexOf(dev) < 0) { if (D.length >= (r.max || 2)) return { ok: false, error: 'too many devices (max ' + (r.max || 2) + ')' }; D.push(dev); pr.setProperty(k, JSON.stringify(D)); }
