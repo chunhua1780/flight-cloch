@@ -1,7 +1,18 @@
+function llName(id) {
+  var m = /^([NS])(\d{2})(\d{2})?([EW])(\d{2,3})(\d{2})?$/.exec(id);
+  if (m) {
+    var la = (+m[2] + (m[3] ? +m[3] / 60 : 0)) * (m[1] === 'S' ? -1 : 1),
+      lo = (+m[5] + (m[6] ? +m[6] / 60 : 0)) * (m[4] === 'W' ? -1 : 1);
+    return la <= 90 && Math.abs(lo) <= 180 ? [la, lo] : null;
+  }
+  m = /^(\d{2})(\d{2})?([NS])(\d{2,3})(\d{2})?([EW])$/.exec(id);
+  if (m) return [(+m[1] + (m[2] ? +m[2] / 60 : 0)) * (m[3] === 'S' ? -1 : 1), (+m[4] + (m[5] ? +m[5] / 60 : 0)) * (m[6] === 'W' ? -1 : 1)];
+  return null;
+}
 (function (root) {
   'use strict';
 
-  var PV = 9;
+  var PV = 10;
   var MON = {
     JAN: 0,
     FEB: 1,
@@ -262,7 +273,7 @@
           continue;
         }
         if (/^\s*(AWY|WPT)\s/.test(l) || /^-{5,}/.test(l.trim())) continue;
-        var w = /^\s*([A-Z0-9_]{2,8})(?:\/\w+)?\b.*?\s(\d{4})\s+\.{4}\s+\.{4}/.exec(l);
+        var w = /^\s*([A-Z0-9_]{2,11})(?:\/\w+)?\b.*?\s(\d{4})\s+\.{4}\s+\.{4}/.exec(l);
         var first = /^\s*([A-Z]{4})\/\w+\s+[\d.]+\s*$/.exec(l);
         if (first && !out.navlog.length) {
           out.navlog.push({
@@ -318,18 +329,48 @@
       });
     }
     var _loop = function _loop() {
-        var lats = L[_i3].match(/\b[NS]\d{4}\.\d\b/g);
-        if (!lats) return 0;
-        var lons = (L[_i3 + 1] || '').match(/\b[EW]\d{5}\.\d\b/g);
-        if (!lons || lons.length !== lats.length) return 0;
-        var names = L[_i3 - 1].trim().split(/\s{2,}|\s(?=[A-Z])/).map(function (s) {
-          return s.trim();
-        }).filter(function (s) {
-          return /^[A-Z0-9_]{2,8}$/.test(s) && s !== 'CLIMB' && s !== 'DESCENT';
+        var lats = [],
+          lons = [];
+        L[_i3].replace(/\b[NS]\d{4}\.\d\b/g, function (m, o) {
+          lats.push({
+            v: m,
+            o: o
+          });
+          return m;
         });
-        if (names.length !== lats.length) return 0;
-        names.forEach(function (n, k) {
-          out.fixes[n === 'T_O_D' ? 'TOD' : n] = [ll(lats[k]), ll(lons[k])];
+        if (!lats.length) return 0;
+        (L[_i3 + 1] || '').replace(/\b[EW]\d{5}\.\d\b/g, function (m, o) {
+          lons.push({
+            v: m,
+            o: o
+          });
+          return m;
+        });
+        if (lons.length !== lats.length) return 0;
+        var nm = [];
+        L[_i3 - 1].replace(/[A-Z0-9_]{2,11}/g, function (m, o) {
+          if (m !== 'CLIMB' && m !== 'DESCENT') nm.push({
+            v: m,
+            o: o
+          });
+          return m;
+        });
+        if (nm.some(function (n) {
+          return !lats.some(function (a) {
+            return Math.abs(a.o - n.o) <= 3;
+          });
+        })) {
+          if (nm.length !== lats.length) return 0;
+          nm.forEach(function (n, k) {
+            n.o = lats[k].o;
+          });
+        }
+        lats.forEach(function (a, k) {
+          var n = nm.find(function (x) {
+            return Math.abs(x.o - a.o) <= 3;
+          });
+          var c = [ll(a.v), ll(lons[k].v)];
+          if (n) out.fixes[n.v === 'T_O_D' ? 'TOD' : n.v] = c;else out.llfix = (out.llfix || []).concat([c]);
         });
       },
       _ret;
@@ -337,6 +378,11 @@
       _ret = _loop();
       if (_ret === 0) continue;
     }
+    (out.navlog || []).forEach(function (w) {
+      if (out.fixes[w.id]) return;
+      var c = llName(w.id);
+      if (c) out.fixes[w.id] = c;
+    });
     var ws = L.findIndex(function (l) {
       return /^\s*Weather\s*$/.test(l);
     });
